@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root{
+      --primary:#1a7a4c;
+      --primary-dark:#125c39;
+      --bg:#f2f6f4;
+      --card:#ffffff;
+      --border:#dfe6e2;
+      --text:#1f2b26;
+      --muted:#6b7b74;
+      --danger:#c0392b;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:'Segoe UI',Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding:20px 14px 60px;
+    }
+    .wrap{max-width:640px;margin:0 auto;}
+    header{
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:#fff;
+      border-radius:14px;
+      padding:18px 20px;
+      margin-bottom:18px;
+      text-align:center;
+      box-shadow:0 4px 14px rgba(0,0,0,.12);
+    }
+    header h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.4px;
+      line-height:1.3;
+    }
+    header p{
+      margin:4px 0 0;
+      font-size:12px;
+      opacity:.85;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 2px 10px rgba(0,0,0,.06);
+      border:1px solid var(--border);
+      margin-bottom:20px;
+      position:relative;
+    }
+    .card-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:14px;
+      gap:10px;
+    }
+    .card-top h2{
+      font-size:15px;
+      margin:0;
+      color:var(--primary-dark);
+    }
+    .kode-badge{
+      background:#eaf6ef;
+      border:1px solid #bfe3cd;
+      color:var(--primary-dark);
+      border-radius:10px;
+      padding:8px 12px;
+      text-align:right;
+      min-width:110px;
+    }
+    .kode-badge span{
+      display:block;
+      font-size:10px;
+      color:var(--muted);
+      letter-spacing:.5px;
+      text-transform:uppercase;
+    }
+    .kode-badge b{
+      font-size:16px;
+      font-family:'Courier New',monospace;
+      letter-spacing:1px;
+    }
+
+    label{
+      display:block;
+      font-size:12px;
+      font-weight:600;
+      color:var(--muted);
+      margin:12px 0 4px;
+    }
+    input[type=text], input[type=date], select{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:9px;
+      font-size:14px;
+      background:#fbfdfc;
+      color:var(--text);
+    }
+    input:focus, select:focus{
+      outline:none;
+      border-color:var(--primary);
+      background:#fff;
+    }
+
+    .row-2col{
+      display:flex;
+      gap:12px;
+    }
+    .row-2col > div{
+      flex:1;
+      min-width:0;
+    }
+
+    .btn-row{
+      display:flex;
+      gap:10px;
+      margin-top:16px;
+    }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius:9px;
+      padding:11px 16px;
+      font-size:14px;
+      font-weight:600;
+      flex:1;
+    }
+    .btn-primary{
+      background:var(--primary);
+      color:#fff;
+    }
+    .btn-primary:hover{background:var(--primary-dark);}
+    .btn-secondary{
+      background:#eef1f0;
+      color:var(--text);
+      flex:0 0 auto;
+      padding:11px 14px;
+    }
+    .btn-secondary:hover{background:#e2e7e5;}
+
+    .msg{
+      font-size:12.5px;
+      margin-top:10px;
+      padding:8px 10px;
+      border-radius:8px;
+      display:none;
+    }
+    .msg.ok{display:block;background:#e8f7ee;color:var(--primary-dark);}
+    .msg.err{display:block;background:#fbeaea;color:var(--danger);}
+
+    .list-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .list-header h2{
+      font-size:15px;
+      margin:0;
+      color:var(--primary-dark);
+    }
+    .search{
+      width:150px;
+      padding:7px 10px;
+      font-size:13px;
+      border:1px solid var(--border);
+      border-radius:8px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    thead th{
+      text-align:left;
+      font-size:11px;
+      text-transform:uppercase;
+      color:var(--muted);
+      border-bottom:2px solid var(--border);
+      padding:6px 6px;
+    }
+    tbody td{
+      padding:9px 6px;
+      border-bottom:1px solid var(--border);
+      vertical-align:middle;
+    }
+    tbody tr:hover{background:#f7faf8;}
+    .kode-cell{font-family:'Courier New',monospace;color:var(--primary-dark);}
+    .jabatan-pill{
+      display:inline-block;
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:20px;
+      background:#eef1f0;
+      color:var(--text);
+    }
+    .actions{white-space:nowrap;}
+    .icon-btn{
+      border:none;
+      background:none;
+      cursor:pointer;
+      font-size:14px;
+      padding:4px 6px;
+      border-radius:6px;
+    }
+    .icon-btn.edit{color:#2666cc;}
+    .icon-btn.edit:hover{background:#e7eefc;}
+    .icon-btn.del{color:var(--danger);}
+    .icon-btn.del:hover{background:#fbeaea;}
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      padding:20px 0;
+    }
+    .loading{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      padding:14px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>INPUT ANGGOTA KGP<br>SMP NEGERI 1 KALIWEDI</h1>
+      <p>Koperasi Guru dan Pegawai &mdash; Data Anggota Kesejahteraan</p>
+    </header>
+
+    <div class="card">
+      <div class="card-top">
+        <h2 id="formTitle">Form Anggota Baru</h2>
+        <div class="kode-badge">
+          <span>Kode</span>
+          <b id="kodeDisplay">memuat...</b>
+        </div>
+      </div>
+
+      <input type="hidden" id="rowIndex" value="">
+
+      <label for="nama">Nama</label>
+      <input type="text" id="nama" placeholder="Nama lengkap anggota">
+
+      <div class="row-2col">
+        <div>
+          <label for="tanggal">Tanggal Daftar</label>
+          <input type="date" id="tanggal">
+        </div>
+        <div>
+          <label for="jabatan">Jabatan</label>
+          <select id="jabatan"></select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="btnSubmit" onclick="submitForm()">Simpan</button>
+        <button class="btn-secondary" id="btnCancel" onclick="resetForm()" style="display:none;">Batal</button>
+      </div>
+
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="list-header">
+        <h2>Daftar Anggota</h2>
+        <input type="text" class="search" id="search" placeholder="Cari nama..." oninput="renderMembers()">
+      </div>
+      <div id="listArea">
+        <div class="loading">Memuat data...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var JABATAN_DEFAULT = 'Anggota';
+    var allMembers = [];
+    var editing = false;
+
+    function init(){
+      google.script.run.withSuccessHandler(function(list){
+        var sel = document.getElementById('jabatan');
+        sel.innerHTML = '';
+        list.forEach(function(j){
+          var opt = document.createElement('option');
+          opt.value = j;
+          opt.textContent = j;
+          if (j === JABATAN_DEFAULT) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      }).getJabatanList();
+
+      google.script.run.withSuccessHandler(function(d){
+        document.getElementById('tanggal').value = d;
+      }).getToday();
+
+      loadNextCode();
+      loadMembers();
+    }
+
+    function loadNextCode(){
+      google.script.run.withSuccessHandler(function(kode){
+        document.getElementById('kodeDisplay').textContent = kode;
+      }).getNextCode();
+    }
+
+    function loadMembers(){
+      google.script.run.withSuccessHandler(function(list){
+        allMembers = list;
+        renderMembers();
+      }).getMembers();
+    }
+
+    function renderMembers(){
+      var area = document.getElementById('listArea');
+      var q = document.getElementById('search').value.toLowerCase().trim();
+      var items = allMembers.filter(function(m){
+        return !q || (m.nama || '').toLowerCase().indexOf(q) !== -1 || (m.kode || '').toLowerCase().indexOf(q) !== -1;
+      });
+
+      if (items.length === 0){
+        area.innerHTML = '<div class="empty">Belum ada data anggota.</div>';
+        return;
+      }
+
+      var html = '<table><thead><tr>' +
+        '<th>Kode</th><th>Nama</th><th>Jabatan</th><th></th>' +
+        '</tr></thead><tbody>';
+
+      items.forEach(function(m){
+        html += '<tr>' +
+          '<td class="kode-cell">' + escapeHtml(m.kode) + '</td>' +
+          '<td>' + escapeHtml(m.nama) + '</td>' +
+          '<td><span class="jabatan-pill">' + escapeHtml(m.jabatan) + '</span></td>' +
+          '<td class="actions">' +
+            '<button class="icon-btn edit" onclick="editMember(' + m.rowIndex + ')" title="Edit">&#9998;</button>' +
+            '<button class="icon-btn del" onclick="deleteMemberConfirm(' + m.rowIndex + ')" title="Hapus">&#128465;</button>' +
+          '</td>' +
+        '</tr>';
+      });
+      html += '</tbody></table>';
+      area.innerHTML = html;
+    }
+
+    function editMember(rowIndex){
+      var m = allMembers.filter(function(x){ return x.rowIndex === rowIndex; })[0];
+      if (!m) return;
+      editing = true;
+      document.getElementById('rowIndex').value = m.rowIndex;
+      document.getElementById('nama').value = m.nama;
+      document.getElementById('tanggal').value = m.tanggal;
+      document.getElementById('jabatan').value = m.jabatan;
+      document.getElementById('kodeDisplay').textContent = m.kode;
+      document.getElementById('formTitle').textContent = 'Edit Anggota';
+      document.getElementById('btnSubmit').textContent = 'Simpan Perubahan';
+      document.getElementById('btnCancel').style.display = 'block';
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function resetForm(){
+      editing = false;
+      document.getElementById('rowIndex').value = '';
+      document.getElementById('nama').value = '';
+      document.getElementById('jabatan').value = JABATAN_DEFAULT;
+      document.getElementById('formTitle').textContent = 'Form Anggota Baru';
+      document.getElementById('btnSubmit').textContent = 'Simpan';
+      document.getElementById('btnCancel').style.display = 'none';
+      google.script.run.withSuccessHandler(function(d){
+        document.getElementById('tanggal').value = d;
+      }).getToday();
+      loadNextCode();
+      hideMsg();
+    }
+
+    function submitForm(){
+      var nama = document.getElementById('nama').value.trim();
+      var tanggal = document.getElementById('tanggal').value;
+      var jabatan = document.getElementById('jabatan').value;
+      var rowIndex = document.getElementById('rowIndex').value;
+
+      if (!nama){
+        showMsg('Nama tidak boleh kosong.', 'err');
+        return;
+      }
+
+      var payload = { nama: nama, tanggal: tanggal, jabatan: jabatan };
+      var btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+
+      if (editing && rowIndex){
+        payload.rowIndex = rowIndex;
+        google.script.run
+          .withSuccessHandler(function(){
+            btn.disabled = false;
+            showMsg('Perubahan disimpan.', 'ok');
+            resetForm();
+            loadMembers();
+          })
+          .withFailureHandler(function(err){
+            btn.disabled = false;
+            showMsg(err.message || 'Gagal menyimpan.', 'err');
+          })
+          .updateMember(payload);
+      } else {
+        google.script.run
+          .withSuccessHandler(function(res){
+            btn.disabled = false;
+            showMsg('Anggota "' + res.nama + '" (kode ' + res.kode + ') berhasil ditambahkan.', 'ok');
+            resetForm();
+            loadMembers();
+          })
+          .withFailureHandler(function(err){
+            btn.disabled = false;
+            showMsg(err.message || 'Gagal menyimpan.', 'err');
+          })
+          .addMember(payload);
+      }
+    }
+
+    function deleteMemberConfirm(rowIndex){
+      var m = allMembers.filter(function(x){ return x.rowIndex === rowIndex; })[0];
+      if (!m) return;
+      if (!confirm('Hapus anggota "' + m.nama + '" (' + m.kode + ')?')) return;
+      google.script.run
+        .withSuccessHandler(function(){
+          if (editing && document.getElementById('rowIndex').value == rowIndex){
+            resetForm();
+          }
+          loadMembers();
+        })
+        .withFailureHandler(function(err){
+          alert(err.message || 'Gagal menghapus.');
+        })
+        .deleteMember(rowIndex);
+    }
+
+    function showMsg(text, type){
+      var el = document.getElementById('msg');
+      el.textContent = text;
+      el.className = 'msg ' + type;
+    }
+    function hideMsg(){
+      var el = document.getElementById('msg');
+      el.className = 'msg';
+      el.textContent = '';
+    }
+    function escapeHtml(s){
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
