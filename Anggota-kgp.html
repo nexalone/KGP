@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KESEJAHTERAAN GURU DAN KARYAWAN - SMP NEGERI 1 KALIWEDI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #eef5f0;
+      --card-bg: #ffffff;
+      --primary: #2d6a4f;
+      --primary-hover: #1b4332;
+      --accent: #52b788;
+      --text-main: #2b2d42;
+      --text-muted: #6c757d;
+      --border-color: #d8f3dc;
+      --danger: #e63946;
+      --danger-hover: #d62828;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 30px 15px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+    }
+
+    /* Header Styling */
+    .header-panel {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header-panel h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+    }
+
+    .header-panel h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 4px;
+    }
+
+    .header-panel p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Card Form Styling */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px 30px;
+      box-shadow: 0 10px 25px rgba(45, 106, 79, 0.08);
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    /* Kode di pojok kanan atas, teks normal tanpa background */
+    .kode-badge {
+      position: absolute;
+      top: 25px;
+      right: 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    /* Baris Sejajar Tanggal & Jabatan */
+    .form-row {
+      display: flex;
+      gap: 15px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #b7e4c7;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background-color: #f8fbfa;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.2);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-top: 5px;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-submit:disabled {
+      background-color: #a3b18a;
+      cursor: not-allowed;
+    }
+
+    .btn-cancel {
+      width: 100%;
+      padding: 10px;
+      background-color: transparent;
+      color: var(--text-muted);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-top: 8px;
+      display: none;
+    }
+
+    #status-msg {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Table Styling */
+    .table-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(45, 106, 79, 0.08);
+      overflow-x: auto;
+    }
+
+    .table-card h3 {
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background-color: #d8f3dc;
+      color: var(--primary-hover);
+      padding: 12px;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    tr:hover {
+      background-color: #f4f9f5;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-right: 4px;
+    }
+
+    .btn-edit {
+      background-color: #e9c46a;
+      color: #000;
+    }
+
+    .btn-edit:hover {
+      background-color: #d4a373;
+    }
+
+    .btn-delete {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background-color: var(--danger-hover);
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+      }
+      .kode-badge {
+        position: static;
+        margin-bottom: 15px;
+        text-align: right;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER APP -->
+    <div class="header-panel">
+      <h1>KESEJAHTERAAN GURU DAN KARYAWAN</h1>
+      <h2>SMP NEGERI 1 KALIWEDI</h2>
+      <p>Form Data Anggota</p>
+    </div>
+
+    <!-- FORM INPUT KARDUS -->
+    <div class="card">
+      <!-- KODE di pojok kanan atas -->
+      <div class="kode-badge" id="displayKode">Kode: ...</div>
+
+      <form id="kgpForm">
+        <input type="hidden" id="kode" name="kode">
+        <input type="hidden" id="isEdit" value="false">
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label for="nama">Nama Lengkap</label>
+          <input type="text" id="nama" placeholder="Masukkan nama anggota" required>
+        </div>
+
+        <!-- 1 BARIS: KIRI (TANGGAL) & KANAN (JABATAN) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tanggal">Tanggal Daftar</label>
+            <input type="date" id="tanggal" required>
+          </div>
+          <div class="form-group">
+            <label for="jabatan">Jabatan</label>
+            <select id="jabatan" required>
+              <option value="Anggota" selected>Anggota</option>
+              <option value="Penasehat">Penasehat</option>
+              <option value="Ketua">Ketua</option>
+              <option value="Sekretaris">Sekretaris</option>
+              <option value="Bendahara">Bendahara</option>
+              <option value="Pengurus">Pengurus</option>
+              <option value="Badan Pemeriksa">Badan Pemeriksa</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">Simpan Data</button>
+        <button type="button" class="btn-cancel" id="btnCancel" onclick="resetForm()">Batal Edit</button>
+      </form>
+      <div id="status-msg"></div>
+    </div>
+
+    <!-- TABEL DATA ANGGOTA -->
+    <div class="table-card">
+      <h3>Daftar Anggota KGP</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Kode</th>
+            <th>Nama</th>
+            <th>Jabatan</th>
+            <th style="width: 130px; text-align: center;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted);">Memuat data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    // Link Apps Script milik Anda (tersembunyi dalam sistem)
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
+    
+    let allData = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Default Tanggal Hari Ini
+      document.getElementById('tanggal').valueAsDate = new Date();
+      loadData();
+    });
+
+    // Generate Kode Otomatis: [Tahun][Bulan][XXXX]
+    function generateAutoCode(existingData) {
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(-2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const prefix = yy + mm;
+
+      let maxSeq = 0;
+      existingData.forEach(item => {
+        const k = String(item.kode);
+        if (k.startsWith(prefix)) {
+          const seqStr = k.substring(4);
+          const seq = parseInt(seqStr, 10);
+          if (!isNaN(seq) && seq > maxSeq) {
+            maxSeq = seq;
+          }
+        }
+      });
+
+      const nextSeq = String(maxSeq + 1).padStart(4, '0');
+      return prefix + nextSeq;
+    }
+
+    // Load Data dari Google Sheets
+    function loadData() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            allData = res.data;
+            renderTable(allData);
+            
+            // Set kode baru jika sedang tidak dalam mode edit
+            if (document.getElementById('isEdit').value === "false") {
+              const newKode = generateAutoCode(allData);
+              document.getElementById('kode').value = newKode;
+              document.getElementById('displayKode').innerText = 'Kode: ' + newKode;
+            }
+          }
+        })
+        .catch(err => {
+          document.getElementById('tableBody').innerHTML = 
+            `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data.</td></tr>`;
+        });
+    }
+
+    // Render Tabel
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Belum ada data.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(item => `
+        <tr>
+          <td><b>${item.kode}</b></td>
+          <td>${item.nama}</td>
+          <td>${item.jabatan}</td>
+          <td style="text-align: center;">
+            <button class="action-btn btn-edit" onclick="editData('${item.kode}')">Edit</button>
+            <button class="action-btn btn-delete" onclick="deleteData('${item.kode}')">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Handle Form Submit (Simpan / Update)
+    document.getElementById('kgpForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const btnSubmit = document.getElementById('btnSubmit');
+      const statusMsg = document.getElementById('status-msg');
+      const isEdit = document.getElementById('isEdit').value === "true";
+
+      btnSubmit.disabled = true;
+      statusMsg.style.color = 'var(--text-main)';
+      statusMsg.innerText = "Mengirim data...";
+
+      const payload = {
+        action: isEdit ? "UPDATE" : "CREATE",
+        kode: document.getElementById('kode').value,
+        nama: document.getElementById('nama').value,
+        tanggal: document.getElementById('tanggal').value,
+        jabatan: document.getElementById('jabatan').value
+      };
+
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        if(res.status === 'success') {
+          statusMsg.style.color = 'green';
+          statusMsg.innerText = res.message;
+          resetForm();
+          loadData();
+        } else {
+          throw new Error(res.message);
+        }
+      })
+      .catch(err => {
+        statusMsg.style.color = 'var(--danger)';
+        statusMsg.innerText = "Error: " + err.message;
+      })
+      .finally(() => {
+        btnSubmit.disabled = false;
+      });
+    });
+
+    // Isi Form Saat Klik Edit
+    function editData(kode) {
+      const item = allData.find(d => String(d.kode) === String(kode));
+      if (item) {
+        document.getElementById('isEdit').value = "true";
+        document.getElementById('kode').value = item.kode;
+        document.getElementById('displayKode').innerText = 'Kode: ' + item.kode;
+        document.getElementById('nama').value = item.nama;
+        document.getElementById('tanggal').value = item.tanggal;
+        document.getElementById('jabatan').value = item.jabatan;
+
+        document.getElementById('btnSubmit').innerText = "Update Data";
+        document.getElementById('btnCancel').style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // Hapus Data
+    function deleteData(kode) {
+      if (confirm(`Apakah Anda yakin ingin menghapus data dengan Kode ${kode}?`)) {
+        const statusMsg = document.getElementById('status-msg');
+        statusMsg.style.color = 'var(--text-main)';
+        statusMsg.innerText = "Menghapus data...";
+
+        fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: "DELETE", kode: kode })
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            statusMsg.style.color = 'green';
+            statusMsg.innerText = "Data berhasil dihapus.";
+            loadData();
+          } else {
+            throw new Error(res.message);
+          }
+        })
+        .catch(err => {
+          statusMsg.style.color = 'var(--danger)';
+          statusMsg.innerText = "Gagal menghapus: " + err.message;
+        });
+      }
+    }
+
+    // Reset Form ke Kondisi Awal
+    function resetForm() {
+      document.getElementById('kgpForm').reset();
+      document.getElementById('isEdit').value = "false";
+      document.getElementById('tanggal').valueAsDate = new Date();
+      document.getElementById('jabatan').value = "Anggota";
+      document.getElementById('btnSubmit').innerText = "Simpan Data";
+      document.getElementById('btnCancel').style.display = "none";
+      
+      const newKode = generateAutoCode(allData);
+      document.getElementById('kode').value = newKode;
+      document.getElementById('displayKode').innerText = 'Kode: ' + newKode;
+    }
+  </script>
+</body>
+</html>
