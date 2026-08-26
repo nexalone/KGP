@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1e3c72" />
   <title>Transaksi Keuangan - KGP SMPN 1 Kaliwedi</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
       background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       min-height: 100vh;
       padding: 20px;
@@ -20,7 +19,7 @@
       background: #fff;
       border-radius: 15px;
       padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     }
     header {
       text-align: center;
@@ -28,9 +27,8 @@
       padding-bottom: 20px;
       border-bottom: 3px solid #1e3c72;
     }
-    header h1 { color: #1e3c72; margin-bottom: 5px; font-size: 1.5rem; }
+    header h1 { color: #1e3c72; margin-bottom: 5px; }
     header h2 { color: #666; font-size: 1rem; font-weight: 400; }
-    
     .nav-back {
       display: inline-block;
       margin-bottom: 20px;
@@ -42,7 +40,6 @@
       font-weight: 600;
     }
     .nav-back:hover { background: #2a5298; }
-
     .status-bar {
       background: #e3f2fd;
       padding: 12px 15px;
@@ -50,31 +47,9 @@
       margin-bottom: 20px;
       font-size: 0.9rem;
       color: #1565c0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
-    .status-bar.error {
-      background: #ffebee;
-      color: #c62828;
-    }
-    .status-bar.success {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
+    .status-bar.error { background: #ffebee; color: #c62828; }
+    .status-bar.success { background: #e8f5e9; color: #2e7d32; }
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -87,11 +62,9 @@
       padding: 20px;
       border-radius: 10px;
       text-align: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .stat-card h3 { font-size: 1.5rem; margin-bottom: 5px; }
     .stat-card p { font-size: 0.9rem; opacity: 0.9; }
-
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -100,34 +73,27 @@
     }
     .form-group { margin-bottom: 15px; }
     .form-group.full { grid-column: 1 / -1; }
-    
     .form-group label {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
       color: #1e3c72;
-      font-size: 0.9rem;
     }
-    .form-group input,
-    .form-group select {
+    .form-group input, .form-group select {
       width: 100%;
       padding: 12px;
       border: 2px solid #ddd;
       border-radius: 8px;
       font-size: 1rem;
-      transition: border-color 0.3s;
     }
-    .form-group input:focus,
-    .form-group select:focus {
+    .form-group input:focus, .form-group select:focus {
       outline: none;
       border-color: #1e3c72;
     }
     .form-group input[readonly] {
       background: #f8f9fa;
-      color: #555;
       cursor: not-allowed;
     }
-
     .btn {
       padding: 12px 24px;
       border: none;
@@ -137,244 +103,165 @@
       cursor: pointer;
       margin-right: 10px;
       margin-bottom: 10px;
-      transition: all 0.3s ease;
     }
     .btn-primary { background: #1e3c72; color: #fff; }
-    .btn-primary:hover { background: #2a5298; transform: translateY(-2px); }
+    .btn-primary:hover { background: #2a5298; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-secondary { background: #6c757d; color: #fff; }
-    .btn-secondary:hover { background: #5a6268; }
-    .btn-success { background: #28a745; color: #fff; }
-    .btn-success:hover { background: #218838; }
-
-    .table-responsive { 
-      overflow-x: auto; 
-      margin-top: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+    .table-responsive { overflow-x: auto; margin-top: 30px; }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
-      background: #fff;
     }
     th, td {
       padding: 12px;
       text-align: left;
       border-bottom: 1px solid #ddd;
     }
-    th {
-      background: #1e3c72;
-      color: #fff;
-      font-weight: 600;
-    }
+    th { background: #1e3c72; color: #fff; }
     tr:hover { background: #f8f9fa; }
-    .btn-hapus {
-      padding: 6px 12px;
-      background: #dc3545;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.85rem;
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
     }
-    .btn-hapus:hover { background: #c82333; }
-
+    @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
-      .container { padding: 20px; }
       .stats { grid-template-columns: 1fr; }
-      table { font-size: 0.85rem; }
-      th, td { padding: 8px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <a href="Index.html" class="nav-back"> Kembali ke Beranda</a>
-    
+    <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
     <header>
       <h1>TRANSAKSI KEUANGAN KGP</h1>
       <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
     </header>
-
-    <div id="statusBar" class="status-bar">
-      <span class="loading"></span>
-      <span>Memuat data dari Google Sheets...</span>
-    </div>
-
+    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
+    
     <div class="stats">
-      <div class="stat-card">
-        <h3 id="totalIuran">Rp 0</h3>
-        <p>Total Iuran/Kredit</p>
-      </div>
-      <div class="stat-card">
-        <h3 id="totalTransaksi">0</h3>
-        <p>Jumlah Transaksi</p>
-      </div>
-      <div class="stat-card">
-        <h3 id="saldoKas">Rp 0</h3>
-        <p>Saldo Kas</p>
-      </div>
+      <div class="stat-card"><h3 id="totalIuran">Rp 0</h3><p>Total Iuran/Kredit</p></div>
+      <div class="stat-card"><h3 id="totalTransaksi">0</h3><p>Jumlah Transaksi</p></div>
+      <div class="stat-card"><h3 id="saldoKas">Rp 0</h3><p>Saldo Kas</p></div>
     </div>
 
-    <h3 style="margin-bottom: 20px; color: #1e3c72;">📝 Input Transaksi Baru</h3>
+    <h3 style="margin-bottom: 20px; color: #1e3c72;"> Input Transaksi Baru</h3>
     <form id="formTransaksi">
       <div class="form-grid">
         <div class="form-group">
           <label for="timestamp">Time Stamp *</label>
           <input type="datetime-local" id="timestamp" required />
         </div>
-
         <div class="form-group">
           <label for="transaksi">Transaksi *</label>
-          <select id="transaksi" required>
-            <option value="">-- Pilih Transaksi --</option>
-          </select>
+          <select id="transaksi" required><option value="">-- Pilih --</option></select>
         </div>
-
         <div class="form-group">
           <label for="kode">Kode Anggota *</label>
-          <select id="kode" required>
-            <option value="">-- Pilih Kode --</option>
-          </select>
+          <select id="kode" required><option value="">-- Pilih Kode --</option></select>
         </div>
-
         <div class="form-group">
           <label for="nama">Nama Anggota</label>
-          <input type="text" id="nama" readonly placeholder="Otomatis terisi..." />
+          <input type="text" id="nama" readonly placeholder="Otomatis..." />
         </div>
-
         <div class="form-group">
           <label for="caraBayar">Cara Bayar *</label>
-          <select id="caraBayar" required>
-            <option value="">-- Pilih Cara Bayar --</option>
-          </select>
+          <select id="caraBayar" required><option value="">-- Pilih --</option></select>
         </div>
-
         <div class="form-group">
           <label for="nominal">Nominal (Rp) *</label>
           <input type="number" id="nominal" placeholder="0" min="0" required />
         </div>
-
         <div class="form-group full">
           <label for="keterangan">Keterangan</label>
-          <input type="text" id="keterangan" placeholder="Keterangan tambahan..." />
+          <input type="text" id="keterangan" placeholder="Keterangan..." />
         </div>
       </div>
-
-      <button type="submit" class="btn btn-primary">💾 Simpan Transaksi</button>
+      <button type="submit" class="btn btn-primary" id="btnSubmit">💾 Simpan Transaksi</button>
       <button type="reset" class="btn btn-secondary">🔄 Reset</button>
-      <button type="button" class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
     </form>
 
-    <h3 style="margin: 40px 0 20px; color: #1e3c72;">📊 Riwayat Transaksi (<span id="jumlahTransaksi">0</span>)</h3>
+    <h3 style="margin: 40px 0 20px; color: #1e3c72;"> Riwayat Transaksi (<span id="jumlahTransaksi">0</span>)</h3>
     <div class="table-responsive">
       <table>
         <thead>
-          <tr>
-            <th>Time Stamp</th>
-            <th>Transaksi</th>
-            <th>Kode</th>
-            <th>Nama</th>
-            <th>Cara Bayar</th>
-            <th>Nominal</th>
-            <th>Keterangan</th>
-            <th>Aksi</th>
-          </tr>
+          <tr><th>Time Stamp</th><th>Transaksi</th><th>Kode</th><th>Nama</th><th>Cara Bayar</th><th>Nominal</th><th>Keterangan</th></tr>
         </thead>
         <tbody id="tabelTransaksi">
-          <tr>
-            <td colspan="8" style="text-align: center; padding: 20px;">
-              <span class="loading"></span> Memuat data...
-            </td>
-          </tr>
+          <tr><td colspan="7" style="text-align:center;padding:20px;">Memuat...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <script>
-    // Konfigurasi
     const SPREADSHEET_ID = '151XT0NLPb7fljwUOe_PP3dhD_-dPhBmA_jrffxGZWjQ';
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
     const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
     const SHEET2_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet2`;
     const SHEET3_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet3`;
     
-    let dataTransaksi = [];
-    let dataAnggota = [];
-    let dataReferensi = { transaksi: [], caraBayar: [] };
+    let dataTransaksi = [], dataAnggota = [], dataReferensi = { transaksi: [], caraBayar: [] };
 
-    // Parse CSV line
     function parseCSVLine(line) {
       const result = [];
-      let current = '';
-      let inQuotes = false;
+      let current = '', inQuotes = false;
       for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-          if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-          else { inQuotes = !inQuotes; }
-        } else if (char === ',' && !inQuotes) {
-          result.push(current); current = '';
-        } else { current += char; }
+        const c = line[i];
+        if (c === '"') { if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes; }
+        else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+        else current += c;
       }
       result.push(current);
       return result.map(v => v.trim());
     }
 
-    // Parse CSV text
     function parseCSV(text, skipTitle = true) {
       const lines = text.trim().split('\n');
       const result = [];
       const startIdx = skipTitle ? 1 : 0;
       const headers = parseCSVLine(lines[startIdx]);
-      
       for (let i = startIdx + 1; i < lines.length; i++) {
-        if (lines[i].trim() === '') continue;
+        if (!lines[i].trim()) continue;
         const values = parseCSVLine(lines[i]);
         const obj = {};
-        headers.forEach((header, index) => {
-          obj[header] = values[index] || '';
-        });
+        headers.forEach((h, idx) => { obj[h] = values[idx] || ''; });
         result.push(obj);
       }
       return result;
     }
 
-    // Load semua data
     async function loadAllData() {
       const statusBar = document.getElementById('statusBar');
       try {
-        const [res1, res2, res3] = await Promise.all([
+        const [r1, r2, r3] = await Promise.all([
           fetch(SHEET1_URL + '&t=' + Date.now()),
           fetch(SHEET2_URL + '&t=' + Date.now()),
           fetch(SHEET3_URL + '&t=' + Date.now())
         ]);
-
-        if (!res1.ok || !res2.ok || !res3.ok) throw new Error('Gagal mengambil data');
-
-        const [text1, text2, text3] = await Promise.all([
-          res1.text(), res2.text(), res3.text()
-        ]);
-
-        // Sheet1: Anggota
-        dataAnggota = parseCSV(text1, true);
+        if (!r1.ok || !r2.ok || !r3.ok) throw new Error('Gagal');
+        const [t1, t2, t3] = await Promise.all([r1.text(), r2.text(), r3.text()]);
         
-        // Sheet2: Transaksi
-        dataTransaksi = parseCSV(text2, true);
+        dataAnggota = parseCSV(t1, true);
+        dataTransaksi = parseCSV(t2, true);
         
-        // Sheet3: Referensi (tanpa skip title)
-        const sheet3Lines = text3.trim().split('\n');
-        if (sheet3Lines.length > 1) {
-          const refHeaders = parseCSVLine(sheet3Lines[0]);
-          for (let i = 1; i < sheet3Lines.length; i++) {
-            if (sheet3Lines[i].trim() === '') continue;
-            const values = parseCSVLine(sheet3Lines[i]);
+        const lines3 = t3.trim().split('\n');
+        if (lines3.length > 1) {
+          const headers3 = parseCSVLine(lines3[0]);
+          for (let i = 1; i < lines3.length; i++) {
+            if (!lines3[i].trim()) continue;
+            const vals = parseCSVLine(lines3[i]);
             const obj = {};
-            refHeaders.forEach((h, idx) => { obj[h] = values[idx] || ''; });
-            
+            headers3.forEach((h, idx) => { obj[h] = vals[idx] || ''; });
             if (obj.TRANSAKSI) dataReferensi.transaksi.push(obj.TRANSAKSI);
             if (obj['MODE BAYAR']) dataReferensi.caraBayar.push(obj['MODE BAYAR']);
           }
@@ -383,49 +270,34 @@
         populateDropdowns();
         renderTabel();
         hitungStatistik();
-        
-        statusBar.innerHTML = `✅ Data berhasil dimuat: ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi`;
+        statusBar.textContent = `✅ Data dimuat: ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi`;
         statusBar.className = 'status-bar success';
-      } catch (error) {
-        console.error('Error:', error);
-        statusBar.innerHTML = '❌ Gagal memuat data. Periksa koneksi internet.';
+      } catch (e) {
+        statusBar.textContent = '❌ Gagal memuat data.';
         statusBar.className = 'status-bar error';
       }
     }
 
-    // Populate dropdown
     function populateDropdowns() {
-      // Dropdown Transaksi dari Sheet3 kolom A
-      const selectTransaksi = document.getElementById('transaksi');
-      selectTransaksi.innerHTML = '<option value="">-- Pilih Transaksi --</option>';
-      dataReferensi.transaksi.forEach(t => {
-        if (t) selectTransaksi.innerHTML += `<option value="${t}">${t}</option>`;
-      });
+      const selT = document.getElementById('transaksi');
+      selT.innerHTML = '<option value="">-- Pilih --</option>';
+      dataReferensi.transaksi.forEach(t => { if (t) selT.innerHTML += `<option value="${t}">${t}</option>`; });
 
-      // Dropdown Kode dari Sheet1
-      const selectKode = document.getElementById('kode');
-      selectKode.innerHTML = '<option value="">-- Pilih Kode --</option>';
+      const selK = document.getElementById('kode');
+      selK.innerHTML = '<option value="">-- Pilih Kode --</option>';
       dataAnggota.forEach(a => {
-        if (a.KODE) {
-          selectKode.innerHTML += `<option value="${a.KODE}" data-nama="${a.NAMA || ''}">${a.KODE} - ${a.NAMA || ''}</option>`;
-        }
+        if (a.KODE) selK.innerHTML += `<option value="${a.KODE}" data-nama="${a.NAMA || ''}">${a.KODE} - ${a.NAMA || ''}</option>`;
       });
 
-      // Dropdown Cara Bayar dari Sheet3 kolom B
-      const selectCaraBayar = document.getElementById('caraBayar');
-      selectCaraBayar.innerHTML = '<option value="">-- Pilih Cara Bayar --</option>';
-      dataReferensi.caraBayar.forEach(c => {
-        if (c) selectCaraBayar.innerHTML += `<option value="${c}">${c}</option>`;
-      });
+      const selC = document.getElementById('caraBayar');
+      selC.innerHTML = '<option value="">-- Pilih --</option>';
+      dataReferensi.caraBayar.forEach(c => { if (c) selC.innerHTML += `<option value="${c}">${c}</option>`; });
     }
 
-    // Auto-fill nama saat kode dipilih
     document.getElementById('kode').addEventListener('change', function() {
-      const selectedOption = this.options[this.selectedIndex];
-      document.getElementById('nama').value = selectedOption.getAttribute('data-nama') || '';
+      document.getElementById('nama').value = this.options[this.selectedIndex].getAttribute('data-nama') || '';
     });
 
-    // Set timestamp default
     function setCurrentTimestamp() {
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -433,18 +305,15 @@
     }
     setCurrentTimestamp();
 
-    // Simpan transaksi
     document.getElementById('formTransaksi').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
       const statusBar = document.getElementById('statusBar');
-      const btnSubmit = this.querySelector('button[type="submit"]');
+      const btnSubmit = document.getElementById('btnSubmit');
       const originalText = btnSubmit.innerHTML;
-      
       btnSubmit.innerHTML = '<span class="loading"></span> Menyimpan...';
       btnSubmit.disabled = true;
 
-      const transaksi = {
+      const data = {
         sheet: 'Sheet2',
         timestamp: document.getElementById('timestamp').value.replace('T', ' '),
         transaksi: document.getElementById('transaksi').value,
@@ -455,20 +324,14 @@
       };
 
       try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(transaksi)
-        });
-
-        statusBar.innerHTML = '✅ Transaksi berhasil disimpan!';
+        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+        statusBar.textContent = '✅ Transaksi berhasil disimpan!';
         statusBar.className = 'status-bar success';
-        
-        await loadAllData();
         this.reset();
         setCurrentTimestamp();
-      } catch (error) {
-        console.error('Error:', error);
-        statusBar.innerHTML = ' Gagal menyimpan data. Coba lagi.';
+        await loadAllData();
+      } catch (err) {
+        statusBar.textContent = '❌ Gagal menyimpan.';
         statusBar.className = 'status-bar error';
       } finally {
         btnSubmit.innerHTML = originalText;
@@ -476,83 +339,37 @@
       }
     });
 
-    // Render tabel
     function renderTabel() {
       const tbody = document.getElementById('tabelTransaksi');
       document.getElementById('jumlahTransaksi').textContent = dataTransaksi.length;
-      
       if (dataTransaksi.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999; padding: 20px;">Belum ada data transaksi</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
         return;
       }
-
-      let html = '';
-      dataTransaksi.forEach((t, index) => {
-        html += `
-          <tr>
-            <td>${t['TIME STAMP'] || '-'}</td>
-            <td>${t.TRANSAKSI || '-'}</td>
-            <td>${t.KODE || '-'}</td>
-            <td>${t.NAMA || '-'}</td>
-            <td>${t['CARA BAYAR'] || '-'}</td>
-            <td>Rp ${parseInt(t.NOMINAL || 0).toLocaleString('id-ID')}</td>
-            <td>${t.KETERANGAN || '-'}</td>
-            <td><button class="btn-hapus" onclick="hapusTransaksi(${index})">🗑</button></td>
-          </tr>
-        `;
-      });
-      tbody.innerHTML = html;
+      tbody.innerHTML = dataTransaksi.map(t => `
+        <tr>
+          <td>${t['TIME STAMP'] || '-'}</td>
+          <td>${t.TRANSAKSI || '-'}</td>
+          <td>${t.KODE || '-'}</td>
+          <td>${t.NAMA || '-'}</td>
+          <td>${t['CARA BAYAR'] || '-'}</td>
+          <td>Rp ${parseInt(t.NOMINAL || 0).toLocaleString('id-ID')}</td>
+          <td>${t.KETERANGAN || '-'}</td>
+        </tr>
+      `).join('');
     }
 
-    // Hitung statistik
     function hitungStatistik() {
-      let total = 0;
-      let saldo = 0;
-
+      let total = 0, saldo = 0;
       dataTransaksi.forEach(t => {
-        const nominal = parseInt(t.NOMINAL) || 0;
-        total += nominal;
-        saldo += nominal;
+        const n = parseInt(t.NOMINAL) || 0;
+        total += n; saldo += n;
       });
-
       document.getElementById('totalIuran').textContent = 'Rp ' + total.toLocaleString('id-ID');
       document.getElementById('totalTransaksi').textContent = dataTransaksi.length;
       document.getElementById('saldoKas').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
     }
 
-    // Hapus transaksi
-    function hapusTransaksi(index) {
-      if (confirm('Yakin ingin menghapus transaksi ini?\n\nCatatan: Penghapusan permanen harus dilakukan manual di Google Sheets.')) {
-        dataTransaksi.splice(index, 1);
-        renderTabel();
-        hitungStatistik();
-      }
-    }
-
-    // Export CSV
-    function exportCSV() {
-      if (dataTransaksi.length === 0) {
-        alert('Tidak ada data untuk diexport!');
-        return;
-      }
-
-      let csv = 'TIME STAMP,TRANSAKSI,KODE,NAMA,CARA BAYAR,NOMINAL,KETERANGAN\n';
-      dataTransaksi.forEach(t => {
-        csv += `"${t['TIME STAMP'] || ''}","${t.TRANSAKSI || ''}","${t.KODE || ''}","${t.NAMA || ''}","${t['CARA BAYAR'] || ''}",${t.NOMINAL || 0},"${t.KETERANGAN || ''}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `transaksi_kgp_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      
-      alert('📥 File CSV berhasil didownload!');
-    }
-
-    // Load data saat halaman dibuka
     loadAllData();
   </script>
 </body>
