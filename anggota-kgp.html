@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1e3c72" />
   <title>Data Anggota - KGP SMPN 1 Kaliwedi</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
       background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       min-height: 100vh;
       padding: 20px;
@@ -20,7 +19,7 @@
       background: #fff;
       border-radius: 15px;
       padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     }
     header {
       text-align: center;
@@ -28,9 +27,8 @@
       padding-bottom: 20px;
       border-bottom: 3px solid #1e3c72;
     }
-    header h1 { color: #1e3c72; margin-bottom: 5px; font-size: 1.5rem; }
+    header h1 { color: #1e3c72; margin-bottom: 5px; }
     header h2 { color: #666; font-size: 1rem; font-weight: 400; }
-    
     .nav-back {
       display: inline-block;
       margin-bottom: 20px;
@@ -42,7 +40,6 @@
       font-weight: 600;
     }
     .nav-back:hover { background: #2a5298; }
-
     .status-bar {
       background: #e3f2fd;
       padding: 12px 15px;
@@ -50,31 +47,11 @@
       margin-bottom: 20px;
       font-size: 0.9rem;
       color: #1565c0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
     .status-bar.error {
       background: #ffebee;
       color: #c62828;
     }
-    .status-bar.success {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -82,30 +59,19 @@
       margin-bottom: 20px;
     }
     .form-group { margin-bottom: 15px; }
-    .form-group.full { grid-column: 1 / -1; }
-    
     .form-group label {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
       color: #1e3c72;
-      font-size: 0.9rem;
     }
-    .form-group input,
-    .form-group select {
+    .form-group input, .form-group select {
       width: 100%;
       padding: 12px;
       border: 2px solid #ddd;
       border-radius: 8px;
       font-size: 1rem;
-      transition: border-color 0.3s;
     }
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #1e3c72;
-    }
-
     .btn {
       padding: 12px 24px;
       border: none;
@@ -115,28 +81,14 @@
       cursor: pointer;
       margin-right: 10px;
       margin-bottom: 10px;
-      transition: all 0.3s ease;
     }
     .btn-primary { background: #1e3c72; color: #fff; }
-    .btn-primary:hover { background: #2a5298; transform: translateY(-2px); }
     .btn-secondary { background: #6c757d; color: #fff; }
-    .btn-secondary:hover { background: #5a6268; }
-    .btn-success { background: #28a745; color: #fff; }
-    .btn-success:hover { background: #218838; }
-    .btn-warning { background: #ffc107; color: #333; }
-    .btn-warning:hover { background: #e0a800; }
-
-    .table-responsive { 
-      overflow-x: auto; 
-      margin-top: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+    .table-responsive { overflow-x: auto; margin-top: 30px; }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
-      background: #fff;
     }
     th, td {
       padding: 12px;
@@ -146,75 +98,38 @@
     th {
       background: #1e3c72;
       color: #fff;
-      font-weight: 600;
     }
-    tr:hover { background: #f8f9fa; }
-    .btn-edit {
-      padding: 6px 12px;
-      background: #ffc107;
-      color: #333;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-right: 5px;
-      font-size: 0.85rem;
-    }
-    .btn-edit:hover { background: #e0a800; }
-    .btn-hapus {
-      padding: 6px 12px;
-      background: #dc3545;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .btn-hapus:hover { background: #c82333; }
-
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
-      .container { padding: 20px; }
-      table { font-size: 0.85rem; }
-      th, td { padding: 8px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
-    
     <header>
       <h1>DATA ANGGOTA KGP</h1>
       <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
     </header>
-
-    <div id="statusBar" class="status-bar">
-      <span class="loading"></span>
-      <span>Memuat data dari Google Sheets...</span>
-    </div>
-
+    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
     <h3 style="margin-bottom: 20px; color: #1e3c72;">📝 Form Data Anggota</h3>
     <form id="formAnggota">
       <div class="form-grid">
         <div class="form-group">
-          <label for="kode">Kode Anggota *</label>
-          <input type="text" id="kode" placeholder="Contoh: 2601001" required />
+          <label for="kode">Kode</label>
+          <input type="text" id="kode" required />
         </div>
-        
         <div class="form-group">
-          <label for="nama">Nama Lengkap *</label>
-          <input type="text" id="nama" placeholder="Nama lengkap dengan gelar" required />
+          <label for="nama">Nama Lengkap</label>
+          <input type="text" id="nama" required />
         </div>
-
         <div class="form-group">
-          <label for="tanggalDaftar">Tanggal Daftar *</label>
-          <input type="date" id="tanggalDaftar" required />
+          <label for="tanggal">Tanggal Daftar</label>
+          <input type="date" id="tanggal" required />
         </div>
-
         <div class="form-group">
-          <label for="jabatan">Jabatan *</label>
+          <label for="jabatan">Jabatan</label>
           <select id="jabatan" required>
-            <option value="">-- Pilih Jabatan --</option>
             <option value="Anggota">Anggota</option>
             <option value="Penasehat">Penasehat</option>
             <option value="Ketua">Ketua</option>
@@ -225,238 +140,76 @@
           </select>
         </div>
       </div>
-
       <button type="submit" class="btn btn-primary">💾 Simpan Data</button>
       <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
-      <button type="button" class="btn btn-success" onclick="exportCSV()"> Export CSV</button>
     </form>
-
-    <h3 style="margin: 40px 0 20px; color: #1e3c72;">👥 Daftar Anggota KGP (<span id="jumlahAnggota">0</span> orang)</h3>
+    <h3 style="margin: 40px 0 20px; color: #1e3c72;">👥 Daftar Anggota KGP (<span id="jumlahAnggota">0</span>)</h3>
     <div class="table-responsive">
       <table>
         <thead>
-          <tr>
-            <th>Kode</th>
-            <th>Nama</th>
-            <th>Tanggal Daftar</th>
-            <th>Jabatan</th>
-            <th>Aksi</th>
-          </tr>
+          <tr><th>Kode</th><th>Nama</th><th>Jabatan</th><th>Aksi</th></tr>
         </thead>
-        <tbody id="tabelAnggota">
-          <tr>
-            <td colspan="5" style="text-align: center; padding: 20px;">
-              <span class="loading"></span> Memuat data...
-            </td>
-          </tr>
-        </tbody>
+        <tbody id="tabelAnggota"></tbody>
       </table>
     </div>
   </div>
-
   <script>
-    // Konfigurasi
-    const SPREADSHEET_ID = '151XT0NLPb7fljwUOe_PP3dhD_-dPhBmA_jrffxGZWjQ';
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
-    const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
-    
+    const CSV_URL = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/anggota.csv';
     let dataAnggota = [];
-    let editIndex = -1;
 
-    // Parse CSV line dengan handling quotes
-    function parseCSVLine(line) {
-      const result = [];
-      let current = '';
-      let inQuotes = false;
-      
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-          if (inQuotes && line[i + 1] === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (char === ',' && !inQuotes) {
-          result.push(current);
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      result.push(current);
-      return result.map(v => v.trim());
-    }
-
-    // Parse CSV text to array of objects
-    function parseCSV(text) {
-      const lines = text.trim().split('\n');
-      const result = [];
-      
-      // Skip baris 1 (title), baris 2 = header
-      const headers = parseCSVLine(lines[1]);
-      
-      for (let i = 2; i < lines.length; i++) {
-        if (lines[i].trim() === '') continue;
-        const values = parseCSVLine(lines[i]);
-        const obj = {};
-        headers.forEach((header, index) => {
-          obj[header] = values[index] || '';
-        });
-        result.push(obj);
-      }
-      return result;
-    }
-
-    // Load data dari Google Sheets
     async function loadAnggota() {
       const statusBar = document.getElementById('statusBar');
       try {
-        const response = await fetch(SHEET1_URL + '&t=' + Date.now());
-        if (!response.ok) throw new Error('Gagal mengambil data');
-        
+        const response = await fetch(CSV_URL + '?t=' + Date.now());
+        if (!response.ok) throw new Error('Gagal');
         const text = await response.text();
-        dataAnggota = parseCSV(text);
-        
-        statusBar.innerHTML = '✅ Data berhasil dimuat';
-        statusBar.className = 'status-bar success';
-        document.getElementById('jumlahAnggota').textContent = dataAnggota.length;
+        const lines = text.trim().split('\n');
+        dataAnggota = [];
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          const cols = lines[i].split(',');
+          dataAnggota.push({
+            KODE: cols[0]?.trim() || '',
+            NAMA: cols[1]?.trim().replace(/"/g, '') || '',
+            TANGGAL: cols[2]?.trim() || '',
+            JABATAN: cols[3]?.trim() || ''
+          });
+        }
+        statusBar.textContent = `✅ Data berhasil dimuat: ${dataAnggota.length} anggota`;
         renderTabel();
-      } catch (error) {
-        console.error('Error:', error);
-        statusBar.innerHTML = '❌ Gagal memuat data. Periksa koneksi internet.';
+      } catch (e) {
+        statusBar.textContent = ' Gagal memuat data. Pastikan file data/anggota.csv ada di GitHub.';
         statusBar.className = 'status-bar error';
-        document.getElementById('tabelAnggota').innerHTML = 
-          '<tr><td colspan="5" style="text-align: center; color: #dc3545; padding: 20px;">Gagal memuat data dari Google Sheets</td></tr>';
       }
     }
 
-    // Render tabel
     function renderTabel() {
       const tbody = document.getElementById('tabelAnggota');
-      
+      document.getElementById('jumlahAnggota').textContent = dataAnggota.length;
       if (dataAnggota.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999; padding: 20px;">Belum ada data anggota</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
         return;
       }
-
-      let html = '';
-      dataAnggota.forEach((a, index) => {
-        html += `
-          <tr>
-            <td>${a.KODE || '-'}</td>
-            <td>${a.NAMA || '-'}</td>
-            <td>${a['TANGGAL DAFTAR'] || '-'}</td>
-            <td>${a.JABATAN || '-'}</td>
-            <td>
-              <button class="btn-edit" onclick="editAnggota(${index})">✏️ Edit</button>
-              <button class="btn-hapus" onclick="hapusAnggota(${index})">🗑 Hapus</button>
-            </td>
-          </tr>
-        `;
-      });
-      tbody.innerHTML = html;
+      tbody.innerHTML = dataAnggota.map((a, i) => `
+        <tr>
+          <td>${a.KODE}</td>
+          <td>${a.NAMA}</td>
+          <td>${a.JABATAN}</td>
+          <td><button class="btn btn-secondary" onclick="alert('Edit akan segera tersedia')">✏️ Edit</button></td>
+        </tr>
+      `).join('');
     }
 
-    // Simpan data ke Google Sheets via Apps Script
-    document.getElementById('formAnggota').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const statusBar = document.getElementById('statusBar');
-      const btnSubmit = this.querySelector('button[type="submit"]');
-      const originalText = btnSubmit.innerHTML;
-      
-      btnSubmit.innerHTML = '<span class="loading"></span> Menyimpan...';
-      btnSubmit.disabled = true;
-
-      const anggota = {
-        sheet: 'Sheet1',
-        kode: document.getElementById('kode').value,
-        nama: document.getElementById('nama').value,
-        tanggal: document.getElementById('tanggalDaftar').value,
-        jabatan: document.getElementById('jabatan').value
-      };
-
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(anggota)
-        });
-
-        statusBar.innerHTML = '✅ Data berhasil disimpan ke Google Sheets!';
-        statusBar.className = 'status-bar success';
-        
-        // Reload data
-        await loadAnggota();
-        resetForm();
-      } catch (error) {
-        console.error('Error:', error);
-        statusBar.innerHTML = '❌ Gagal menyimpan data. Coba lagi.';
-        statusBar.className = 'status-bar error';
-      } finally {
-        btnSubmit.innerHTML = originalText;
-        btnSubmit.disabled = false;
-      }
-    });
-
-    // Edit anggota
-    function editAnggota(index) {
-      const a = dataAnggota[index];
-      document.getElementById('kode').value = a.KODE || '';
-      document.getElementById('nama').value = a.NAMA || '';
-      document.getElementById('tanggalDaftar').value = a['TANGGAL DAFTAR'] || '';
-      document.getElementById('jabatan').value = a.JABATAN || '';
-      editIndex = index;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      document.getElementById('statusBar').innerHTML = '✏️ Mode Edit Aktif';
-      document.getElementById('statusBar').className = 'status-bar';
-    }
-
-    // Hapus anggota (hanya di localStorage, untuk Google Sheets perlu manual)
-    function hapusAnggota(index) {
-      if (confirm('Yakin ingin menghapus anggota ini?\n\nCatatan: Penghapusan permanen harus dilakukan manual di Google Sheets.')) {
-        dataAnggota.splice(index, 1);
-        document.getElementById('jumlahAnggota').textContent = dataAnggota.length;
-        renderTabel();
-      }
-    }
-
-    // Reset form
     function resetForm() {
       document.getElementById('formAnggota').reset();
-      editIndex = -1;
-      document.getElementById('statusBar').innerHTML = '✅ Data berhasil dimuat';
-      document.getElementById('statusBar').className = 'status-bar success';
     }
 
-    // Export ke CSV
-    function exportCSV() {
-      if (dataAnggota.length === 0) {
-        alert('Tidak ada data untuk diexport!');
-        return;
-      }
+    document.getElementById('formAnggota').addEventListener('submit', (e) => {
+      e.preventDefault();
+      alert('Fitur simpan akan segera tersedia. Untuk saat ini, edit langsung di Google Sheets atau file CSV.');
+    });
 
-      let csv = 'KODE,NAMA,TANGGAL DAFTAR,JABATAN\n';
-      dataAnggota.forEach(a => {
-        csv += `"${a.KODE || ''}","${a.NAMA || ''}","${a['TANGGAL DAFTAR'] || ''}","${a.JABATAN || ''}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `anggota_kgp_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      
-      alert(' File CSV berhasil didownload!');
-    }
-
-    // Set tanggal hari ini
-    document.getElementById('tanggalDaftar').valueAsDate = new Date();
-
-    // Load data saat halaman dibuka
+    document.getElementById('tanggal').valueAsDate = new Date();
     loadAnggota();
   </script>
 </body>
