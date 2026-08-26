@@ -3,84 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Input Anggota KGP</title>
+  <title>KESEJAHTERAAN GURU DAN PEGAWAI - SMP NEGERI 1 KALIWEDI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Manifest inline via Data URI untuk Fitur Instal Aplikasi Koperasi -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"KGP SMPN 1 Kaliwedi","short_name":"KGP App","start_url":"./index.html","display":"standalone","background_color":"#eef5f0","theme_color":"#2d6a4f","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3135/3135706.png","sizes":"512x512","type":"image/png"}]}'>
+
   <style>
-    body { font-family: Arial, sans-serif; max-width: 400px; margin: 20px auto; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
-    label { font-weight: bold; display: block; margin-top: 10px; }
-    input, select, button { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-    button { background-color: #0F9D58; color: white; border: none; margin-top: 15px; cursor: pointer; font-weight: bold; }
-    button:hover { background-color: #0b7944; }
-    #status { margin-top: 10px; font-weight: bold; text-align: center; }
+    :root {
+      --bg-color: #eef5f0;
+      --card-bg: #ffffff;
+      --primary: #2d6a4f;
+      --primary-hover: #1b4332;
+      --accent: #52b788;
+      --text-main: #2b2d42;
+      --text-muted: #6c757d;
+      --border-color: #d8f3dc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+    }
+
+    /* Header Styling */
+    .header-panel {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .header-panel h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+      line-height: 1.3;
+    }
+
+    .header-panel h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 6px;
+    }
+
+    .header-panel p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 500;
+    }
+
+    /* Grid Modul Aplikasi */
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .app-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px 20px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-main);
+      box-shadow: 0 10px 25px rgba(45, 106, 79, 0.08);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .app-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(45, 106, 79, 0.15);
+      border-color: var(--accent);
+    }
+
+    .icon-wrapper {
+      width: 70px;
+      height: 70px;
+      background-color: var(--bg-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      transition: background-color 0.3s ease;
+    }
+
+    .app-card:hover .icon-wrapper {
+      background-color: #d8f3dc;
+    }
+
+    .icon-wrapper svg {
+      width: 36px;
+      height: 36px;
+      fill: var(--primary);
+    }
+
+    .app-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .app-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Tombol Instal Aplikasi PWA */
+    .install-container {
+      text-align: center;
+    }
+
+    .btn-install {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(45, 106, 79, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .btn-install:hover {
+      background-color: var(--primary-hover);
+      transform: scale(1.03);
+    }
+
+    .btn-install img {
+      width: 24px;
+      height: 24px;
+    }
+
+    .footer-text {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
 
-  <h3>Form Input KGP</h3>
-  <form id="kgpForm">
-    <label>KODE:</label>
-    <input type="text" id="kode" required placeholder="Contoh: 2608003">
+  <div class="container">
+    
+    <!-- HEADER GERBANG -->
+    <div class="header-panel">
+      <h1>KESEJAHTERAAN GURU DAN PEGAWAI</h1>
+      <h2>SMP NEGERI 1 KALIWEDI</h2>
+      <p>Portal Sistem Informasi Internal</p>
+    </div>
 
-    <label>NAMA:</label>
-    <input type="text" id="nama" required placeholder="Nama Lengkap">
+    <!-- GRID DUA APLIKASI UTAMA -->
+    <div class="app-grid">
+      
+      <!-- CARD 1: DATA ANGGOTA -->
+      <a href="anggota-kgp.html" class="app-card">
+        <div class="icon-wrapper">
+          <!-- Icon Anggota / User ID Card -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-2.33 4.67-3.5 7-3.5s7 1.17 7 3.5V19z"/>
+          </svg>
+        </div>
+        <h3>Form Data Anggota</h3>
+        <p>Pendaftaran, kelola data pengurus, serta pembaharuan keanggotaan KGP.</p>
+      </a>
 
-    <label>TANGGAL DAFTAR:</label>
-    <input type="date" id="tanggal" required>
+      <!-- CARD 2: TRANSAKSI KEUANGAN -->
+      <a href="transaksi-kgp.html" class="app-card">
+        <div class="icon-wrapper">
+          <!-- Icon Transaksi / Koperasi Keuangan -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+          </svg>
+        </div>
+        <h3>Transaksi Keuangan</h3>
+        <p>Pencatatan iuran, simpanan, dan rekapitulasi transaksi keuangan anggota.</p>
+      </a>
 
-    <label>JABATAN:</label>
-    <select id="jabatan">
-      <option value="Anggota">Anggota</option>
-      <option value="Pengurus">Pengurus</option>
-    </select>
+    </div>
 
-    <button type="submit" id="btnSubmit">Simpan Data</button>
-  </form>
+    <!-- TOMBOL INSTAL APLIKASI (PWA) -->
+    <div class="install-container">
+      <button class="btn-install" id="btnInstall" style="display: none;">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135706.png" alt="Icon Koperasi">
+        Instal Aplikasi KGP
+      </button>
+    </div>
 
-  <p id="status"></p>
+    <div class="footer-text">
+      &copy; 2026 KGP SMP Negeri 1 Kaliwedi. All rights reserved.
+    </div>
+
+  </div>
 
   <script>
-    // GANTI URL DI BAWAH DENGAN WEB APP URL DARI GOOGLE APPS SCRIPT
-    const scriptURL = 'PASTE_URL_WEB_APP_APPS_SCRIPT_DI_SINI';
+    // Fitur Instal PWA Aplikasi Utama
+    let deferredPrompt;
+    const btnInstall = document.getElementById('btnInstall');
 
-    document.getElementById('tanggal').valueAsDate = new Date(); // Auto set hari ini
-
-    document.getElementById('kgpForm').addEventListener('submit', function(e) {
+    window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      
-      const btn = document.getElementById('btnSubmit');
-      const status = document.getElementById('status');
-      btn.disabled = true;
-      status.innerText = "Mengirim data...";
-
-      const data = {
-        kode: document.getElementById('kode').value,
-        nama: document.getElementById('nama').value,
-        tanggal: document.getElementById('tanggal').value,
-        jabatan: document.getElementById('jabatan').value
-      };
-
-      fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(response => {
-        if(response.result === 'success') {
-          status.style.color = 'green';
-          status.innerText = "Data berhasil disimpan!";
-          document.getElementById('kgpForm').reset();
-          document.getElementById('tanggal').valueAsDate = new Date();
-        } else {
-          throw new Error(response.error);
-        }
-      })
-      .catch(err => {
-        status.style.color = 'red';
-        status.innerText = "Gagal menyimpan data!";
-      })
-      .finally(() => {
-        btn.disabled = false;
-      });
+      deferredPrompt = e;
+      btnInstall.style.display = 'inline-flex';
     });
+
+    btnInstall.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('Aplikasi KGP berhasil diinstall');
+        }
+        deferredPrompt = null;
+        btnInstall.style.display = 'none';
+      }
+    });
+
+    // Registrasi Dummy Service Worker untuk mendukung PWA Installability
+    if ('serviceWorker' in navigator) {
+      const swCode = `self.addEventListener('fetch', function(e) {});`;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl).catch(() => {});
+    }
   </script>
 </body>
 </html>
