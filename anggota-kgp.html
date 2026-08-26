@@ -20,9 +20,29 @@
       border-radius: 15px;
       padding: 30px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      position: relative; /* Untuk posisi badge */
+      position: relative;
     }
-    
+
+    /* Tombol Home di Pojok Kiri Atas */
+    .home-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+      transition: transform 0.2s;
+      z-index: 10;
+    }
+    .home-btn:hover { transform: scale(1.1); }
+    .home-btn svg { width: 24px; height: 24px; fill: #fff; }
+
     /* Badge Kode di Pojok Kanan Atas */
     .kode-badge {
       position: absolute;
@@ -40,27 +60,34 @@
       gap: 8px;
       z-index: 10;
     }
-    .kode-badge span { font-size: 0.8rem; font-weight: 600; opacity: 0.8; }
+    .kode-badge span { font-size: 0.75rem; font-weight: 600; opacity: 0.8; }
 
+    /* Header 3 Baris */
     header {
       text-align: center;
-      margin-bottom: 30px;
+      margin: 70px 0 25px 0;
       padding-bottom: 20px;
       border-bottom: 3px solid #1e3c72;
     }
-    header h1 { color: #1e3c72; margin-bottom: 5px; }
-    header h2 { color: #666; font-size: 1rem; font-weight: 400; }
-    .nav-back {
-      display: inline-block;
-      margin-bottom: 20px;
-      padding: 10px 20px;
-      background: #1e3c72;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
+    header h1 {
+      color: #1e3c72;
+      font-size: 1.4rem;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
     }
-    .nav-back:hover { background: #2a5298; }
+    header h2 {
+      color: #2a5298;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    header h3 {
+      color: #666;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 2px;
+    }
+
     .status-bar {
       background: #e3f2fd;
       padding: 12px 15px;
@@ -71,7 +98,57 @@
     }
     .status-bar.error { background: #ffebee; color: #c62828; }
     .status-bar.success { background: #e8f5e9; color: #2e7d32; }
-    
+
+    /* Tombol Aksi */
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary { background: #1e3c72; color: #fff; }
+    .btn-primary:hover { background: #2a5298; transform: translateY(-2px); }
+    .btn-warning { background: #ff9800; color: #fff; }
+    .btn-warning:hover { background: #f57c00; transform: translateY(-2px); }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-secondary:hover { background: #5a6268; }
+    .btn-success { background: #28a745; color: #fff; }
+    .btn-success:hover { background: #218838; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-danger:hover { background: #c82333; }
+
+    /* Form Tersembunyi */
+    .form-container {
+      display: none;
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      border-left: 5px solid #1e3c72;
+      animation: slideDown 0.3s ease;
+    }
+    .form-container.show { display: block; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .form-container h4 {
+      color: #1e3c72;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+    }
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -84,6 +161,7 @@
       margin-bottom: 8px;
       font-weight: 600;
       color: #1e3c72;
+      font-size: 0.9rem;
     }
     .form-group input, .form-group select {
       width: 100%;
@@ -92,41 +170,120 @@
       border-radius: 8px;
       font-size: 1rem;
     }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #1e3c72;
+    }
     .form-group input[readonly] {
-      background: #f0f4f8;
-      color: #1e3c72;
-      font-weight: bold;
+      background: #e9ecef;
       cursor: not-allowed;
+      color: #495057;
     }
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-right: 10px;
-      margin-bottom: 10px;
+
+    /* Tabel Anggota Aktif */
+    .section-title {
+      color: #1e3c72;
+      margin: 30px 0 20px 0;
+      font-size: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .btn-primary { background: #1e3c72; color: #fff; }
-    .btn-primary:hover { background: #2a5298; }
-    .btn-secondary { background: #6c757d; color: #fff; }
-    .btn-secondary:hover { background: #5a6268; }
-    
-    .table-responsive { overflow-x: auto; margin-top: 30px; }
+    .section-title .count {
+      background: #1e3c72;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+    .table-responsive { overflow-x: auto; }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
     th, td {
-      padding: 12px;
+      padding: 14px 12px;
       text-align: left;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #e0e0e0;
     }
-    th { background: #1e3c72; color: #fff; }
+    th {
+      background: #1e3c72;
+      color: #fff;
+      font-weight: 600;
+    }
     tr:hover { background: #f8f9fa; }
-    
+
+    /* Struktur Nama + Kode */
+    .member-name {
+      font-weight: 700;
+      color: #1e3c72;
+      font-size: 1rem;
+      margin-bottom: 3px;
+    }
+    .member-code {
+      font-size: 0.75rem;
+      color: #888;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    /* Modal Edit Semua Anggota */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-overlay.show { display: block; }
+    .modal-content {
+      background: #fff;
+      max-width: 1100px;
+      margin: 20px auto;
+      border-radius: 15px;
+      padding: 25px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #1e3c72;
+    }
+    .modal-header h3 { color: #1e3c72; }
+    .close-modal {
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .status-aktif {
+      background: #28a745;
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+    .status-tidak-aktif {
+      background: #dc3545;
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+
     .loading {
       display: inline-block;
       width: 16px; height: 16px;
@@ -138,69 +295,165 @@
       margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
-      .kode-badge { top: 10px; right: 10px; font-size: 0.9rem; padding: 8px 12px; }
+      .kode-badge { top: 10px; right: 10px; font-size: 0.85rem; padding: 8px 12px; }
+      .home-btn { top: 10px; left: 10px; width: 42px; height: 42px; }
+      header { margin-top: 60px; }
+      header h1 { font-size: 1.1rem; }
+      header h2 { font-size: 0.95rem; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Badge Kode di Pojok Kanan Atas -->
-    <div class="kode-badge" id="kodeBadge">
+    <!-- Tombol Home -->
+    <a href="Index.html" class="home-btn" title="Kembali ke Beranda">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </a>
+
+    <!-- Badge Kode Baru -->
+    <div class="kode-badge">
       <span>KODE BARU:</span> <span id="displayKode">-</span>
     </div>
 
-    <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
+    <!-- Header 3 Baris -->
     <header>
-      <h1>DATA ANGGOTA KGP</h1>
-      <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
+      <h1>KESEJAHTERAAN GURU DAN PEGAWAI</h1>
+      <h2>SMP NEGERI 1 KALIWEDI</h2>
+      <h3>DATA ANGGOTA KGP</h3>
     </header>
-    
-    <div id="statusBar" class="status-bar">🔄 Memuat data dari Google Sheets...</div>
-    
-    <h3 style="margin-bottom: 20px; color: #1e3c72;"> Tambah Anggota Baru</h3>
-    <form id="formAnggota">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="kode">Kode Anggota (Otomatis)</label>
-          <input type="text" id="kode" readonly required />
-        </div>
-        <div class="form-group">
-          <label for="nama">Nama Lengkap *</label>
-          <input type="text" id="nama" placeholder="Nama lengkap dengan gelar" required />
-        </div>
-        <div class="form-group">
-          <label for="tanggal">Tanggal Daftar *</label>
-          <input type="date" id="tanggal" required />
-        </div>
-        <div class="form-group">
-          <label for="jabatan">Jabatan *</label>
-          <select id="jabatan" required>
-            <option value="Anggota">Anggota</option>
-            <option value="Penasehat">Penasehat</option>
-            <option value="Ketua">Ketua</option>
-            <option value="Sekretaris">Sekretaris</option>
-            <option value="Bendahara">Bendahara</option>
-            <option value="Pengurus">Pengurus</option>
-            <option value="Badan Pemeriksa">Badan Pemeriksa</option>
-          </select>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary" id="btnSubmit">💾 Simpan ke Google Sheets</button>
-      <button type="button" class="btn btn-secondary" onclick="resetForm()"> Reset Form</button>
-    </form>
 
-    <h3 style="margin: 40px 0 20px; color: #1e3c72;">👥 Daftar Anggota KGP (<span id="jumlahAnggota">0</span>)</h3>
+    <div id="statusBar" class="status-bar">🔄 Memuat data dari Google Sheets...</div>
+
+    <!-- Tombol Aksi -->
+    <div class="action-buttons">
+      <button class="btn btn-primary" onclick="toggleForm()">
+        ➕ Tambah Anggota
+      </button>
+      <button class="btn btn-warning" onclick="openModal()">
+        ✏️ Edit Anggota
+      </button>
+    </div>
+
+    <!-- Form Tersembunyi -->
+    <div class="form-container" id="formContainer">
+      <h4>📝 Form Tambah Anggota Baru</h4>
+      <form id="formAnggota">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Kode Anggota (Otomatis)</label>
+            <input type="text" id="kode" readonly required />
+          </div>
+          <div class="form-group">
+            <label>Nama Lengkap *</label>
+            <input type="text" id="nama" placeholder="Nama lengkap dengan gelar" required />
+          </div>
+          <div class="form-group">
+            <label>Tanggal Daftar *</label>
+            <input type="date" id="tanggal" required />
+          </div>
+          <div class="form-group">
+            <label>Jabatan *</label>
+            <select id="jabatan" required>
+              <option value="Anggota">Anggota</option>
+              <option value="Penasehat">Penasehat</option>
+              <option value="Ketua">Ketua</option>
+              <option value="Sekretaris">Sekretaris</option>
+              <option value="Bendahara">Bendahara</option>
+              <option value="Pengurus">Pengurus</option>
+              <option value="Badan Pemeriksa">Badan Pemeriksa</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-buttons" style="margin-top: 15px;">
+          <button type="submit" class="btn btn-success" id="btnSubmit">💾 Simpan</button>
+          <button type="button" class="btn btn-secondary" onclick="toggleForm()">✖ Tutup</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tabel Anggota Aktif -->
+    <div class="section-title">
+      <span>👥 Anggota Aktif</span>
+      <span class="count" id="jumlahAktif">0</span>
+    </div>
     <div class="table-responsive">
       <table>
         <thead>
-          <tr><th>Kode</th><th>Nama</th><th>Tanggal Daftar</th><th>Jabatan</th></tr>
+          <tr>
+            <th>Nama Anggota</th>
+            <th>Jabatan</th>
+          </tr>
         </thead>
-        <tbody id="tabelAnggota">
-          <tr><td colspan="4" style="text-align:center;padding:20px;">Memuat data...</td></tr>
+        <tbody id="tabelAktif">
+          <tr><td colspan="2" style="text-align:center;padding:20px;">Memuat data...</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Modal Edit Semua Anggota -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>✏️ Kelola Semua Anggota (Aktif & Tidak Aktif)</h3>
+        <button class="close-modal" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-container show" style="background: #fff3e0; border-left-color: #ff9800;">
+        <h4>🔄 Ubah Status Anggota</h4>
+        <form id="formStatus">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Pilih Anggota</label>
+              <select id="editAnggota" required>
+                <option value="">-- Pilih Anggota --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select id="editStatus" required onchange="toggleTanggalKeluar()">
+                <option value="Aktif">Aktif</option>
+                <option value="Tidak Aktif">Tidak Aktif</option>
+              </select>
+            </div>
+            <div class="form-group" id="groupTanggalKeluar" style="display:none;">
+              <label>Tanggal Keluar</label>
+              <input type="date" id="editTanggalKeluar" />
+            </div>
+            <div class="form-group">
+              <label>Catatan (Opsional)</label>
+              <input type="text" id="editCatatan" placeholder="Alasan keluar, dll" />
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button type="submit" class="btn btn-success">💾 Update Status</button>
+            <button type="button" class="btn btn-secondary" onclick="resetFormStatus()">🔄 Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="section-title" style="margin-top: 30px;">
+        <span>📋 Daftar Lengkap Anggota</span>
+        <span class="count" id="jumlahTotal">0</span>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama Anggota</th>
+              <th>Jabatan</th>
+              <th>Status</th>
+              <th>Tanggal Keluar</th>
+            </tr>
+          </thead>
+          <tbody id="tabelSemua">
+            <tr><td colspan="4" style="text-align:center;padding:20px;">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -211,7 +464,6 @@
     
     let dataAnggota = [];
 
-    // 1. Parser CSV yang lebih robust (mengatasi tanda kutip & format Google Sheets)
     function parseCSVLine(line) {
       const result = [];
       let current = '', inQuotes = false;
@@ -228,96 +480,128 @@
       return result;
     }
 
-    // 2. Generate Kode Otomatis [YY][MM][XXX]
     function generateKode() {
       const now = new Date();
       const YY = now.getFullYear().toString().substr(-2);
       const MM = (now.getMonth() + 1).toString().padStart(2, '0');
       const prefix = YY + MM;
-
-      // Hitung berapa anggota yang sudah ada dengan prefix bulan ini
       const count = dataAnggota.filter(a => a.KODE && a.KODE.startsWith(prefix)).length;
       const XXX = (count + 1).toString().padStart(3, '0');
-
       return prefix + XXX;
     }
 
-    // 3. Load Data & Fix Bug Tabel Kosong
     async function loadAnggota() {
       const statusBar = document.getElementById('statusBar');
       try {
         const response = await fetch(SHEET1_URL + '&t=' + Date.now());
-        if (!response.ok) throw new Error('Gagal mengambil data');
-        
+        if (!response.ok) throw new Error('Gagal');
         const text = await response.text();
         const lines = text.trim().split('\n');
         dataAnggota = [];
 
-        // Cari baris header secara dinamis (yang mengandung kata 'KODE')
         let headerIndex = -1;
         for(let i=0; i<lines.length; i++) {
-          if(lines[i].toUpperCase().includes('KODE')) {
-            headerIndex = i;
-            break;
-          }
+          if(lines[i].toUpperCase().includes('KODE')) { headerIndex = i; break; }
         }
-        if(headerIndex === -1) headerIndex = 1; // Fallback
+        if(headerIndex === -1) headerIndex = 1;
 
-        // Parse data mulai dari baris setelah header
         for (let i = headerIndex + 1; i < lines.length; i++) {
           if (!lines[i].trim()) continue;
           const values = parseCSVLine(lines[i]);
-          
-          // Mapping berdasarkan INDEX KOLOM (lebih aman daripada nama header)
-          // Sheet1: Col 0=KODE, Col 1=NAMA, Col 2=TANGGAL DAFTAR, Col 3=JABATAN
           const obj = {
             KODE: (values[0] || '').replace(/"/g, '').trim(),
             NAMA: (values[1] || '').replace(/"/g, '').trim(),
             'TANGGAL DAFTAR': (values[2] || '').replace(/"/g, '').trim(),
-            JABATAN: (values[3] || '').replace(/"/g, '').trim()
+            JABATAN: (values[3] || '').replace(/"/g, '').trim(),
+            STATUS: (values[4] || 'Aktif').replace(/"/g, '').trim() || 'Aktif',
+            'TANGGAL KELUAR': (values[5] || '').replace(/"/g, '').trim()
           };
-          
           if(obj.KODE) dataAnggota.push(obj);
         }
 
-        statusBar.textContent = `✅ Data berhasil dimuat: ${dataAnggota.length} anggota`;
+        statusBar.textContent = `✅ Data dimuat: ${dataAnggota.filter(a => a.STATUS === 'Aktif').length} aktif dari ${dataAnggota.length} total`;
         statusBar.className = 'status-bar success';
         
-        // Generate kode baru setelah data dimuat
-        const newKode = generateKode();
-        document.getElementById('kode').value = newKode;
-        document.getElementById('displayKode').textContent = newKode;
+        document.getElementById('kode').value = generateKode();
+        document.getElementById('displayKode').textContent = generateKode();
         
-        renderTabel();
+        renderTabelAktif();
+        renderTabelSemua();
+        populateEditDropdown();
       } catch (e) {
         console.error(e);
-        statusBar.textContent = '❌ Gagal memuat data. Periksa koneksi atau ID Spreadsheet.';
+        statusBar.textContent = '❌ Gagal memuat data.';
         statusBar.className = 'status-bar error';
       }
     }
 
-    // 4. Render Tabel (Diperbaiki)
-    function renderTabel() {
-      const tbody = document.getElementById('tabelAnggota');
-      document.getElementById('jumlahAnggota').textContent = dataAnggota.length;
+    function renderTabelAktif() {
+      const tbody = document.getElementById('tabelAktif');
+      const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
+      document.getElementById('jumlahAktif').textContent = aktif.length;
+      
+      if (aktif.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:#999;">Belum ada anggota aktif</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = aktif.map(a => `
+        <tr>
+          <td>
+            <div class="member-name">${a.NAMA}</div>
+            <div class="member-code">${a.KODE}</div>
+          </td>
+          <td>${a.JABATAN}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderTabelSemua() {
+      const tbody = document.getElementById('tabelSemua');
+      document.getElementById('jumlahTotal').textContent = dataAnggota.length;
       
       if (dataAnggota.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
         return;
       }
       
-      // Render baris tabel
       tbody.innerHTML = dataAnggota.map(a => `
         <tr>
-          <td><strong>${a.KODE}</strong></td>
-          <td>${a.NAMA}</td>
-          <td>${a['TANGGAL DAFTAR']}</td>
+          <td>
+            <div class="member-name">${a.NAMA}</div>
+            <div class="member-code">${a.KODE}</div>
+          </td>
           <td>${a.JABATAN}</td>
+          <td>
+            <span class="${a.STATUS === 'Aktif' ? 'status-aktif' : 'status-tidak-aktif'}">
+              ${a.STATUS}
+            </span>
+          </td>
+          <td>${a['TANGGAL KELUAR'] || '-'}</td>
         </tr>
       `).join('');
     }
 
-    // 5. Submit Form
+    function populateEditDropdown() {
+      const select = document.getElementById('editAnggota');
+      select.innerHTML = '<option value="">-- Pilih Anggota --</option>';
+      dataAnggota.forEach(a => {
+        select.innerHTML += `<option value="${a.KODE}" data-status="${a.STATUS}" data-tanggal="${a['TANGGAL KELUAR'] || ''}">${a.KODE} - ${a.NAMA}</option>`;
+      });
+    }
+
+    // Toggle Form Tambah
+    function toggleForm() {
+      const form = document.getElementById('formContainer');
+      form.classList.toggle('show');
+      if (form.classList.contains('show')) {
+        document.getElementById('kode').value = generateKode();
+        document.getElementById('displayKode').textContent = generateKode();
+        window.scrollTo({ top: 200, behavior: 'smooth' });
+      }
+    }
+
+    // Submit Form Tambah
     document.getElementById('formAnggota').addEventListener('submit', async function(e) {
       e.preventDefault();
       const statusBar = document.getElementById('statusBar');
@@ -332,21 +616,24 @@
         kode: document.getElementById('kode').value,
         nama: document.getElementById('nama').value,
         tanggal: document.getElementById('tanggal').value,
-        jabatan: document.getElementById('jabatan').value
+        jabatan: document.getElementById('jabatan').value,
+        status: 'Aktif',
+        tanggalKeluar: ''
       };
 
       try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(data)
-        });
-        statusBar.textContent = '✅ Anggota berhasil ditambahkan ke Google Sheets!';
+        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+        statusBar.textContent = '✅ Anggota berhasil ditambahkan!';
         statusBar.className = 'status-bar success';
         this.reset();
         document.getElementById('tanggal').valueAsDate = new Date();
-        await loadAnggota(); // Reload untuk update tabel & generate kode berikutnya
+        
+        // Tutup form otomatis
+        document.getElementById('formContainer').classList.remove('show');
+        
+        await loadAnggota();
       } catch (err) {
-        statusBar.textContent = '❌ Gagal menyimpan. Coba lagi.';
+        statusBar.textContent = '❌ Gagal menyimpan.';
         statusBar.className = 'status-bar error';
       } finally {
         btnSubmit.innerHTML = originalText;
@@ -354,12 +641,73 @@
       }
     });
 
-    function resetForm() {
-      document.getElementById('formAnggota').reset();
-      document.getElementById('tanggal').valueAsDate = new Date();
-      // Regenerate kode saat reset
-      document.getElementById('kode').value = generateKode();
-      document.getElementById('displayKode').textContent = generateKode();
+    // Modal Functions
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+      document.body.style.overflow = 'auto';
+    }
+
+    // Toggle Tanggal Keluar
+    function toggleTanggalKeluar() {
+      const status = document.getElementById('editStatus').value;
+      document.getElementById('groupTanggalKeluar').style.display = 
+        status === 'Tidak Aktif' ? 'block' : 'none';
+    }
+
+    // Saat pilih anggota di dropdown edit, isi status & tanggal otomatis
+    document.getElementById('editAnggota').addEventListener('change', function() {
+      const opt = this.options[this.selectedIndex];
+      if (opt.value) {
+        document.getElementById('editStatus').value = opt.getAttribute('data-status') || 'Aktif';
+        document.getElementById('editTanggalKeluar').value = opt.getAttribute('data-tanggal') || '';
+        toggleTanggalKeluar();
+      }
+    });
+
+    // Submit Update Status
+    document.getElementById('formStatus').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const statusBar = document.getElementById('statusBar');
+      const kode = document.getElementById('editAnggota').value;
+      const status = document.getElementById('editStatus').value;
+      const tanggalKeluar = document.getElementById('editTanggalKeluar').value;
+      const catatan = document.getElementById('editCatatan').value;
+
+      if (!kode) { alert('Pilih anggota terlebih dahulu!'); return; }
+      if (status === 'Tidak Aktif' && !tanggalKeluar) {
+        alert('Tanggal keluar wajib diisi untuk status Tidak Aktif!');
+        return;
+      }
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            sheet: 'Sheet1',
+            action: 'updateStatus',
+            kode: kode,
+            status: status,
+            tanggalKeluar: tanggalKeluar,
+            catatan: catatan
+          })
+        });
+        statusBar.textContent = '✅ Status anggota berhasil diupdate!';
+        statusBar.className = 'status-bar success';
+        resetFormStatus();
+        await loadAnggota();
+      } catch (err) {
+        statusBar.textContent = '❌ Gagal update status.';
+        statusBar.className = 'status-bar error';
+      }
+    });
+
+    function resetFormStatus() {
+      document.getElementById('formStatus').reset();
+      document.getElementById('groupTanggalKeluar').style.display = 'none';
     }
 
     // Inisialisasi
