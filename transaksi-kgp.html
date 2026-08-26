@@ -8,9 +8,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       min-height: 100vh;
       padding: 20px;
+      color: #333;
     }
     .container {
       max-width: 1000px;
@@ -24,31 +25,39 @@
       text-align: center;
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 3px solid #667eea;
+      border-bottom: 3px solid #1e3c72;
     }
-    header h1 { color: #667eea; margin-bottom: 5px; }
+    header h1 { color: #1e3c72; margin-bottom: 5px; font-size: 1.5rem; }
     header h2 { color: #666; font-size: 1rem; font-weight: 400; }
     
     .nav-back {
       display: inline-block;
       margin-bottom: 20px;
       padding: 10px 20px;
-      background: #667eea;
+      background: #1e3c72;
       color: #fff;
       text-decoration: none;
       border-radius: 8px;
       font-weight: 600;
+      font-size: 0.9rem;
     }
-    .nav-back:hover { background: #5568d3; }
+    .nav-back:hover { background: #2a5298; }
 
-    .form-group {
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
       margin-bottom: 20px;
     }
+    .form-group { margin-bottom: 15px; }
+    .form-group.full { grid-column: 1 / -1; }
+    
     .form-group label {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
-      color: #333;
+      color: #1e3c72;
+      font-size: 0.9rem;
     }
     .form-group input,
     .form-group select,
@@ -58,12 +67,17 @@
       border: 2px solid #ddd;
       border-radius: 8px;
       font-size: 1rem;
+      transition: border-color 0.3s;
     }
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #1e3c72;
+    }
+    .form-group input[readonly] {
+      background: #f8f9fa;
+      color: #555;
     }
 
     .btn {
@@ -75,48 +89,41 @@
       cursor: pointer;
       margin-right: 10px;
     }
-    .btn-primary { background: #667eea; color: #fff; }
-    .btn-primary:hover { background: #5568d3; }
+    .btn-primary { background: #1e3c72; color: #fff; }
+    .btn-primary:hover { background: #2a5298; }
     .btn-secondary { background: #6c757d; color: #fff; }
     .btn-secondary:hover { background: #5a6268; }
 
+    .table-responsive { overflow-x: auto; margin-top: 30px; }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 30px;
+      font-size: 0.9rem;
     }
     th, td {
       padding: 12px;
       text-align: left;
-      border-bottom: 2px solid #ddd;
+      border-bottom: 1px solid #ddd;
     }
     th {
-      background: #667eea;
+      background: #1e3c72;
       color: #fff;
       font-weight: 600;
     }
     tr:hover { background: #f8f9fa; }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .btn-hapus {
+      padding: 5px 10px;
+      background: #dc3545;
       color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
     }
-    .stat-card h3 { font-size: 2rem; margin-bottom: 5px; }
-    .stat-card p { font-size: 0.9rem; opacity: 0.9; }
 
     @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
       .container { padding: 20px; }
-      table { font-size: 0.9rem; }
-      th, td { padding: 8px; }
     }
   </style>
 </head>
@@ -129,161 +136,188 @@
       <h2>Kesejahteraan Guru dan Pegawai - SMP Negeri 1 Kaliwedi</h2>
     </header>
 
-    <div class="stats">
-      <div class="stat-card">
-        <h3>Rp 0</h3>
-        <p>Total Iuran</p>
-      </div>
-      <div class="stat-card">
-        <h3>Rp 0</h3>
-        <p>Total Simpanan</p>
-      </div>
-      <div class="stat-card">
-        <h3>Rp 0</h3>
-        <p>Saldo Kas</p>
-      </div>
-    </div>
-
-    <h3 style="margin-bottom: 20px; color: #333;">📝 Input Transaksi Baru</h3>
+    <h3 style="margin-bottom: 20px; color: #1e3c72;"> Input Transaksi Baru</h3>
     <form id="formTransaksi">
-      <div class="form-group">
-        <label for="tanggal">Tanggal Transaksi</label>
-        <input type="date" id="tanggal" required />
-      </div>
-      
-      <div class="form-group">
-        <label for="jenis">Jenis Transaksi</label>
-        <select id="jenis" required>
-          <option value="">-- Pilih Jenis --</option>
-          <option value="iuran">Iuran Anggota</option>
-          <option value="simpanan">Simpanan</option>
-          <option value="pinjaman">Pinjaman</option>
-          <option value="pengeluaran">Pengeluaran</option>
-        </select>
-      </div>
+      <div class="form-grid">
+        <!-- TIME STAMP -->
+        <div class="form-group">
+          <label for="timestamp">Time Stamp</label>
+          <input type="datetime-local" id="timestamp" required />
+        </div>
 
-      <div class="form-group">
-        <label for="anggota">Nama Anggota</label>
-        <select id="anggota" required>
-          <option value="">-- Pilih Anggota --</option>
-        </select>
-      </div>
+        <!-- TRANSAKSI (Dari Sheet3!A2:A) -->
+        <div class="form-group">
+          <label for="transaksi">Transaksi</label>
+          <select id="transaksi" required>
+            <option value="">-- Pilih Transaksi --</option>
+            <!-- ⚠️ SESUAIKAN OPSI INI DENGAN DATA DI SHEET3!A2:A ANDA -->
+            <option value="Iuran Wajib">Iuran Wajib</option>
+            <option value="Iuran Sukarela">Iuran Sukarela</option>
+            <option value="Simpanan">Simpanan</option>
+            <option value="Pinjaman">Pinjaman</option>
+            <option value="Angsuran Pinjaman">Angsuran Pinjaman</option>
+            <option value="Pengeluaran">Pengeluaran</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="jumlah">Jumlah (Rp)</label>
-        <input type="number" id="jumlah" placeholder="0" required />
-      </div>
+        <!-- KODE (Dari Sheet1!A:A) -->
+        <div class="form-group">
+          <label for="kode">Kode Anggota</label>
+          <select id="kode" required>
+            <option value="">-- Pilih Kode --</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="keterangan">Keterangan</label>
-        <textarea id="keterangan" rows="3" placeholder="Keterangan transaksi..."></textarea>
+        <!-- NAMA (Otomatis dari Sheet1!B:B) -->
+        <div class="form-group">
+          <label for="nama">Nama Anggota</label>
+          <input type="text" id="nama" readonly placeholder="Otomatis terisi..." />
+        </div>
+
+        <!-- CARA BAYAR -->
+        <div class="form-group">
+          <label for="caraBayar">Cara Bayar</label>
+          <select id="caraBayar" required>
+            <option value="">-- Pilih Cara Bayar --</option>
+            <option value="GAJI">GAJI</option>
+            <option value="SERTI">SERTI</option>
+            <option value="HONOR">HONOR</option>
+            <option value="MANDIRI">MANDIRI</option>
+          </select>
+        </div>
+
+        <!-- NOMINAL -->
+        <div class="form-group">
+          <label for="nominal">Nominal (Rp)</label>
+          <input type="number" id="nominal" placeholder="0" required />
+        </div>
+
+        <!-- KETERANGAN -->
+        <div class="form-group full">
+          <label for="keterangan">Keterangan</label>
+          <input type="text" id="keterangan" placeholder="Keterangan tambahan..." />
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary">💾 Simpan Transaksi</button>
-      <button type="reset" class="btn btn-secondary">🔄 Reset</button>
+      <button type="reset" class="btn btn-secondary">🔄 Reset Form</button>
     </form>
 
-    <h3 style="margin: 40px 0 20px; color: #333;">📊 Daftar Transaksi</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Tanggal</th>
-          <th>Jenis</th>
-          <th>Anggota</th>
-          <th>Jumlah</th>
-          <th>Keterangan</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="tabelTransaksi">
-        <tr>
-          <td colspan="7" style="text-align: center; color: #999;">Belum ada data transaksi</td>
-        </tr>
-      </tbody>
-    </table>
+    <h3 style="margin: 40px 0 20px; color: #1e3c72;">📊 Riwayat Transaksi</h3>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Time Stamp</th>
+            <th>Transaksi</th>
+            <th>Kode</th>
+            <th>Nama</th>
+            <th>Cara Bayar</th>
+            <th>Nominal</th>
+            <th>Keterangan</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tabelTransaksi">
+          <tr>
+            <td colspan="8" style="text-align: center; color: #999;">Belum ada data transaksi</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <script>
-    // Set tanggal hari ini
-    document.getElementById('tanggal').valueAsDate = new Date();
+    // 1. Set Time Stamp ke waktu saat ini
+    function setCurrentTimestamp() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('timestamp').value = now.toISOString().slice(0, 16);
+    }
+    setCurrentTimestamp();
 
-    // Load data anggota dari localStorage
+    // 2. Load Data Anggota (Simulasi Sheet1!A:A dan B:B)
+    // Data ini diambil dari localStorage yang disimpan oleh anggota-kgp.html
     function loadAnggota() {
       const data = localStorage.getItem('kgp_anggota');
       const anggota = data ? JSON.parse(data) : [];
-      const select = document.getElementById('anggota');
+      const selectKode = document.getElementById('kode');
       
-      if (anggota.length > 0) {
-        select.innerHTML = '<option value="">-- Pilih Anggota --</option>';
-        anggota.forEach(a => {
-          select.innerHTML += `<option value="${a.kode}">${a.nama}</option>`;
-        });
-      }
+      // Jika belum ada data di localStorage, gunakan data dummy untuk tes
+      const daftarAnggota = anggota.length > 0 ? anggota : [
+        { kode: 'KGP001', nama: 'Contoh Nama Guru 1' },
+        { kode: 'KGP002', nama: 'Contoh Nama Guru 2' }
+      ];
+
+      selectKode.innerHTML = '<option value="">-- Pilih Kode --</option>';
+      daftarAnggota.forEach(a => {
+        selectKode.innerHTML += `<option value="${a.kode}" data-nama="${a.nama}">${a.kode}</option>`;
+      });
     }
 
-    // Simpan transaksi
+    // 3. Logika Otomatis: Pilih Kode -> Muncul Nama (Sheet1!B:B)
+    document.getElementById('kode').addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const nama = selectedOption.getAttribute('data-nama') || '';
+      document.getElementById('nama').value = nama;
+    });
+
+    // 4. Simpan Transaksi
     document.getElementById('formTransaksi').addEventListener('submit', function(e) {
       e.preventDefault();
       
       const transaksi = {
         id: Date.now(),
-        tanggal: document.getElementById('tanggal').value,
-        jenis: document.getElementById('jenis').value,
-        anggota: document.getElementById('anggota').value,
-        jumlah: parseFloat(document.getElementById('jumlah').value),
+        timestamp: document.getElementById('timestamp').value.replace('T', ' '),
+        transaksi: document.getElementById('transaksi').value,
+        kode: document.getElementById('kode').value,
+        nama: document.getElementById('nama').value,
+        caraBayar: document.getElementById('caraBayar').value,
+        nominal: parseFloat(document.getElementById('nominal').value),
         keterangan: document.getElementById('keterangan').value
       };
 
-      // Simpan ke localStorage
       let data = localStorage.getItem('kgp_transaksi');
       let listTransaksi = data ? JSON.parse(data) : [];
       listTransaksi.push(transaksi);
       localStorage.setItem('kgp_transaksi', JSON.stringify(listTransaksi));
 
-      alert('Transaksi berhasil disimpan!');
+      alert('✅ Transaksi berhasil disimpan!');
       this.reset();
-      document.getElementById('tanggal').valueAsDate = new Date();
+      setCurrentTimestamp();
       loadTransaksi();
     });
 
-    // Load dan tampilkan transaksi
+    // 5. Tampilkan Tabel Transaksi
     function loadTransaksi() {
       const data = localStorage.getItem('kgp_transaksi');
       const list = data ? JSON.parse(data) : [];
       const tbody = document.getElementById('tabelTransaksi');
 
       if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Belum ada data transaksi</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Belum ada data transaksi</td></tr>';
         return;
       }
 
       let html = '';
       list.forEach((t, index) => {
-        const jenisText = {
-          'iuran': 'Iuran',
-          'simpanan': 'Simpanan',
-          'pinjaman': 'Pinjaman',
-          'pengeluaran': 'Pengeluaran'
-        }[t.jenis] || t.jenis;
-
         html += `
           <tr>
-            <td>${index + 1}</td>
-            <td>${t.tanggal}</td>
-            <td>${jenisText}</td>
-            <td>${t.anggota}</td>
-            <td>Rp ${t.jumlah.toLocaleString('id-ID')}</td>
+            <td>${t.timestamp}</td>
+            <td>${t.transaksi}</td>
+            <td>${t.kode}</td>
+            <td>${t.nama}</td>
+            <td>${t.caraBayar}</td>
+            <td>Rp ${t.nominal.toLocaleString('id-ID')}</td>
             <td>${t.keterangan}</td>
-            <td><button onclick="hapusTransaksi(${t.id})" style="padding: 5px 10px; background: #dc3545; color: #fff; border: none; border-radius: 5px; cursor: pointer;">🗑 Hapus</button></td>
+            <td><button onclick="hapusTransaksi(${t.id})" class="btn-hapus">🗑</button></td>
           </tr>
         `;
       });
-
       tbody.innerHTML = html;
     }
 
-    // Hapus transaksi
+    // 6. Hapus Transaksi
     function hapusTransaksi(id) {
       if (confirm('Yakin ingin menghapus transaksi ini?')) {
         let data = localStorage.getItem('kgp_transaksi');
@@ -294,7 +328,7 @@
       }
     }
 
-    // Load data saat halaman dibuka
+    // Inisialisasi saat halaman dimuat
     loadAnggota();
     loadTransaksi();
   </script>
