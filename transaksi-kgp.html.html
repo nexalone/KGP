@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRANSAKSI KEUANGAN KGP - SMP NEGERI 1 KALIWEDI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #eef5f0;
+      --card-bg: #ffffff;
+      --primary: #2d6a4f;
+      --primary-hover: #1b4332;
+      --accent: #52b788;
+      --text-main: #2b2d42;
+      --text-muted: #6c757d;
+      --border-color: #b7e4c7;
+      --danger: #e63946;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 25px 15px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 850px; }
+
+    .header-panel { text-align: center; margin-bottom: 25px; }
+    .header-panel h1 { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+    .header-panel h2 { font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-top: 4px; }
+    .header-panel p { font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .card { background: var(--card-bg); border-radius: 12px; padding: 25px; box-shadow: 0 10px 25px rgba(45, 106, 79, 0.08); margin-bottom: 30px; }
+    .form-group { margin-bottom: 16px; position: relative; }
+    .form-row { display: flex; gap: 15px; }
+    .form-row .form-group { flex: 1; }
+
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+    input, select, textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background-color: #f8fbfa; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); background-color: #fff; box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.2); }
+
+    .nama-preview { font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-top: 5px; min-height: 18px; }
+
+    .btn-submit { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 5px; }
+    .btn-submit:hover { background-color: var(--primary-hover); }
+    .btn-submit:disabled { background-color: #a3b18a; cursor: not-allowed; }
+
+    #status-msg { margin-top: 12px; font-size: 0.9rem; text-align: center; font-weight: 500; }
+
+    .table-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(45, 106, 79, 0.08); overflow-x: auto; }
+    .table-card h3 { font-size: 1.1rem; color: var(--primary); margin-bottom: 15px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th { background-color: #d8f3dc; color: var(--primary-hover); padding: 10px; font-weight: 600; }
+    td { padding: 10px; border-bottom: 1px solid #e9ecef; }
+    tr:hover { background-color: #f4f9f5; }
+
+    .btn-delete { background-color: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.75rem; }
+    .btn-delete:hover { background-color: #d62828; }
+
+    @media (max-width: 600px) { .form-row { flex-direction: column; gap: 0; } }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <div class="header-panel">
+      <h1>KESEJAHTERAAN GURU DAN KARYAWAN</h1>
+      <h2>SMP NEGERI 1 KALIWEDI</h2>
+      <p>Form Transaksi Keuangan</p>
+    </div>
+
+    <div class="card">
+      <form id="transaksiForm">
+        
+        <!-- AUTOCOMPLETE KODE & NAMA ANGGOTA -->
+        <div class="form-group">
+          <label for="kodeInput">Kode / Nama Anggota</label>
+          <input type="text" id="kodeInput" list="anggotaDatalist" placeholder="Ketik Kode atau Nama Anggota..." autocomplete="off" required>
+          <datalist id="anggotaDatalist"></datalist>
+          <div class="nama-preview" id="namaPreview"></div>
+        </div>
+
+        <!-- TRANSAKSI (PULLDOWN DARI SHEET3) -->
+        <div class="form-group">
+          <label for="transaksiSelect">Jenis Transaksi</label>
+          <select id="transaksiSelect" required>
+            <option value="" disabled selected>Pilih Jenis Transaksi...</option>
+          </select>
+        </div>
+
+        <!-- NOMINAL & CARA BAYAR (1 BARIS) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nominal">Nominal (Rp)</label>
+            <input type="number" id="nominal" placeholder="Contoh: 50000" min="0" required>
+          </div>
+          <div class="form-group">
+            <label for="caraBayar">Cara Bayar</label>
+            <select id="caraBayar" required>
+              <option value="Tunai" selected>Tunai</option>
+              <option value="Transfer">Transfer</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="keterangan">Keterangan</label>
+          <textarea id="keterangan" rows="2" placeholder="Catatan opsional..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">Simpan Transaksi</button>
+      </form>
+      <div id="status-msg"></div>
+    </div>
+
+    <!-- RIWAYAT TRANSAKSI (SHEET2) -->
+    <div class="table-card">
+      <h3>Riwayat Transaksi Terakhir</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Transaksi</th>
+            <th>Kode</th>
+            <th>Cara Bayar</th>
+            <th>Nominal</th>
+            <th>Ket</th>
+            <th style="text-align:center;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="7" style="text-align: center;">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
+    
+    let anggotaData = [];
+
+    document.addEventListener('DOMContentLoaded', loadInitialData);
+
+    function loadInitialData() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            // 1. Setup Autocomplete Anggota (Sheet1)
+            anggotaData = res.anggota;
+            const datalist = document.getElementById('anggotaDatalist');
+            datalist.innerHTML = anggotaData.map(a => 
+              `<option value="${a.kode}">${a.nama}</option>`
+            ).join('');
+
+            // 2. Setup Pulldown Transaksi (Sheet3!A2:A)
+            const tSelect = document.getElementById('transaksiSelect');
+            tSelect.innerHTML = '<option value="" disabled selected>Pilih Jenis Transaksi...</option>' + 
+              res.transaksi.map(t => `<option value="${t}">${t}</option>`).join('');
+
+            // 3. Render Riwayat Transaksi (Sheet2)
+            renderTable(res.riwayat);
+          }
+        })
+        .catch(err => {
+          document.getElementById('tableBody').innerHTML = 
+            `<tr><td colspan="7" style="text-align:center; color:red;">Gagal memuat data backend.</td></tr>`;
+        });
+    }
+
+    // Deteksi Pilihan Kode & Tampilkan Nama Anggota di Samping/Bawahnya
+    document.getElementById('kodeInput').addEventListener('input', function() {
+      const val = this.value.trim();
+      const match = anggotaData.find(a => String(a.kode) === val || a.nama.toLowerCase() === val.toLowerCase());
+      
+      const preview = document.getElementById('namaPreview');
+      if (match) {
+        this.value = match.kode; // Autocomplete kode
+        preview.innerText = 'Nama: ' + match.nama;
+      } else {
+        preview.innerText = '';
+      }
+    });
+
+    // Handle Simpan Transaksi
+    document.getElementById('transaksiForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const btn = document.getElementById('btnSubmit');
+      const status = document.getElementById('status-msg');
+      btn.disabled = true;
+      status.style.color = 'var(--text-main)';
+      status.innerText = "Menyimpan transaksi...";
+
+      const payload = {
+        action: "CREATE",
+        kode: document.getElementById('kodeInput').value,
+        transaksi: document.getElementById('transaksiSelect').value,
+        nominal: document.getElementById('nominal').value,
+        caraBayar: document.getElementById('caraBayar').value,
+        keterangan: document.getElementById('keterangan').value
+      };
+
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        if(res.status === 'success') {
+          status.style.color = 'green';
+          status.innerText = res.message;
+          document.getElementById('transaksiForm').reset();
+          document.getElementById('namaPreview').innerText = '';
+          loadInitialData();
+        } else {
+          throw new Error(res.message);
+        }
+      })
+      .catch(err => {
+        status.style.color = 'var(--danger)';
+        status.innerText = "Error: " + err.message;
+      })
+      .finally(() => {
+        btn.disabled = false;
+      });
+    });
+
+    // Render Tabel Riwayat Transaksi
+    function renderTable(riwayat) {
+      const tbody = document.getElementById('tableBody');
+      if (!riwayat || riwayat.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Belum ada riwayat transaksi.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = riwayat.slice().reverse().map(item => `
+        <tr>
+          <td>${item.timestamp}</td>
+          <td><b>${item.transaksi}</b></td>
+          <td>${item.kode}</td>
+          <td>${item.caraBayar}</td>
+          <td>Rp ${Number(item.nominal).toLocaleString('id-ID')}</td>
+          <td>${item.keterangan || '-'}</td>
+          <td style="text-align: center;">
+            <button class="btn-delete" onclick="deleteRow(${item.row})">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Hapus Transaksi
+    function deleteRow(rowNum) {
+      if(confirm('Hapus transaksi ini dari Sheet2?')) {
+        fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: "DELETE", row: rowNum })
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            loadInitialData();
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
