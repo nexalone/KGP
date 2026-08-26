@@ -1,306 +1,463 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KESEJAHTERAAN GURU DAN KARYAWAN - SMP NEGERI 1 KALIWEDI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e3c72" />
+  <title>Data Anggota - KGP SMPN 1 Kaliwedi</title>
   <style>
-    :root {
-      --bg-color: #eef5f0;
-      --card-bg: #ffffff;
-      --primary: #2d6a4f;
-      --primary-hover: #1b4332;
-      --accent: #52b788;
-      --text-main: #2b2d42;
-      --text-muted: #6c757d;
-      --border-color: #d8f3dc;
-      --danger: #e63946;
-      --danger-hover: #d62828;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #1e3c72;
+    }
+    header h1 { color: #1e3c72; margin-bottom: 5px; font-size: 1.5rem; }
+    header h2 { color: #666; font-size: 1rem; font-weight: 400; }
+    
+    .nav-back {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: #1e3c72;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .nav-back:hover { background: #2a5298; }
+
+    .status-bar {
+      background: #e3f2fd;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #1565c0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-bar.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .status-bar.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding: 30px 15px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 850px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 15px; }
+    .form-group.full { grid-column: 1 / -1; }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #1e3c72;
+      font-size: 0.9rem;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #1e3c72;
+    }
 
-    .header-panel { text-align: center; margin-bottom: 25px; }
-    .header-panel h1 { font-size: 1.4rem; font-weight: 700; color: var(--primary); letter-spacing: 0.5px; }
-    .header-panel h2 { font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-top: 4px; }
-    .header-panel p { font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+    }
+    .btn-primary { background: #1e3c72; color: #fff; }
+    .btn-primary:hover { background: #2a5298; transform: translateY(-2px); }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-secondary:hover { background: #5a6268; }
+    .btn-success { background: #28a745; color: #fff; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #333; }
+    .btn-warning:hover { background: #e0a800; }
 
-    .card { background: var(--card-bg); border-radius: 12px; padding: 25px 30px; box-shadow: 0 10px 25px rgba(45, 106, 79, 0.08); position: relative; margin-bottom: 30px; }
-    .kode-badge { position: absolute; top: 25px; right: 30px; font-size: 0.95rem; font-weight: 600; color: var(--primary); }
-    .form-group { margin-bottom: 18px; }
-    .form-row { display: flex; gap: 15px; }
-    .form-row .form-group { flex: 1; }
+    .table-responsive { 
+      overflow-x: auto; 
+      margin-top: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      background: #fff;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #1e3c72;
+      color: #fff;
+      font-weight: 600;
+    }
+    tr:hover { background: #f8f9fa; }
+    .btn-edit {
+      padding: 6px 12px;
+      background: #ffc107;
+      color: #333;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 5px;
+      font-size: 0.85rem;
+    }
+    .btn-edit:hover { background: #e0a800; }
+    .btn-hapus {
+      padding: 6px 12px;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-hapus:hover { background: #c82333; }
 
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
-    input, select { width: 100%; padding: 10px 14px; border: 1px solid #b7e4c7; border-radius: 8px; font-size: 0.95rem; background-color: #f8fbfa; outline: none; transition: all 0.3s ease; }
-    input:focus, select:focus { border-color: var(--accent); background-color: #fff; box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.2); }
-
-    .btn-submit { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s ease; margin-top: 5px; }
-    .btn-submit:hover { background-color: var(--primary-hover); }
-    .btn-submit:disabled { background-color: #a3b18a; cursor: not-allowed; }
-    .btn-cancel { width: 100%; padding: 10px; background-color: transparent; color: var(--text-muted); border: 1px solid #ccc; border-radius: 8px; font-size: 0.9rem; cursor: pointer; margin-top: 8px; display: none; }
-
-    #status-msg { margin-top: 12px; font-size: 0.9rem; text-align: center; font-weight: 500; }
-
-    .table-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(45, 106, 79, 0.08); overflow-x: auto; }
-    .table-card h3 { font-size: 1.1rem; color: var(--primary); margin-bottom: 15px; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-    th { background-color: #d8f3dc; color: var(--primary-hover); padding: 12px; font-weight: 600; }
-    td { padding: 12px; border-bottom: 1px solid #e9ecef; }
-    tr:hover { background-color: #f4f9f5; }
-
-    .action-btn { padding: 6px 12px; border: none; border-radius: 5px; font-size: 0.8rem; font-weight: 500; cursor: pointer; margin-right: 4px; }
-    .btn-edit { background-color: #e9c46a; color: #000; }
-    .btn-edit:hover { background-color: #d4a373; }
-    .btn-delete { background-color: var(--danger); color: white; }
-    .btn-delete:hover { background-color: var(--danger-hover); }
-
-    @media (max-width: 600px) {
-      .form-row { flex-direction: column; gap: 0; }
-      .kode-badge { position: static; margin-bottom: 15px; text-align: right; }
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .container { padding: 20px; }
+      table { font-size: 0.85rem; }
+      th, td { padding: 8px; }
     }
   </style>
 </head>
 <body>
-
   <div class="container">
+    <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
     
-    <div class="header-panel">
-      <h1>KESEJAHTERAAN GURU DAN KARYAWAN</h1>
-      <h2>SMP NEGERI 1 KALIWEDI</h2>
-      <p>Form Data Anggota</p>
+    <header>
+      <h1>DATA ANGGOTA KGP</h1>
+      <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
+    </header>
+
+    <div id="statusBar" class="status-bar">
+      <span class="loading"></span>
+      <span>Memuat data dari Google Sheets...</span>
     </div>
 
-    <div class="card">
-      <div class="kode-badge" id="displayKode">Kode: ...</div>
-
-      <form id="kgpForm">
-        <input type="hidden" id="kode" name="kode">
-        <input type="hidden" id="isEdit" value="false">
-
-        <div class="form-group" style="margin-top: 15px;">
-          <label for="nama">Nama Lengkap</label>
-          <input type="text" id="nama" placeholder="Masukkan nama anggota" required>
+    <h3 style="margin-bottom: 20px; color: #1e3c72;">📝 Form Data Anggota</h3>
+    <form id="formAnggota">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="kode">Kode Anggota *</label>
+          <input type="text" id="kode" placeholder="Contoh: 2601001" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="nama">Nama Lengkap *</label>
+          <input type="text" id="nama" placeholder="Nama lengkap dengan gelar" required />
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="tanggal">Tanggal Daftar</label>
-            <input type="date" id="tanggal" required>
-          </div>
-          <div class="form-group">
-            <label for="jabatan">Jabatan</label>
-            <select id="jabatan" required>
-              <option value="Anggota" selected>Anggota</option>
-              <option value="Penasehat">Penasehat</option>
-              <option value="Ketua">Ketua</option>
-              <option value="Sekretaris">Sekretaris</option>
-              <option value="Bendahara">Bendahara</option>
-              <option value="Pengurus">Pengurus</option>
-              <option value="Badan Pemeriksa">Badan Pemeriksa</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label for="tanggalDaftar">Tanggal Daftar *</label>
+          <input type="date" id="tanggalDaftar" required />
         </div>
 
-        <button type="submit" class="btn-submit" id="btnSubmit">Simpan Data</button>
-        <button type="button" class="btn-cancel" id="btnCancel" onclick="resetForm()">Batal Edit</button>
-      </form>
-      <div id="status-msg"></div>
-    </div>
+        <div class="form-group">
+          <label for="jabatan">Jabatan *</label>
+          <select id="jabatan" required>
+            <option value="">-- Pilih Jabatan --</option>
+            <option value="Anggota">Anggota</option>
+            <option value="Penasehat">Penasehat</option>
+            <option value="Ketua">Ketua</option>
+            <option value="Sekretaris">Sekretaris</option>
+            <option value="Bendahara">Bendahara</option>
+            <option value="Pengurus">Pengurus</option>
+            <option value="Badan Pemeriksa">Badan Pemeriksa</option>
+          </select>
+        </div>
+      </div>
 
-    <div class="table-card">
-      <h3>Daftar Anggota KGP</h3>
+      <button type="submit" class="btn btn-primary">💾 Simpan Data</button>
+      <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
+      <button type="button" class="btn btn-success" onclick="exportCSV()"> Export CSV</button>
+    </form>
+
+    <h3 style="margin: 40px 0 20px; color: #1e3c72;">👥 Daftar Anggota KGP (<span id="jumlahAnggota">0</span> orang)</h3>
+    <div class="table-responsive">
       <table>
         <thead>
           <tr>
             <th>Kode</th>
             <th>Nama</th>
+            <th>Tanggal Daftar</th>
             <th>Jabatan</th>
-            <th style="width: 130px; text-align: center;">Aksi</th>
+            <th>Aksi</th>
           </tr>
         </thead>
-        <tbody id="tableBody">
-          <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Memuat data...</td></tr>
+        <tbody id="tabelAnggota">
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 20px;">
+              <span class="loading"></span> Memuat data...
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
-
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
-    let allData = [];
+    // Konfigurasi
+    const SPREADSHEET_ID = '151XT0NLPb7fljwUOe_PP3dhD_-dPhBmA_jrffxGZWjQ';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
+    const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+    
+    let dataAnggota = [];
+    let editIndex = -1;
 
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('tanggal').valueAsDate = new Date();
-      loadData();
-    });
-
-    function generateAutoCode(existingData) {
-      const now = new Date();
-      const yy = String(now.getFullYear()).slice(-2);
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const prefix = yy + mm;
-
-      let maxSeq = 0;
-      existingData.forEach(item => {
-        const k = String(item.kode);
-        if (k.startsWith(prefix)) {
-          const seqStr = k.substring(4);
-          const seq = parseInt(seqStr, 10);
-          if (!isNaN(seq) && seq > maxSeq) {
-            maxSeq = seq;
+    // Parse CSV line dengan handling quotes
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
           }
+        } else if (char === ',' && !inQuotes) {
+          result.push(current);
+          current = '';
+        } else {
+          current += char;
         }
-      });
-
-      const nextSeq = String(maxSeq + 1).padStart(4, '0');
-      return prefix + nextSeq;
+      }
+      result.push(current);
+      return result.map(v => v.trim());
     }
 
-    function loadData() {
-      fetch(API_URL, { redirect: "follow" })
-        .then(res => res.json())
-        .then(res => {
-          const dataAnggota = res.data || res.anggota || [];
-          allData = dataAnggota;
-          renderTable(allData);
-          
-          if (document.getElementById('isEdit').value === "false") {
-            const newKode = generateAutoCode(allData);
-            document.getElementById('kode').value = newKode;
-            document.getElementById('displayKode').innerText = 'Kode: ' + newKode;
-          }
-        })
-        .catch(err => {
-          document.getElementById('tableBody').innerHTML = 
-            `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data. Periksa Apps Script.</td></tr>`;
+    // Parse CSV text to array of objects
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      const result = [];
+      
+      // Skip baris 1 (title), baris 2 = header
+      const headers = parseCSVLine(lines[1]);
+      
+      for (let i = 2; i < lines.length; i++) {
+        if (lines[i].trim() === '') continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = values[index] || '';
         });
+        result.push(obj);
+      }
+      return result;
     }
 
-    function renderTable(data) {
-      const tbody = document.getElementById('tableBody');
-      if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Belum ada data.</td></tr>`;
+    // Load data dari Google Sheets
+    async function loadAnggota() {
+      const statusBar = document.getElementById('statusBar');
+      try {
+        const response = await fetch(SHEET1_URL + '&t=' + Date.now());
+        if (!response.ok) throw new Error('Gagal mengambil data');
+        
+        const text = await response.text();
+        dataAnggota = parseCSV(text);
+        
+        statusBar.innerHTML = '✅ Data berhasil dimuat';
+        statusBar.className = 'status-bar success';
+        document.getElementById('jumlahAnggota').textContent = dataAnggota.length;
+        renderTabel();
+      } catch (error) {
+        console.error('Error:', error);
+        statusBar.innerHTML = '❌ Gagal memuat data. Periksa koneksi internet.';
+        statusBar.className = 'status-bar error';
+        document.getElementById('tabelAnggota').innerHTML = 
+          '<tr><td colspan="5" style="text-align: center; color: #dc3545; padding: 20px;">Gagal memuat data dari Google Sheets</td></tr>';
+      }
+    }
+
+    // Render tabel
+    function renderTabel() {
+      const tbody = document.getElementById('tabelAnggota');
+      
+      if (dataAnggota.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999; padding: 20px;">Belum ada data anggota</td></tr>';
         return;
       }
 
-      tbody.innerHTML = data.map(item => `
-        <tr>
-          <td><b>${item.kode}</b></td>
-          <td>${item.nama}</td>
-          <td>${item.jabatan}</td>
-          <td style="text-align: center;">
-            <button class="action-btn btn-edit" onclick="editData('${item.kode}')">Edit</button>
-            <button class="action-btn btn-delete" onclick="deleteData('${item.kode}')">Hapus</button>
-          </td>
-        </tr>
-      `).join('');
+      let html = '';
+      dataAnggota.forEach((a, index) => {
+        html += `
+          <tr>
+            <td>${a.KODE || '-'}</td>
+            <td>${a.NAMA || '-'}</td>
+            <td>${a['TANGGAL DAFTAR'] || '-'}</td>
+            <td>${a.JABATAN || '-'}</td>
+            <td>
+              <button class="btn-edit" onclick="editAnggota(${index})">✏️ Edit</button>
+              <button class="btn-hapus" onclick="hapusAnggota(${index})">🗑 Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
     }
 
-    document.getElementById('kgpForm').addEventListener('submit', function(e) {
+    // Simpan data ke Google Sheets via Apps Script
+    document.getElementById('formAnggota').addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      const btnSubmit = document.getElementById('btnSubmit');
-      const statusMsg = document.getElementById('status-msg');
-      const isEdit = document.getElementById('isEdit').value === "true";
-
+      const statusBar = document.getElementById('statusBar');
+      const btnSubmit = this.querySelector('button[type="submit"]');
+      const originalText = btnSubmit.innerHTML;
+      
+      btnSubmit.innerHTML = '<span class="loading"></span> Menyimpan...';
       btnSubmit.disabled = true;
-      statusMsg.style.color = 'var(--text-main)';
-      statusMsg.innerText = "Mengirim data...";
 
-      const payload = {
-        action: isEdit ? "UPDATE" : "CREATE",
+      const anggota = {
+        sheet: 'Sheet1',
         kode: document.getElementById('kode').value,
         nama: document.getElementById('nama').value,
-        tanggal: document.getElementById('tanggal').value,
+        tanggal: document.getElementById('tanggalDaftar').value,
         jabatan: document.getElementById('jabatan').value
       };
 
-      fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(res => {
-        if(res.status === 'success') {
-          statusMsg.style.color = 'green';
-          statusMsg.innerText = res.message;
-          resetForm();
-          loadData();
-        } else {
-          throw new Error(res.message);
-        }
-      })
-      .catch(err => {
-        statusMsg.style.color = 'var(--danger)';
-        statusMsg.innerText = "Error: " + err.message;
-      })
-      .finally(() => {
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(anggota)
+        });
+
+        statusBar.innerHTML = '✅ Data berhasil disimpan ke Google Sheets!';
+        statusBar.className = 'status-bar success';
+        
+        // Reload data
+        await loadAnggota();
+        resetForm();
+      } catch (error) {
+        console.error('Error:', error);
+        statusBar.innerHTML = '❌ Gagal menyimpan data. Coba lagi.';
+        statusBar.className = 'status-bar error';
+      } finally {
+        btnSubmit.innerHTML = originalText;
         btnSubmit.disabled = false;
-      });
+      }
     });
 
-    function editData(kode) {
-      const item = allData.find(d => String(d.kode) === String(kode));
-      if (item) {
-        document.getElementById('isEdit').value = "true";
-        document.getElementById('kode').value = item.kode;
-        document.getElementById('displayKode').innerText = 'Kode: ' + item.kode;
-        document.getElementById('nama').value = item.nama;
-        document.getElementById('tanggal').value = item.tanggal;
-        document.getElementById('jabatan').value = item.jabatan;
+    // Edit anggota
+    function editAnggota(index) {
+      const a = dataAnggota[index];
+      document.getElementById('kode').value = a.KODE || '';
+      document.getElementById('nama').value = a.NAMA || '';
+      document.getElementById('tanggalDaftar').value = a['TANGGAL DAFTAR'] || '';
+      document.getElementById('jabatan').value = a.JABATAN || '';
+      editIndex = index;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('statusBar').innerHTML = '✏️ Mode Edit Aktif';
+      document.getElementById('statusBar').className = 'status-bar';
+    }
 
-        document.getElementById('btnSubmit').innerText = "Update Data";
-        document.getElementById('btnCancel').style.display = "block";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Hapus anggota (hanya di localStorage, untuk Google Sheets perlu manual)
+    function hapusAnggota(index) {
+      if (confirm('Yakin ingin menghapus anggota ini?\n\nCatatan: Penghapusan permanen harus dilakukan manual di Google Sheets.')) {
+        dataAnggota.splice(index, 1);
+        document.getElementById('jumlahAnggota').textContent = dataAnggota.length;
+        renderTabel();
       }
     }
 
-    function deleteData(kode) {
-      if (confirm(`Apakah Anda yakin ingin menghapus data dengan Kode ${kode}?`)) {
-        const statusMsg = document.getElementById('status-msg');
-        statusMsg.style.color = 'var(--text-main)';
-        statusMsg.innerText = "Menghapus data...";
-
-        fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: "DELETE", kode: kode })
-        })
-        .then(res => res.json())
-        .then(res => {
-          if (res.status === 'success') {
-            statusMsg.style.color = 'green';
-            statusMsg.innerText = "Data berhasil dihapus.";
-            loadData();
-          } else {
-            throw new Error(res.message);
-          }
-        })
-        .catch(err => {
-          statusMsg.style.color = 'var(--danger)';
-          statusMsg.innerText = "Gagal menghapus: " + err.message;
-        });
-      }
-    }
-
+    // Reset form
     function resetForm() {
-      document.getElementById('kgpForm').reset();
-      document.getElementById('isEdit').value = "false";
-      document.getElementById('tanggal').valueAsDate = new Date();
-      document.getElementById('jabatan').value = "Anggota";
-      document.getElementById('btnSubmit').innerText = "Simpan Data";
-      document.getElementById('btnCancel').style.display = "none";
-      
-      const newKode = generateAutoCode(allData);
-      document.getElementById('kode').value = newKode;
-      document.getElementById('displayKode').innerText = 'Kode: ' + newKode;
+      document.getElementById('formAnggota').reset();
+      editIndex = -1;
+      document.getElementById('statusBar').innerHTML = '✅ Data berhasil dimuat';
+      document.getElementById('statusBar').className = 'status-bar success';
     }
+
+    // Export ke CSV
+    function exportCSV() {
+      if (dataAnggota.length === 0) {
+        alert('Tidak ada data untuk diexport!');
+        return;
+      }
+
+      let csv = 'KODE,NAMA,TANGGAL DAFTAR,JABATAN\n';
+      dataAnggota.forEach(a => {
+        csv += `"${a.KODE || ''}","${a.NAMA || ''}","${a['TANGGAL DAFTAR'] || ''}","${a.JABATAN || ''}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `anggota_kgp_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      alert(' File CSV berhasil didownload!');
+    }
+
+    // Set tanggal hari ini
+    document.getElementById('tanggalDaftar').valueAsDate = new Date();
+
+    // Load data saat halaman dibuka
+    loadAnggota();
   </script>
 </body>
 </html>
