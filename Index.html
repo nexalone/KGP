@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KESEJAHTERAAN GURU DAN PEGAWAI - SMP NEGERI 1 KALIWEDI</title>
+  <meta name="theme-color" content="#1e3c72" />
+  <title>KGP - SMP Negeri 1 Kaliwedi</title>
+  <link rel="manifest" href="manifest.json" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       min-height: 100vh;
       color: #333;
@@ -22,81 +24,118 @@
       color: #fff;
       padding: 30px 15px;
     }
-    header h1 { font-size: 1.6rem; margin-bottom: 8px; }
-    header h2 { font-size: 1rem; font-weight: 400; opacity: 0.9; }
+    header h1 { 
+      font-size: 1.6rem; 
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    header h2 { 
+      font-size: 1rem; 
+      font-weight: 400; 
+      opacity: 0.9; 
+    }
 
     .logo {
-      width: 90px;
-      height: 90px;
-      margin: 0 auto 15px;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 20px;
       background: #fff;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      padding: 10px;
     }
-    .logo img { width: 60px; height: 60px; }
+    .logo img { 
+      width: 80px; 
+      height: 80px;
+      object-fit: contain;
+    }
 
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
       margin: 30px 0;
     }
     .menu-card {
       background: #fff;
-      border-radius: 14px;
-      padding: 25px 20px;
+      border-radius: 16px;
+      padding: 30px 25px;
       text-decoration: none;
       color: #333;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
       display: block;
       text-align: center;
     }
     .menu-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      transform: translateY(-8px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
     }
     .menu-card .icon {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto 15px;
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
+      font-size: 2rem;
       color: #fff;
     }
-    .menu-card.anggota .icon { background: #28a745; }
-    .menu-card.transaksi .icon { background: #ffc107; color: #333; }
-    .menu-card h3 { font-size: 1.15rem; margin-bottom: 8px; color: #1e3c72; }
-    .menu-card p { font-size: 0.9rem; color: #666; line-height: 1.5; }
+    .menu-card.anggota .icon { 
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+    }
+    .menu-card.transaksi .icon { 
+      background: linear-gradient(135deg, #f12711, #f5af19);
+    }
+    .menu-card h3 { 
+      font-size: 1.3rem; 
+      margin-bottom: 12px; 
+      color: #1e3c72;
+    }
+    .menu-card p { 
+      font-size: 0.95rem; 
+      color: #666; 
+      line-height: 1.6; 
+    }
 
     .install-btn {
       display: block;
-      margin: 20px auto;
-      padding: 12px 28px;
+      margin: 30px auto;
+      padding: 14px 32px;
       background: #fff;
       color: #1e3c72;
       border: none;
       border-radius: 30px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       text-decoration: none;
       width: fit-content;
+      font-size: 1rem;
+      transition: all 0.3s ease;
     }
-    .install-btn:hover { background: #f0f0f0; }
+    .install-btn:hover { 
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
 
     footer {
       text-align: center;
-      color: rgba(255,255,255,0.85);
-      font-size: 0.85rem;
-      margin-top: 30px;
-      padding: 15px;
+      color: rgba(255,255,255,0.9);
+      font-size: 0.9rem;
+      margin-top: 40px;
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 1.3rem; }
+      header h2 { font-size: 0.9rem; }
+      .menu-grid { grid-template-columns: 1fr; }
+      .menu-card { padding: 25px 20px; }
     }
   </style>
 </head>
@@ -104,31 +143,30 @@
   <div class="container">
     <header>
       <div class="logo">
-        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135706.png" alt="Logo KGP" />
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj_B7CwV-8fChbKdjVlBPyzW64K2ROcs4MLQfoZTxXrFG-fYMopVJWpISURDn0mIvbGtY6EqS2VYA1mizLD10nI104RiG2WvcP64AeSjDXW9C2_MxIEma_CsaT68v_yzY5MvSZE62eoeaPg_W3BuctXGM_iLnuYoIze6yS2di45nsiS9OFdvx0HtAj-xKs/s2145/logo_smp.png" alt="Logo SMPN 1 Kaliwedi" />
       </div>
       <h1>KESEJAHTERAAN GURU DAN PEGAWAI</h1>
       <h2>SMP NEGERI 1 KALIWEDI</h2>
+      <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.9;">Portal Sistem Informasi Internal</p>
     </header>
 
     <nav class="menu-grid">
-      <!-- ✅ JALUR DIPERBAIKI: mengarah ke anggota-kgp.html -->
-      <a href="anggota-kgp.html" class="menu-card anggota" aria-label="Form Data Anggota">
+      <a href="anggota-kgp.html" class="menu-card anggota">
         <div class="icon">👥</div>
         <h3>Form Data Anggota</h3>
         <p>Pendaftaran, kelola data pengurus, serta pembaharuan keanggotaan KGP.</p>
       </a>
 
-      <!-- ✅ JALUR DIPERBAIKI: mengarah ke transaksi-kgp.html -->
-      <a href="transaksi-kgp.html" class="menu-card transaksi" aria-label="Transaksi Keuangan">
+      <a href="transaksi-kgp.html" class="menu-card transaksi">
         <div class="icon">💰</div>
         <h3>Transaksi Keuangan</h3>
         <p>Pencatatan iuran, simpanan, dan rekapitulasi transaksi keuangan anggota.</p>
       </a>
     </nav>
 
-    <a href="#" class="install-btn" onclick="installApp(event)">
+    <button class="install-btn" onclick="installApp()">
       📲 Instal Aplikasi KGP
-    </a>
+    </button>
 
     <footer>
       © 2026 KGP SMP Negeri 1 Kaliwedi. All rights reserved.
@@ -136,21 +174,28 @@
   </div>
 
   <script>
-    // Fungsi instal aplikasi (PWA)
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
     });
 
-    function installApp(e) {
-      e.preventDefault();
+    function installApp() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+        deferredPrompt.userChoice.then(() => { 
+          deferredPrompt = null; 
+        });
       } else {
-        alert('Untuk menginstal, buka menu browser → "Tambahkan ke Layar Utama".');
+        alert('Untuk menginstal aplikasi:\n\n1. Buka menu browser (⋮)\n2. Pilih "Tambahkan ke Layar Utama"\n3. Klik "Instal"');
       }
+    }
+
+    // Register Service Worker untuk PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {
+        // Silent fail
+      });
     }
   </script>
 </body>
