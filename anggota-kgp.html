@@ -8,21 +8,21 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
       padding: 15px;
       color: #333;
     }
     .container {
-      max-width: 1000px;
+      max-width: 900px;
       margin: 0 auto;
       background: #fff;
       border-radius: 16px;
       padding: 20px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    /* Header: Home kecil + Judul */
+    /* Header */
     .top-header {
       display: flex;
       align-items: center;
@@ -32,254 +32,99 @@
       border-bottom: 2px solid #f0f0f0;
     }
     .home-btn {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       background: linear-gradient(135deg, #667eea, #764ba2);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       text-decoration: none;
-      flex-shrink: 0;
       box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
       transition: transform 0.2s;
     }
     .home-btn:hover { transform: scale(1.08); }
     .home-btn svg { width: 18px; height: 18px; fill: #fff; }
-    .top-header h1 {
-      font-size: 1.15rem;
-      color: #333;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
+    .top-header h1 { font-size: 1.15rem; color: #333; font-weight: 700; }
 
     .status-bar {
-      background: #f0f4ff;
-      padding: 10px 14px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      font-size: 0.85rem;
-      color: #555;
+      background: #f0f4ff; padding: 10px 14px; border-radius: 8px;
+      margin-bottom: 15px; font-size: 0.85rem; color: #555;
       border-left: 4px solid #667eea;
     }
     .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
     .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
 
-    /* Tombol Aksi Modern */
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 15px;
-    }
+    /* Tombol Modern */
+    .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
     .btn {
-      padding: 10px 18px;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.25s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: #fff;
+      padding: 10px 20px; border: none; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: all 0.25s; color: #fff;
+      display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-tambah {
-      background: linear-gradient(135deg, #11998e, #38ef7d);
-      box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
-    }
-    .btn-tambah:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(17, 153, 142, 0.4); }
-    .btn-edit {
-      background: linear-gradient(135deg, #f093fb, #f5576c);
-      box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
-    }
-    .btn-edit:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(245, 87, 108, 0.4); }
-    .btn-simpan {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-    .btn-simpan:hover { transform: translateY(-2px); }
-    .btn-tutup {
-      background: linear-gradient(135deg, #bdc3c7, #95a5a6);
-      box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
-    }
-    .btn-tutup:hover { transform: translateY(-2px); }
+    .btn-tambah { background: linear-gradient(135deg, #11998e, #38ef7d); box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3); }
+    .btn-tambah:hover { transform: translateY(-2px); }
+    .btn-kelola { background: linear-gradient(135deg, #f093fb, #f5576c); box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3); }
+    .btn-kelola:hover { transform: translateY(-2px); }
+    .btn-simpan { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .btn-tutup { background: linear-gradient(135deg, #bdc3c7, #95a5a6); }
 
-    /* Form Container 100% */
+    /* Form 100% */
     .form-container {
-      display: none;
-      background: #fafbfc;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      border: 1px solid #e8e8e8;
-      width: 100%;
-      animation: slideDown 0.3s ease;
+      display: none; background: #fafbfc; padding: 20px;
+      border-radius: 12px; margin-bottom: 20px; border: 1px solid #e8e8e8;
+      width: 100%; animation: slideDown 0.3s ease;
     }
     .form-container.show { display: block; }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .form-container h4 {
-      color: #333;
-      margin-bottom: 15px;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 15px;
-    }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .form-container h4 { color: #333; margin-bottom: 15px; font-size: 1rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
     .form-group { margin-bottom: 10px; }
     .form-group.full { grid-column: 1 / -1; }
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 600;
-      color: #555;
-      font-size: 0.85rem;
-    }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; font-size: 0.85rem; }
     .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid #ddd;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: inherit;
+      width: 100%; padding: 10px 12px; border: 1.5px solid #ddd;
+      border-radius: 8px; font-size: 0.9rem; font-family: inherit;
     }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    /* Tombol Simpan-Tutup berdampingan */
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+    .form-actions { display: flex; gap: 10px; margin-top: 10px; }
     .form-actions .btn { flex: 1; justify-content: center; }
 
-    /* Section Title */
+    /* Tabel */
     .section-title {
-      color: #333;
-      margin: 20px 0 12px 0;
-      font-size: 1rem;
-      font-weight: 700;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      color: #333; margin: 20px 0 12px 0; font-size: 1rem; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center;
     }
     .section-title .count {
       background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff;
-      padding: 3px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem;
     }
-
-    /* Tabel */
-    .table-responsive { overflow-x: auto; border-radius: 10px; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-    th {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff;
-      font-weight: 600;
-      padding: 12px 10px;
-      text-align: left;
-    }
-    td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #f0f0f0;
-    }
+    .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px 10px; text-align: left; }
+    td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; }
     tr:hover { background: #f8f9ff; }
-
-    .member-name {
-      font-weight: 700;
-      color: #333;
-      font-size: 0.95rem;
-    }
-    .member-jabatan {
-      font-size: 0.8rem;
-      color: #888;
-      margin-top: 2px;
-    }
+    .member-name { font-weight: 700; color: #333; }
+    .member-jabatan { font-size: 0.8rem; color: #888; margin-top: 2px; }
 
     /* Modal */
     .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 100;
-      padding: 15px;
-      overflow-y: auto;
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 100; padding: 15px; overflow-y: auto;
     }
     .modal-overlay.show { display: block; }
-    .modal-content {
-      background: #fff;
-      max-width: 600px;
-      margin: 20px auto;
-      border-radius: 14px;
-      padding: 20px;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #f0f0f0;
-    }
-    .modal-header h3 {
-      color: #333;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-    .close-modal {
-      background: #dc3545;
-      color: #fff;
-      border: none;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-size: 1rem;
-      cursor: pointer;
-    }
+    .modal-content { background: #fff; max-width: 500px; margin: 30px auto; border-radius: 14px; padding: 20px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+    .modal-header h3 { color: #333; font-size: 1rem; }
+    .close-modal { background: #dc3545; color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
 
-    .loading {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
+    .loading { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media (max-width: 768px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .top-header h1 { font-size: 1rem; }
-    }
+    @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header: Home kecil + Judul -->
     <div class="top-header">
-      <a href="Index.html" class="home-btn" title="Kembali ke Beranda">
+      <a href="Index.html" class="home-btn" title="Beranda">
         <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       </a>
       <h1>DATA ANGGOTA KGP</h1>
@@ -287,22 +132,17 @@
 
     <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
 
-    <!-- Tombol Aksi -->
     <div class="action-buttons">
-      <button class="btn btn-tambah" onclick="toggleForm()">
-        🙎‍♂️ Tambah Anggota
-      </button>
-      <button class="btn btn-edit" onclick="openModal()">
-        🙅‍♂️ Kelola Anggota
-      </button>
+      <button class="btn btn-tambah" onclick="toggleForm()">➕ Tambah</button>
+      <button class="btn btn-kelola" onclick="openModal()">⚙️ Kelola</button>
     </div>
 
-    <!-- Form Tambah Anggota (100% lebar, tanpa kode, tanpa tabel) -->
+    <!-- Form Tambah -->
     <div class="form-container" id="formContainer">
       <h4>📝 Tambah Anggota Baru</h4>
       <form id="formAnggota">
         <div class="form-grid">
-          <div class="form-group">
+          <div class="form-group full">
             <label>Nama Lengkap *</label>
             <input type="text" id="nama" placeholder="Nama lengkap dengan gelar" required />
           </div>
@@ -310,7 +150,7 @@
             <label>Tanggal Daftar *</label>
             <input type="date" id="tanggal" required />
           </div>
-          <div class="form-group full">
+          <div class="form-group">
             <label>Jabatan *</label>
             <select id="jabatan" required>
               <option value="Anggota">Anggota</option>
@@ -330,19 +170,15 @@
       </form>
     </div>
 
-    <!-- Tabel Anggota Aktif -->
+    <!-- Tabel Anggota -->
     <div class="section-title">
-      <span>👥 Anggota</span>
+      <span>👥 Daftar Anggota</span>
       <span class="count" id="jumlahAnggota">0</span>
     </div>
     <div class="table-responsive">
       <table>
         <thead>
-          <tr>
-            <th>Nama</th>
-            <th>Jabatan</th>
-            <th>Tanggal Daftar</th>
-          </tr>
+          <tr><th>Nama</th><th>Jabatan</th><th>Tanggal Daftar</th></tr>
         </thead>
         <tbody id="tabelAktif">
           <tr><td colspan="3" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
@@ -351,36 +187,35 @@
     </div>
   </div>
 
-  <!-- Modal Kelola Anggota (hanya dropdown nama aktif, font kecil, tanpa daftar lengkap) -->
+  <!-- Modal Kelola -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>🙅‍♂️ Kelola Anggota</h3>
+        <h3>⚙️ Kelola Anggota</h3>
         <button class="close-modal" onclick="closeModal()">✕</button>
       </div>
-
       <form id="formKelola">
         <div class="form-group">
-          <label style="font-size:0.8rem;">Pilih Anggota</label>
+          <label>Pilih Anggota</label>
           <select id="editAnggota" required style="font-size:0.85rem;">
             <option value="">-- Pilih Nama --</option>
           </select>
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label style="font-size:0.8rem;">Status</label>
+            <label>Status</label>
             <select id="editStatus" required onchange="toggleFieldKeluar()" style="font-size:0.85rem;">
               <option value="Aktif">Aktif</option>
               <option value="Tidak Aktif">Tidak Aktif</option>
             </select>
           </div>
           <div class="form-group" id="groupTanggalKeluar" style="display:none;">
-            <label style="font-size:0.8rem;">Tanggal Keluar</label>
+            <label>Tanggal Keluar</label>
             <input type="date" id="editTanggalKeluar" style="font-size:0.85rem;" />
           </div>
           <div class="form-group full">
-            <label style="font-size:0.8rem;">Alasan</label>
-            <textarea id="editAlasan" rows="2" placeholder="Alasan keluar / tidak aktif..." style="font-size:0.85rem;"></textarea>
+            <label>Alasan</label>
+            <textarea id="editAlasan" rows="2" placeholder="Alasan keluar..." style="font-size:0.85rem;"></textarea>
           </div>
         </div>
         <div class="form-actions">
@@ -398,6 +233,7 @@
     
     let dataAnggota = [];
 
+    // Parser CSV yang sangat robust untuk Google Sheets
     function parseCSVLine(line) {
       const result = [];
       let current = '', inQuotes = false;
@@ -411,49 +247,51 @@
         } else { current += c; }
       }
       result.push(current);
-      return result;
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
     }
 
     async function loadAnggota() {
       const statusBar = document.getElementById('statusBar');
       try {
         const response = await fetch(SHEET1_URL + '&t=' + Date.now());
-        if (!response.ok) throw new Error('Gagal');
+        if (!response.ok) throw new Error('Gagal mengambil data');
         const text = await response.text();
         const lines = text.trim().split('\n');
         dataAnggota = [];
 
-        // Cari header (baris yang mengandung 'NAMA')
+        // Cari baris header (yang mengandung kata 'NAMA')
         let headerIndex = -1;
         for(let i=0; i<lines.length; i++) {
           if(lines[i].toUpperCase().includes('NAMA')) { headerIndex = i; break; }
         }
         if(headerIndex === -1) headerIndex = 0;
 
-        // Struktur baru: NAMA / TANGGAL DAFTAR / JABATAN / STATUS / TANGGAL KELUAR / ALASAN
+        // Struktur: NAMA(0) / TANGGAL DAFTAR(1) / JABATAN(2) / STATUS(3) / TANGGAL KELUAR(4) / ALASAN(5)
         for (let i = headerIndex + 1; i < lines.length; i++) {
           if (!lines[i].trim()) continue;
           const values = parseCSVLine(lines[i]);
+          if(values.length < 2) continue; // Skip baris rusak
+          
           const obj = {
-            NAMA: (values[0] || '').replace(/"/g, '').trim(),
-            'TANGGAL DAFTAR': (values[1] || '').replace(/"/g, '').trim(),
-            JABATAN: (values[2] || '').replace(/"/g, '').trim(),
-            STATUS: (values[3] || 'Aktif').replace(/"/g, '').trim() || 'Aktif',
-            'TANGGAL KELUAR': (values[4] || '').replace(/"/g, '').trim(),
-            ALASAN: (values[5] || '').replace(/"/g, '').trim()
+            NAMA: values[0] || '',
+            'TANGGAL DAFTAR': values[1] || '',
+            JABATAN: values[2] || '',
+            STATUS: values[3] || 'Aktif',
+            'TANGGAL KELUAR': values[4] || '',
+            ALASAN: values[5] || ''
           };
           if(obj.NAMA) dataAnggota.push(obj);
         }
 
         const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
-        statusBar.textContent = `✅ ${aktif.length} anggota`;
+        statusBar.textContent = `✅ ${aktif.length} anggota terdaftar`;
         statusBar.className = 'status-bar success';
         
         renderTabelAktif();
         populateDropdown();
       } catch (e) {
         console.error(e);
-        statusBar.textContent = '❌ Gagal memuat data.';
+        statusBar.textContent = '❌ Gagal memuat data. Periksa koneksi atau ID Sheet.';
         statusBar.className = 'status-bar error';
       }
     }
@@ -470,10 +308,7 @@
       
       tbody.innerHTML = aktif.map(a => `
         <tr>
-          <td>
-            <div class="member-name">${a.NAMA}</div>
-            <div class="member-jabatan">${a.JABATAN}</div>
-          </td>
+          <td><div class="member-name">${a.NAMA}</div><div class="member-jabatan">${a.JABATAN}</div></td>
           <td>${a.JABATAN}</td>
           <td>${a['TANGGAL DAFTAR']}</td>
         </tr>
@@ -520,13 +355,22 @@
       };
 
       try {
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+        // Gunakan no-cors mode jika Apps Script bermasalah dengan CORS, tapi standard POST lebih baik
+        await fetch(SCRIPT_URL, { 
+          method: 'POST', 
+          mode: 'no-cors', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(data) 
+        });
+        
         statusBar.textContent = '✅ Anggota berhasil ditambahkan!';
         statusBar.className = 'status-bar success';
         this.reset();
         document.getElementById('tanggal').valueAsDate = new Date();
         document.getElementById('formContainer').classList.remove('show');
-        await loadAnggota();
+        
+        // Reload data setelah 1 detik (memberi waktu Google Sheets update)
+        setTimeout(() => loadAnggota(), 1000);
       } catch (err) {
         statusBar.textContent = '❌ Gagal menyimpan.';
         statusBar.className = 'status-bar error';
@@ -538,19 +382,16 @@
 
     function toggleFieldKeluar() {
       const status = document.getElementById('editStatus').value;
-      document.getElementById('groupTanggalKeluar').style.display = 
-        status === 'Tidak Aktif' ? 'block' : 'none';
+      document.getElementById('groupTanggalKeluar').style.display = status === 'Tidak Aktif' ? 'block' : 'none';
     }
 
     function openModal() {
       document.getElementById('modalOverlay').classList.add('show');
       document.getElementById('formKelola').reset();
       document.getElementById('groupTanggalKeluar').style.display = 'none';
-      document.body.style.overflow = 'hidden';
     }
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('show');
-      document.body.style.overflow = 'auto';
     }
 
     document.getElementById('formKelola').addEventListener('submit', async function(e) {
@@ -564,14 +405,13 @@
       const tanggalKeluar = document.getElementById('editTanggalKeluar').value;
       const alasan = document.getElementById('editAlasan').value;
 
-      if (status === 'Tidak Aktif' && !tanggalKeluar) {
-        alert('Tanggal keluar wajib diisi!');
-        return;
-      }
+      if (status === 'Tidak Aktif' && !tanggalKeluar) { alert('Tanggal keluar wajib diisi!'); return; }
 
       try {
         await fetch(SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             sheet: 'Sheet1',
             action: 'updateStatus',
@@ -584,7 +424,7 @@
         statusBar.textContent = '✅ Status berhasil diupdate!';
         statusBar.className = 'status-bar success';
         closeModal();
-        await loadAnggota();
+        setTimeout(() => loadAnggota(), 1000);
       } catch (err) {
         statusBar.textContent = '❌ Gagal update.';
         statusBar.className = 'status-bar error';
