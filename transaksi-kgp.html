@@ -146,8 +146,8 @@
       <h1>TRANSAKSI KEUANGAN KGP</h1>
       <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
     </header>
-    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
-    
+    <div id="statusBar" class="status-bar">🔄 Memuat data dari GitHub...</div>
+
     <div class="stats">
       <div class="stat-card"><h3 id="totalIuran">Rp 0</h3><p>Total Iuran/Kredit</p></div>
       <div class="stat-card"><h3 id="totalTransaksi">0</h3><p>Jumlah Transaksi</p></div>
@@ -204,12 +204,16 @@
   </div>
 
   <script>
-    const SPREADSHEET_ID = '151XT0NLPb7fljwUOe_PP3dhD_-dPhBmA_jrffxGZWjQ';
+    // === Sumber data: GitHub raw CSV (sama seperti anggota-kgp.html) ===
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const ANGGOTA_URL   = GITHUB_BASE + 'anggota.csv';
+    const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
+    const REFERENSI_URL = GITHUB_BASE + 'referesi.csv';
+
+    // Simpan transaksi baru tetap lewat Google Apps Script (mengisi Google Sheet
+    // yang menjadi sumber file CSV di GitHub).
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
-    const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
-    const SHEET2_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet2`;
-    const SHEET3_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet3`;
-    
+
     let dataTransaksi = [], dataAnggota = [], dataReferensi = { transaksi: [], caraBayar: [] };
 
     function parseCSVLine(line) {
@@ -222,20 +226,48 @@
         else current += c;
       }
       result.push(current);
-      return result.map(v => v.trim());
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
     }
 
-    function parseCSV(text, skipTitle = true) {
+    // Parser generik: baris pertama = header, cocokkan kolom berdasarkan nama header
+    function parseCSV(text) {
       const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
       const result = [];
-      const startIdx = skipTitle ? 1 : 0;
-      const headers = parseCSVLine(lines[startIdx]);
-      for (let i = startIdx + 1; i < lines.length; i++) {
+      for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         const values = parseCSVLine(lines[i]);
         const obj = {};
-        headers.forEach((h, idx) => { obj[h] = values[idx] || ''; });
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
         result.push(obj);
+      }
+      return result;
+    }
+
+    // anggota.csv punya kolom ekstra (URL script) di header, jadi dipetakan
+    // berdasarkan posisi kolom, sama seperti di anggota-kgp.html
+    function parseAnggotaCSV(text) {
+      const lines = text.trim().split('\n');
+      let headerIndex = 0;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].toUpperCase().includes('KODE')) { headerIndex = i; break; }
+      }
+      const result = [];
+      for (let i = headerIndex + 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const v = parseCSVLine(lines[i]);
+        if (v.length < 2) continue;
+        const obj = {
+          KODE: v[0] || '',
+          NAMA: v[1] || '',
+          'TANGGAL DAFTAR': v[2] || '',
+          JABATAN: v[3] || '',
+          STATUS: (v[4] || '').toUpperCase(),
+          'TANGGAL KELUAR': v[5] || '',
+          ALASAN: v[6] || ''
+        };
+        if (obj.KODE) result.push(obj);
       }
       return result;
     }
@@ -243,39 +275,38 @@
     async function loadAllData() {
       const statusBar = document.getElementById('statusBar');
       try {
-        const [r1, r2, r3] = await Promise.all([
-          fetch(SHEET1_URL + '&t=' + Date.now()),
-          fetch(SHEET2_URL + '&t=' + Date.now()),
-          fetch(SHEET3_URL + '&t=' + Date.now())
+        const [rA, rT, rR] = await Promise.all([
+          fetch(ANGGOTA_URL + '?t=' + Date.now()),
+          fetch(TRANSAKSI_URL + '?t=' + Date.now()),
+          fetch(REFERENSI_URL + '?t=' + Date.now())
         ]);
-        if (!r1.ok || !r2.ok || !r3.ok) throw new Error('Gagal');
-        const [t1, t2, t3] = await Promise.all([r1.text(), r2.text(), r3.text()]);
-        
-        dataAnggota = parseCSV(t1, true);
-        dataTransaksi = parseCSV(t2, true);
-        
-        const lines3 = t3.trim().split('\n');
-        if (lines3.length > 1) {
-          const headers3 = parseCSVLine(lines3[0]);
-          for (let i = 1; i < lines3.length; i++) {
-            if (!lines3[i].trim()) continue;
-            const vals = parseCSVLine(lines3[i]);
-            const obj = {};
-            headers3.forEach((h, idx) => { obj[h] = vals[idx] || ''; });
-            if (obj.TRANSAKSI) dataReferensi.transaksi.push(obj.TRANSAKSI);
-            if (obj['MODE BAYAR']) dataReferensi.caraBayar.push(obj['MODE BAYAR']);
-          }
-        }
+        if (!rA.ok || !rT.ok || !rR.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const [txtA, txtT, txtR] = await Promise.all([rA.text(), rT.text(), rR.text()]);
+
+        dataAnggota = parseAnggotaCSV(txtA);
+        dataTransaksi = parseCSV(txtT);
+
+        dataReferensi = { transaksi: [], caraBayar: [] };
+        parseCSV(txtR).forEach(row => {
+          if (row.TRANSAKSI) dataReferensi.transaksi.push(row.TRANSAKSI);
+          if (row['MODE BAYAR']) dataReferensi.caraBayar.push(row['MODE BAYAR']);
+        });
 
         populateDropdowns();
         renderTabel();
         hitungStatistik();
-        statusBar.textContent = `✅ Data dimuat: ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi`;
+        statusBar.textContent = `✅ ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi (dari GitHub)`;
         statusBar.className = 'status-bar success';
       } catch (e) {
-        statusBar.textContent = '❌ Gagal memuat data.';
+        console.error(e);
+        statusBar.textContent = '❌ Gagal memuat data dari GitHub.';
         statusBar.className = 'status-bar error';
       }
+    }
+
+    function cariNamaByKode(kode) {
+      const a = dataAnggota.find(x => x.KODE === kode);
+      return a ? a.NAMA : '';
     }
 
     function populateDropdowns() {
@@ -285,9 +316,11 @@
 
       const selK = document.getElementById('kode');
       selK.innerHTML = '<option value="">-- Pilih Kode --</option>';
-      dataAnggota.forEach(a => {
-        if (a.KODE) selK.innerHTML += `<option value="${a.KODE}" data-nama="${a.NAMA || ''}">${a.KODE} - ${a.NAMA || ''}</option>`;
-      });
+      dataAnggota
+        .filter(a => a.STATUS !== 'TIDAK AKTIF')
+        .forEach(a => {
+          selK.innerHTML += `<option value="${a.KODE}" data-nama="${a.NAMA || ''}">${a.KODE} - ${a.NAMA || ''}</option>`;
+        });
 
       const selC = document.getElementById('caraBayar');
       selC.innerHTML = '<option value="">-- Pilih --</option>';
@@ -318,18 +351,24 @@
         timestamp: document.getElementById('timestamp').value.replace('T', ' '),
         transaksi: document.getElementById('transaksi').value,
         kode: document.getElementById('kode').value,
+        nama: document.getElementById('nama').value,
         caraBayar: document.getElementById('caraBayar').value,
         nominal: document.getElementById('nominal').value,
         keterangan: document.getElementById('keterangan').value
       };
 
       try {
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-        statusBar.textContent = '✅ Transaksi berhasil disimpan!';
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(data)
+        });
+        statusBar.textContent = '✅ Transaksi berhasil disimpan! (data GitHub akan ter-update setelah sinkronisasi)';
         statusBar.className = 'status-bar success';
         this.reset();
         setCurrentTimestamp();
-        await loadAllData();
+        setTimeout(() => loadAllData(), 1500);
       } catch (err) {
         statusBar.textContent = '❌ Gagal menyimpan.';
         statusBar.className = 'status-bar error';
@@ -351,7 +390,7 @@
           <td>${t['TIME STAMP'] || '-'}</td>
           <td>${t.TRANSAKSI || '-'}</td>
           <td>${t.KODE || '-'}</td>
-          <td>${t.NAMA || '-'}</td>
+          <td>${t.NAMA || cariNamaByKode(t.KODE) || '-'}</td>
           <td>${t['CARA BAYAR'] || '-'}</td>
           <td>Rp ${parseInt(t.NOMINAL || 0).toLocaleString('id-ID')}</td>
           <td>${t.KETERANGAN || '-'}</td>
