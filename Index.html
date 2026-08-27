@@ -19,16 +19,13 @@
       overflow-x: hidden;
     }
     
-    /* Background Pattern */
     body::before {
       content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background-image: 
         radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
         radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
     }
     
     .container {
@@ -38,7 +35,6 @@
       z-index: 1;
     }
     
-    /* Header Modern */
     header {
       text-align: center;
       color: #fff;
@@ -67,22 +63,22 @@
     
     .logo-container img { 
       width: 80px; 
-      height: 80px;
-      object-fit: contain;
+      height: 80px; 
+      object-fit: contain; 
     }
     
     header h1 { 
       font-size: 1.8rem; 
-      margin-bottom: 10px;
-      font-weight: 700;
+      margin-bottom: 10px; 
+      font-weight: 700; 
       letter-spacing: 1px;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     }
     
     header h2 { 
       font-size: 1.1rem; 
-      font-weight: 500;
-      opacity: 0.95;
+      font-weight: 500; 
+      opacity: 0.95; 
       letter-spacing: 0.5px;
     }
     
@@ -92,27 +88,29 @@
       opacity: 0.85;
       font-style: italic;
     }
-    
-    /* Menu Grid dengan Glassmorphism */
+
+    /* Menu Grid - Modern Icon Only */
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
-      margin: 30px 0;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin: 40px 0 30px;
     }
     
     .menu-card {
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 35px 30px;
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 40px 30px 30px;
       text-decoration: none;
       color: #333;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.18);
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      display: block;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.35);
       position: relative;
       overflow: hidden;
     }
@@ -123,63 +121,54 @@
       top: 0; left: -100%;
       width: 100%; height: 100%;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      transition: left 0.5s;
+      transition: left 0.6s;
     }
     
-    .menu-card:hover::before {
-      left: 100%;
-    }
+    .menu-card:hover::before { left: 100%; }
     
     .menu-card:hover {
-      transform: translateY(-12px) scale(1.02);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+      transform: translateY(-15px) scale(1.03);
+      box-shadow: 0 28px 60px rgba(0,0,0,0.25);
     }
-    
+
     .menu-card .icon {
-      width: 80px;
-      height: 80px;
+      width: 92px;
+      height: 92px;
       margin: 0 auto 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.2rem;
+      font-size: 2.8rem;
       color: #fff;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      transition: transform 0.3s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
     .menu-card:hover .icon {
-      transform: scale(1.1) rotate(5deg);
+      transform: scale(1.12) rotate(6deg);
     }
-    
+
     .menu-card.anggota .icon { 
       background: linear-gradient(135deg, #11998e, #38ef7d);
     }
     
-    /* Ikon Transaksi Keuangan - Modern */
     .menu-card.transaksi .icon { 
       background: linear-gradient(135deg, #f093fb, #f5576c);
     }
-    
+
     .menu-card h3 { 
-      font-size: 1.4rem; 
-      margin-bottom: 12px; 
+      font-size: 1.45rem; 
+      font-weight: 700; 
       color: #2d3748;
-      font-weight: 700;
+      letter-spacing: -0.5px;
     }
-    
-    .menu-card p { 
-      font-size: 0.95rem; 
-      color: #718096; 
-      line-height: 1.6;
-    }
-    
+
     /* Install Button Modern */
     .install-btn {
       display: block;
-      margin: 35px auto;
-      padding: 16px 36px;
+      margin: 40px auto 0;
+      padding: 16px 40px;
       background: rgba(255, 255, 255, 0.95);
       color: #667eea;
       border: none;
@@ -200,25 +189,25 @@
       transform: translateY(-3px);
       box-shadow: 0 15px 40px rgba(0,0,0,0.3);
     }
-    
+
     /* Footer */
     footer {
       text-align: center;
       color: rgba(255,255,255,0.9);
       font-size: 0.9rem;
-      margin-top: 40px;
+      margin-top: 50px;
       padding: 20px;
       font-weight: 500;
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
-      header h1 { font-size: 1.4rem; }
-      header h2 { font-size: 1rem; }
+      header h1 { font-size: 1.5rem; }
+      header h2 { font-size: 1.05rem; }
       .menu-grid { grid-template-columns: 1fr; }
-      .menu-card { padding: 30px 25px; }
-      .logo-container { width: 90px; height: 90px; }
-      .logo-container img { width: 65px; height: 65px; }
+      .menu-card { padding: 35px 25px; }
+      .logo-container { width: 95px; height: 95px; }
+      .logo-container img { width: 70px; height: 70px; }
     }
   </style>
 </head>
@@ -237,13 +226,11 @@
       <a href="anggota-kgp.html" class="menu-card anggota">
         <div class="icon">👥</div>
         <h3>Form Data Anggota</h3>
-        <p>Pendaftaran, kelola data pengurus, serta pembaharuan keanggotaan KGP.</p>
       </a>
 
       <a href="transaksi-kgp.html" class="menu-card transaksi">
         <div class="icon">💳</div>
         <h3>Transaksi Keuangan</h3>
-        <p>Pencatatan iuran, simpanan, dan rekapitulasi transaksi keuangan anggota.</p>
       </a>
     </nav>
 
