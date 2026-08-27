@@ -14,52 +14,20 @@
       color: #333;
     }
     .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      max-width: 900px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
-
-    /* Header */
-    .top-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid #f0f0f0;
-    }
-    .home-btn {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      text-decoration: none;
-      box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
-      transition: transform 0.2s;
-    }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); }
     .home-btn:hover { transform: scale(1.08); }
     .home-btn svg { width: 18px; height: 18px; fill: #fff; }
     .top-header h1 { font-size: 1.15rem; color: #333; font-weight: 700; }
 
-    .status-bar {
-      background: #f0f4ff; padding: 10px 14px; border-radius: 8px;
-      margin-bottom: 15px; font-size: 0.85rem; color: #555;
-      border-left: 4px solid #667eea;
-    }
+    .status-bar { background: #f0f4ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #555; border-left: 4px solid #667eea; }
     .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
     .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
 
-    /* Tombol Modern */
     .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-    .btn {
-      padding: 10px 20px; border: none; border-radius: 10px;
-      font-size: 0.9rem; font-weight: 600; cursor: pointer;
-      transition: all 0.25s; color: #fff;
-      display: inline-flex; align-items: center; gap: 6px;
-    }
+    .btn { padding: 10px 20px; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.25s; color: #fff; display: inline-flex; align-items: center; gap: 6px; }
     .btn-tambah { background: linear-gradient(135deg, #11998e, #38ef7d); box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3); }
     .btn-tambah:hover { transform: translateY(-2px); }
     .btn-kelola { background: linear-gradient(135deg, #f093fb, #f5576c); box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3); }
@@ -67,12 +35,7 @@
     .btn-simpan { background: linear-gradient(135deg, #667eea, #764ba2); }
     .btn-tutup { background: linear-gradient(135deg, #bdc3c7, #95a5a6); }
 
-    /* Form 100% */
-    .form-container {
-      display: none; background: #fafbfc; padding: 20px;
-      border-radius: 12px; margin-bottom: 20px; border: 1px solid #e8e8e8;
-      width: 100%; animation: slideDown 0.3s ease;
-    }
+    .form-container { display: none; background: #fafbfc; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e8e8e8; width: 100%; animation: slideDown 0.3s ease; }
     .form-container.show { display: block; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     .form-container h4 { color: #333; margin-bottom: 15px; font-size: 1rem; }
@@ -80,23 +43,13 @@
     .form-group { margin-bottom: 10px; }
     .form-group.full { grid-column: 1 / -1; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; font-size: 0.85rem; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 10px 12px; border: 1.5px solid #ddd;
-      border-radius: 8px; font-size: 0.9rem; font-family: inherit;
-    }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
     .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
     .form-actions { display: flex; gap: 10px; margin-top: 10px; }
     .form-actions .btn { flex: 1; justify-content: center; }
 
-    /* Tabel */
-    .section-title {
-      color: #333; margin: 20px 0 12px 0; font-size: 1rem; font-weight: 700;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .section-title .count {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem;
-    }
+    .section-title { color: #333; margin: 20px 0 12px 0; font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .section-title .count { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem; }
     .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px 10px; text-align: left; }
@@ -105,11 +58,7 @@
     .member-name { font-weight: 700; color: #333; }
     .member-jabatan { font-size: 0.8rem; color: #888; margin-top: 2px; }
 
-    /* Modal */
-    .modal-overlay {
-      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5); z-index: 100; padding: 15px; overflow-y: auto;
-    }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; padding: 15px; overflow-y: auto; }
     .modal-overlay.show { display: block; }
     .modal-content { background: #fff; max-width: 500px; margin: 30px auto; border-radius: 14px; padding: 20px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
@@ -197,7 +146,7 @@
       <form id="formKelola">
         <div class="form-group">
           <label>Pilih Anggota</label>
-          <select id="editAnggota" required style="font-size:0.85rem;">
+          <select id="editAnggota" required style="font-size:0.85rem;" onchange="loadKelolaData()">
             <option value="">-- Pilih Nama --</option>
           </select>
         </div>
@@ -233,7 +182,6 @@
     
     let dataAnggota = [];
 
-    // Parser CSV yang sangat robust untuk Google Sheets
     function parseCSVLine(line) {
       const result = [];
       let current = '', inQuotes = false;
@@ -259,18 +207,16 @@
         const lines = text.trim().split('\n');
         dataAnggota = [];
 
-        // Cari baris header (yang mengandung kata 'NAMA')
         let headerIndex = -1;
         for(let i=0; i<lines.length; i++) {
           if(lines[i].toUpperCase().includes('NAMA')) { headerIndex = i; break; }
         }
         if(headerIndex === -1) headerIndex = 0;
 
-        // Struktur: NAMA(0) / TANGGAL DAFTAR(1) / JABATAN(2) / STATUS(3) / TANGGAL KELUAR(4) / ALASAN(5)
         for (let i = headerIndex + 1; i < lines.length; i++) {
           if (!lines[i].trim()) continue;
           const values = parseCSVLine(lines[i]);
-          if(values.length < 2) continue; // Skip baris rusak
+          if(values.length < 2) continue;
           
           const obj = {
             NAMA: values[0] || '',
@@ -305,7 +251,6 @@
         tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
         return;
       }
-      
       tbody.innerHTML = aktif.map(a => `
         <tr>
           <td><div class="member-name">${a.NAMA}</div><div class="member-jabatan">${a.JABATAN}</div></td>
@@ -355,7 +300,6 @@
       };
 
       try {
-        // Gunakan no-cors mode jika Apps Script bermasalah dengan CORS, tapi standard POST lebih baik
         await fetch(SCRIPT_URL, { 
           method: 'POST', 
           mode: 'no-cors', 
@@ -368,8 +312,6 @@
         this.reset();
         document.getElementById('tanggal').valueAsDate = new Date();
         document.getElementById('formContainer').classList.remove('show');
-        
-        // Reload data setelah 1 detik (memberi waktu Google Sheets update)
         setTimeout(() => loadAnggota(), 1000);
       } catch (err) {
         statusBar.textContent = '❌ Gagal menyimpan.';
@@ -389,9 +331,31 @@
       document.getElementById('modalOverlay').classList.add('show');
       document.getElementById('formKelola').reset();
       document.getElementById('groupTanggalKeluar').style.display = 'none';
+      document.getElementById('editAnggota').value = '';
+      document.getElementById('editStatus').value = 'Aktif';
+      document.getElementById('editTanggalKeluar').value = '';
+      document.getElementById('editAlasan').value = '';
     }
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    async function loadKelolaData() {
+      const idx = document.getElementById('editAnggota').value;
+      if (!idx) return;
+      const anggota = dataAnggota[idx];
+      if (!anggota) return;
+
+      document.getElementById('editStatus').value = anggota.STATUS;
+      document.getElementById('editAlasan').value = anggota.ALASAN || '';
+
+      if (anggota.STATUS === 'Tidak Aktif' && anggota['TANGGAL KELUAR']) {
+        document.getElementById('groupTanggalKeluar').style.display = 'block';
+        document.getElementById('editTanggalKeluar').value = anggota['TANGGAL KELUAR'];
+      } else {
+        document.getElementById('groupTanggalKeluar').style.display = 'none';
+        document.getElementById('editTanggalKeluar').value = '';
+      }
     }
 
     document.getElementById('formKelola').addEventListener('submit', async function(e) {
