@@ -3,151 +3,234 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1e3c72" />
+  <meta name="theme-color" content="#667eea" />
   <title>KGP - SMP Negeri 1 Kaliwedi</title>
   <link rel="manifest" href="manifest.json" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       color: #333;
       padding: 20px;
+      position: relative;
+      overflow-x: hidden;
     }
+    
+    /* Background Pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
     .container {
       max-width: 900px;
       margin: 0 auto;
+      position: relative;
+      z-index: 1;
     }
+    
+    /* Header Modern */
     header {
       text-align: center;
       color: #fff;
-      padding: 30px 15px;
+      padding: 40px 20px 30px;
+      margin-bottom: 30px;
     }
-    header h1 { 
-      font-size: 1.6rem; 
-      margin-bottom: 8px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    header h2 { 
-      font-size: 1rem; 
-      font-weight: 400; 
-      opacity: 0.9; 
-    }
-
-    .logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 20px;
-      background: #fff;
+    
+    .logo-container {
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 25px;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      padding: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 15px;
+      animation: float 3s ease-in-out infinite;
     }
-    .logo img { 
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .logo-container img { 
       width: 80px; 
       height: 80px;
       object-fit: contain;
     }
-
+    
+    header h1 { 
+      font-size: 1.8rem; 
+      margin-bottom: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    header h2 { 
+      font-size: 1.1rem; 
+      font-weight: 500;
+      opacity: 0.95;
+      letter-spacing: 0.5px;
+    }
+    
+    header p {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      opacity: 0.85;
+      font-style: italic;
+    }
+    
+    /* Menu Grid dengan Glassmorphism */
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 25px;
       margin: 30px 0;
     }
+    
     .menu-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 30px 25px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 35px 30px;
       text-decoration: none;
       color: #333;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-      transition: all 0.3s ease;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       display: block;
       text-align: center;
+      border: 1px solid rgba(255,255,255,0.3);
+      position: relative;
+      overflow: hidden;
     }
+    
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      transition: left 0.5s;
+    }
+    
+    .menu-card:hover::before {
+      left: 100%;
+    }
+    
     .menu-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
     }
+    
     .menu-card .icon {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       margin: 0 auto 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
+      font-size: 2.2rem;
       color: #fff;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      transition: transform 0.3s;
     }
+    
+    .menu-card:hover .icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+    
     .menu-card.anggota .icon { 
       background: linear-gradient(135deg, #11998e, #38ef7d);
     }
+    
+    /* Ikon Transaksi Keuangan - Modern */
     .menu-card.transaksi .icon { 
-      background: linear-gradient(135deg, #f12711, #f5af19);
+      background: linear-gradient(135deg, #f093fb, #f5576c);
     }
+    
     .menu-card h3 { 
-      font-size: 1.3rem; 
+      font-size: 1.4rem; 
       margin-bottom: 12px; 
-      color: #1e3c72;
+      color: #2d3748;
+      font-weight: 700;
     }
+    
     .menu-card p { 
       font-size: 0.95rem; 
-      color: #666; 
-      line-height: 1.6; 
+      color: #718096; 
+      line-height: 1.6;
     }
-
+    
+    /* Install Button Modern */
     .install-btn {
       display: block;
-      margin: 30px auto;
-      padding: 14px 32px;
-      background: #fff;
-      color: #1e3c72;
+      margin: 35px auto;
+      padding: 16px 36px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #667eea;
       border: none;
-      border-radius: 30px;
-      font-weight: 600;
+      border-radius: 50px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       text-decoration: none;
       width: fit-content;
-      font-size: 1rem;
+      font-size: 1.05rem;
       transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255,255,255,0.5);
     }
+    
     .install-btn:hover { 
-      background: #f0f0f0;
-      transform: scale(1.05);
+      background: #fff;
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
     }
-
+    
+    /* Footer */
     footer {
       text-align: center;
       color: rgba(255,255,255,0.9);
       font-size: 0.9rem;
       margin-top: 40px;
       padding: 20px;
+      font-weight: 500;
     }
-
+    
+    /* Responsive */
     @media (max-width: 768px) {
-      header h1 { font-size: 1.3rem; }
-      header h2 { font-size: 0.9rem; }
+      header h1 { font-size: 1.4rem; }
+      header h2 { font-size: 1rem; }
       .menu-grid { grid-template-columns: 1fr; }
-      .menu-card { padding: 25px 20px; }
+      .menu-card { padding: 30px 25px; }
+      .logo-container { width: 90px; height: 90px; }
+      .logo-container img { width: 65px; height: 65px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="logo">
+      <div class="logo-container">
         <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj_B7CwV-8fChbKdjVlBPyzW64K2ROcs4MLQfoZTxXrFG-fYMopVJWpISURDn0mIvbGtY6EqS2VYA1mizLD10nI104RiG2WvcP64AeSjDXW9C2_MxIEma_CsaT68v_yzY5MvSZE62eoeaPg_W3BuctXGM_iLnuYoIze6yS2di45nsiS9OFdvx0HtAj-xKs/s2145/logo_smp.png" alt="Logo SMPN 1 Kaliwedi" />
       </div>
       <h1>KESEJAHTERAAN GURU DAN PEGAWAI</h1>
       <h2>SMP NEGERI 1 KALIWEDI</h2>
-      <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.9;">Portal Sistem Informasi Internal</p>
+      <p>Portal Sistem Informasi Internal</p>
     </header>
 
     <nav class="menu-grid">
@@ -158,14 +241,14 @@
       </a>
 
       <a href="transaksi-kgp.html" class="menu-card transaksi">
-        <div class="icon">💰</div>
+        <div class="icon">💳</div>
         <h3>Transaksi Keuangan</h3>
         <p>Pencatatan iuran, simpanan, dan rekapitulasi transaksi keuangan anggota.</p>
       </a>
     </nav>
 
     <button class="install-btn" onclick="installApp()">
-      📲 Instal Aplikasi KGP
+       Instal Aplikasi KGP
     </button>
 
     <footer>
@@ -191,11 +274,8 @@
       }
     }
 
-    // Register Service Worker untuk PWA
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {
-        // Silent fail
-      });
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   </script>
 </body>
