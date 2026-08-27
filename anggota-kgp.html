@@ -5,10 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Anggota - KGP SMPN 1 Kaliwedi</title>
   <style>
-    /* STYLING SAMA SEPERTI SEBELUMNYA */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding: 15px; color: #333; }
-    .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
     .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
     .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); }
     .home-btn:hover { transform: scale(1.08); }
@@ -168,6 +175,7 @@
 
     let dataAnggota = [];
 
+    // Parser CSV yang lebih robust untuk file CSV biasa
     function parseCSVLine(line) {
       const result = [];
       let current = '', inQuotes = false;
@@ -195,7 +203,7 @@
 
         let headerIndex = -1;
         for(let i=0; i<lines.length; i++) {
-          if(lines[i].toUpperCase().includes('NAMA')) { headerIndex = i; break; }
+          if(lines[i].toUpperCase().includes('KODE')) { headerIndex = i; break; } // header baru
         }
         if(headerIndex === -1) headerIndex = 0;
 
@@ -205,12 +213,13 @@
           if(values.length < 2) continue;
           
           const obj = {
-            NAMA: values[0] || '',
-            'TANGGAL DAFTAR': values[1] || '',
-            JABATAN: values[2] || '',
-            STATUS: values[3] || 'Aktif',
-            'TANGGAL KELUAR': values[4] || '',
-            ALASAN: values[5] || ''
+            NAMA: values[1] || '',
+            'TANGGAL DAFTAR': values[2] || '',
+            JABATAN: values[3] || '',
+            STATUS: values[4] || 'Aktif',
+            'TANGGAL KELUAR': values[5] || '',
+            ALASAN: values[6] || '',
+            KODE: values[0] || ''
           };
           if(obj.NAMA) dataAnggota.push(obj);
         }
@@ -228,7 +237,7 @@
       }
     }
 
-    function renderTabelAktif() { /* sama seperti sebelumnya */ 
+    function renderTabelAktif() {
       const tbody = document.getElementById('tabelAktif');
       const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
       document.getElementById('jumlahAnggota').textContent = aktif.length;
@@ -245,7 +254,7 @@
       `).join('');
     }
 
-    function populateDropdown() { /* sama */ 
+    function populateDropdown() {
       const select = document.getElementById('editAnggota');
       const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
       select.innerHTML = '<option value="">-- Pilih Nama --</option>';
@@ -255,7 +264,7 @@
       });
     }
 
-    function toggleForm() { /* sama */ 
+    function toggleForm() {
       const form = document.getElementById('formContainer');
       form.classList.toggle('show');
       if (form.classList.contains('show')) {
@@ -304,23 +313,54 @@
       }
     });
 
-    // Modal & fungsi kelola (sama seperti sebelumnya)
-    function toggleFieldKeluar() { /* sama */ }
-    function openModal() { /* sama */ }
-    function closeModal() { /* sama */ }
-    async function loadKelolaData() { /* sama */ }
+    function toggleFieldKeluar() {
+      const status = document.getElementById('editStatus').value;
+      document.getElementById('groupTanggalKeluar').style.display = status === 'Tidak Aktif' ? 'block' : 'none';
+    }
+
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('show');
+      document.getElementById('formKelola').reset();
+      document.getElementById('groupTanggalKeluar').style.display = 'none';
+      document.getElementById('editAnggota').value = '';
+      document.getElementById('editStatus').value = 'Aktif';
+      document.getElementById('editTanggalKeluar').value = '';
+      document.getElementById('editAlasan').value = '';
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    async function loadKelolaData() {
+      const idx = document.getElementById('editAnggota').value;
+      if (!idx) return;
+      const anggota = dataAnggota[idx];
+      if (!anggota) return;
+
+      document.getElementById('editStatus').value = anggota.STATUS;
+      document.getElementById('editAlasan').value = anggota.ALASAN || '';
+
+      if (anggota.STATUS === 'Tidak Aktif' && anggota['TANGGAL KELUAR']) {
+        document.getElementById('groupTanggalKeluar').style.display = 'block';
+        document.getElementById('editTanggalKeluar').value = anggota['TANGGAL KELUAR'];
+      } else {
+        document.getElementById('groupTanggalKeluar').style.display = 'none';
+        document.getElementById('editTanggalKeluar').value = '';
+      }
+    }
 
     document.getElementById('formKelola').addEventListener('submit', async function(e) {
       e.preventDefault();
       const statusBar = document.getElementById('statusBar');
       const idx = document.getElementById('editAnggota').value;
-      if (idx === '') return;
+      if (idx === '') { alert('Pilih anggota terlebih dahulu!'); return; }
+      
       const anggota = dataAnggota[idx];
       const status = document.getElementById('editStatus').value;
       const tanggalKeluar = document.getElementById('editTanggalKeluar').value;
       const alasan = document.getElementById('editAlasan').value;
 
-      if (status === 'Tidak Aktif' && !tanggalKeluar) return;
+      if (status === 'Tidak Aktif' && !tanggalKeluar) { alert('Tanggal keluar wajib diisi!'); return; }
 
       try {
         await fetch(SCRIPT_URL, {
