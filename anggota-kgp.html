@@ -1,67 +1,390 @@
-const SPREADSHEET_ID = '151XT0NLPb7fljwUOe_PP3dhD_-dPhBmA_jrffxGZWjQ';
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Anggota - KGP SMPN 1 Kaliwedi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); }
+    .home-btn:hover { transform: scale(1.08); }
+    .home-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .top-header h1 { font-size: 1.15rem; color: #333; font-weight: 700; }
 
-function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    
-    // 1. UPDATE STATUS (Kelola Anggota)
-    if (data.action === 'updateStatus') {
-      const sheet = ss.getSheetByName('Sheet1');
-      const values = sheet.getDataRange().getValues();
-      
-      for (let i = 1; i < values.length; i++) {
-        // Cocokkan berdasarkan NAMA (Kolom A / index 0)
-        if (String(values[i][0]).trim() === String(data.nama).trim()) {
-          // D=Status(4), E=Tanggal Keluar(5), F=Alasan(6)
-          sheet.getRange(i + 1, 4).setValue(data.status);
-          sheet.getRange(i + 1, 5).setValue(data.tanggalKeluar || '');
-          sheet.getRange(i + 1, 6).setValue(data.alasan || '');
-          return ContentService.createTextOutput(JSON.stringify({status: 'success'}))
-            .setMimeType(ContentService.MimeType.JSON);
-        }
+    .status-bar { background: #f0f4ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #555; border-left: 4px solid #667eea; }
+    .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
+    .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
+
+    .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.25s; color: #fff; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-tambah { background: linear-gradient(135deg, #11998e, #38ef7d); box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3); }
+    .btn-tambah:hover { transform: translateY(-2px); }
+    .btn-kelola { background: linear-gradient(135deg, #f093fb, #f5576c); box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3); }
+    .btn-kelola:hover { transform: translateY(-2px); }
+    .btn-simpan { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .btn-tutup { background: linear-gradient(135deg, #bdc3c7, #95a5a6); }
+
+    .form-container { display: none; background: #fafbfc; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e8e8e8; width: 100%; animation: slideDown 0.3s ease; }
+    .form-container.show { display: block; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .form-container h4 { color: #333; margin-bottom: 15px; font-size: 1rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+    .form-group { margin-bottom: 10px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; font-size: 0.85rem; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+    .form-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .form-actions .btn { flex: 1; justify-content: center; }
+
+    .section-title { color: #333; margin: 20px 0 12px 0; font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .section-title .count { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem; }
+    .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px 10px; text-align: left; }
+    td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; }
+    tr:hover { background: #f8f9ff; }
+    .member-name { font-weight: 700; color: #333; }
+    .member-jabatan { font-size: 0.8rem; color: #888; margin-top: 2px; }
+
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; padding: 15px; overflow-y: auto; }
+    .modal-overlay.show { display: block; }
+    .modal-content { background: #fff; max-width: 500px; margin: 30px auto; border-radius: 14px; padding: 20px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+    .modal-header h3 { color: #333; font-size: 1rem; }
+    .close-modal { background: #dc3545; color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+
+    .loading { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-header">
+      <a href="Index.html" class="home-btn" title="Beranda">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </a>
+      <h1>DATA ANGGOTA KGP</h1>
+    </div>
+
+    <div id="statusBar" class="status-bar">🔄 Memuat data dari GitHub...</div>
+
+    <div class="action-buttons">
+      <button class="btn btn-tambah" onclick="toggleForm()">➕ Tambah</button>
+      <button class="btn btn-kelola" onclick="openModal()">⚙️ Kelola</button>
+    </div>
+
+    <div class="form-container" id="formContainer">
+      <h4>📝 Tambah Anggota Baru</h4>
+      <form id="formAnggota">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Nama Lengkap *</label>
+            <input type="text" id="nama" placeholder="Nama lengkap dengan gelar" required />
+          </div>
+          <div class="form-group">
+            <label>Jabatan *</label>
+            <select id="jabatan" required>
+              <option value="Anggota">Anggota</option>
+              <option value="Penasehat">Penasehat</option>
+              <option value="Ketua">Ketua</option>
+              <option value="Sekretaris">Sekretaris</option>
+              <option value="Bendahara">Bendahara</option>
+              <option value="Pengurus">Pengurus</option>
+              <option value="Badan Pemeriksa">Badan Pemeriksa</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-simpan" id="btnSubmit">💾 Simpan</button>
+          <button type="button" class="btn btn-tutup" onclick="toggleForm()">✖ Tutup</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="section-title">
+      <span>👥 Daftar Anggota</span>
+      <span class="count" id="jumlahAnggota">0</span>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr><th>Nama</th><th>Jabatan</th><th>Tanggal Daftar</th></tr>
+        </thead>
+        <tbody id="tabelAktif">
+          <tr><td colspan="3" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Kelola -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⚙️ Kelola Anggota</h3>
+        <button class="close-modal" onclick="closeModal()">✕</button>
+      </div>
+      <form id="formKelola">
+        <div class="form-group">
+          <label>Pilih Anggota</label>
+          <select id="editAnggota" required style="font-size:0.85rem;" onchange="loadKelolaData()">
+            <option value="">-- Pilih Nama --</option>
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="editStatus" required onchange="toggleFieldKeluar()" style="font-size:0.85rem;">
+              <option value="Aktif">Aktif</option>
+              <option value="Tidak Aktif">Tidak Aktif</option>
+            </select>
+          </div>
+          <div class="form-group" id="groupTanggalKeluar" style="display:none;">
+            <label>Tanggal Keluar</label>
+            <input type="date" id="editTanggalKeluar" style="font-size:0.85rem;" />
+          </div>
+          <div class="form-group full">
+            <label>Alasan</label>
+            <textarea id="editAlasan" rows="2" placeholder="Alasan keluar..." style="font-size:0.85rem;"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-simpan">💾 Simpan</button>
+          <button type="button" class="btn btn-tutup" onclick="closeModal()">✖ Tutup</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const GITHUB_RAW = 'https://raw.githubusercontent.com/USER/REPO/main/data/Sheet1.md'; // <-- GANTI DENGAN REPO KAMU!
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
+
+    let dataAnggota = [];
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') {
+          if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (c === ',' && !inQuotes) {
+          result.push(current); current = '';
+        } else { current += c; }
       }
-      return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'Nama tidak ditemukan'}))
-        .setMimeType(ContentService.MimeType.JSON);
+      result.push(current);
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
     }
-    
-    // 2. TAMBAH ANGGOTA BARU (Sheet1)
-    if (data.sheet === 'Sheet1') {
-      const sheet = ss.getSheetByName('Sheet1');
-      // Urutan persis sesuai Sheet1: NAMA, TANGGAL DAFTAR, JABATAN, STATUS, TANGGAL KELUAR, ALASAN
-      sheet.appendRow([
-        data.nama,
-        data.tanggal,
-        data.jabatan,
-        data.status || 'Aktif',
-        data.tanggalKeluar || '',
-        data.alasan || ''
-      ]);
-      return ContentService.createTextOutput(JSON.stringify({status: 'success'}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    // 3. TAMBAH TRANSAKSI (Sheet2)
-    if (data.sheet === 'Sheet2') {
-      const sheet = ss.getSheetByName('Sheet2');
-      sheet.appendRow([
-        data.timestamp, data.transaksi, data.kode,
-        data.caraBayar, data.nominal, data.keterangan
-      ]);
-      return ContentService.createTextOutput(JSON.stringify({status: 'success'}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'Perintah tidak dikenali'}))
-      .setMimeType(ContentService.MimeType.JSON);
-      
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: error.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
 
-function doGet(e) {
-  return ContentService.createTextOutput('KGP API Active - ' + new Date().toISOString())
-    .setMimeType(ContentService.MimeType.TEXT);
-}
+    async function loadAnggota() {
+      const statusBar = document.getElementById('statusBar');
+      try {
+        const response = await fetch(GITHUB_RAW + '?t=' + Date.now());
+        if (!response.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const text = await response.text();
+        const lines = text.trim().split('\n');
+        dataAnggota = [];
+
+        let headerIndex = -1;
+        for(let i=0; i<lines.length; i++) {
+          if(lines[i].toUpperCase().includes('NAMA')) { headerIndex = i; break; }
+        }
+        if(headerIndex === -1) headerIndex = 0;
+
+        for (let i = headerIndex + 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          const values = parseCSVLine(lines[i]);
+          if(values.length < 2) continue;
+          
+          const obj = {
+            NAMA: values[0] || '',
+            'TANGGAL DAFTAR': values[1] || '',
+            JABATAN: values[2] || '',
+            STATUS: values[3] || 'Aktif',
+            'TANGGAL KELUAR': values[4] || '',
+            ALASAN: values[5] || ''
+          };
+          if(obj.NAMA) dataAnggota.push(obj);
+        }
+
+        const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
+        statusBar.textContent = `✅ ${aktif.length} anggota dari GitHub`;
+        statusBar.className = 'status-bar success';
+        
+        renderTabelAktif();
+        populateDropdown();
+      } catch (e) {
+        console.error(e);
+        statusBar.textContent = '❌ Gagal mengambil data dari GitHub. Pastikan repo ada.';
+        statusBar.className = 'status-bar error';
+      }
+    }
+
+    function renderTabelAktif() {
+      const tbody = document.getElementById('tabelAktif');
+      const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
+      document.getElementById('jumlahAnggota').textContent = aktif.length;
+      if (aktif.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
+        return;
+      }
+      tbody.innerHTML = aktif.map(a => `
+        <tr>
+          <td><div class="member-name">${a.NAMA}</div><div class="member-jabatan">${a.JABATAN}</div></td>
+          <td>${a.JABATAN}</td>
+          <td>${a['TANGGAL DAFTAR']}</td>
+        </tr>
+      `).join('');
+    }
+
+    function populateDropdown() {
+      const select = document.getElementById('editAnggota');
+      const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
+      select.innerHTML = '<option value="">-- Pilih Nama --</option>';
+      aktif.forEach((a, idx) => {
+        const originalIdx = dataAnggota.indexOf(a);
+        select.innerHTML += `<option value="${originalIdx}">${a.NAMA}</option>`;
+      });
+    }
+
+    function toggleForm() {
+      const form = document.getElementById('formContainer');
+      form.classList.toggle('show');
+      if (form.classList.contains('show')) {
+        document.getElementById('formAnggota').reset();
+        window.scrollTo({ top: 150, behavior: 'smooth' });
+      }
+    }
+
+    document.getElementById('formAnggota').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const statusBar = document.getElementById('statusBar');
+      const btnSubmit = document.getElementById('btnSubmit');
+      const originalText = btnSubmit.innerHTML;
+      
+      btnSubmit.innerHTML = '<span class="loading"></span> Menyimpan...';
+      btnSubmit.disabled = true;
+
+      const data = {
+        sheet: 'Sheet1',
+        nama: document.getElementById('nama').value,
+        tanggal: new Date().toISOString().split('T')[0],
+        jabatan: document.getElementById('jabatan').value,
+        status: 'Aktif',
+        tanggalKeluar: '',
+        alasan: ''
+      };
+
+      try {
+        await fetch(SCRIPT_URL, { 
+          method: 'POST', 
+          mode: 'no-cors', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(data) 
+        });
+        statusBar.textContent = '✅ Anggota berhasil ditambahkan ke GitHub!';
+        statusBar.className = 'status-bar success';
+        this.reset();
+        document.getElementById('formContainer').classList.remove('show');
+        setTimeout(() => loadAnggota(), 1000);
+      } catch (err) {
+        statusBar.textContent = '❌ Gagal menyimpan.';
+        statusBar.className = 'status-bar error';
+      } finally {
+        btnSubmit.innerHTML = originalText;
+        btnSubmit.disabled = false;
+      }
+    });
+
+    function toggleFieldKeluar() {
+      const status = document.getElementById('editStatus').value;
+      document.getElementById('groupTanggalKeluar').style.display = status === 'Tidak Aktif' ? 'block' : 'none';
+    }
+
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('show');
+      document.getElementById('formKelola').reset();
+      document.getElementById('groupTanggalKeluar').style.display = 'none';
+      document.getElementById('editAnggota').value = '';
+      document.getElementById('editStatus').value = 'Aktif';
+      document.getElementById('editTanggalKeluar').value = '';
+      document.getElementById('editAlasan').value = '';
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    async function loadKelolaData() {
+      const idx = document.getElementById('editAnggota').value;
+      if (!idx) return;
+      const anggota = dataAnggota[idx];
+      if (!anggota) return;
+
+      document.getElementById('editStatus').value = anggota.STATUS;
+      document.getElementById('editAlasan').value = anggota.ALASAN || '';
+
+      if (anggota.STATUS === 'Tidak Aktif' && anggota['TANGGAL KELUAR']) {
+        document.getElementById('groupTanggalKeluar').style.display = 'block';
+        document.getElementById('editTanggalKeluar').value = anggota['TANGGAL KELUAR'];
+      } else {
+        document.getElementById('groupTanggalKeluar').style.display = 'none';
+        document.getElementById('editTanggalKeluar').value = '';
+      }
+    }
+
+    document.getElementById('formKelola').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const statusBar = document.getElementById('statusBar');
+      const idx = document.getElementById('editAnggota').value;
+      if (idx === '') { alert('Pilih anggota terlebih dahulu!'); return; }
+      
+      const anggota = dataAnggota[idx];
+      const status = document.getElementById('editStatus').value;
+      const tanggalKeluar = document.getElementById('editTanggalKeluar').value;
+      const alasan = document.getElementById('editAlasan').value;
+
+      if (status === 'Tidak Aktif' && !tanggalKeluar) { alert('Tanggal keluar wajib diisi!'); return; }
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            sheet: 'Sheet1',
+            action: 'updateStatus',
+            nama: anggota.NAMA,
+            status: status,
+            tanggalKeluar: tanggalKeluar,
+            alasan: alasan
+          })
+        });
+        statusBar.textContent = '✅ Status berhasil diupdate di GitHub!';
+        statusBar.className = 'status-bar success';
+        closeModal();
+        setTimeout(() => loadAnggota(), 1000);
+      } catch (err) {
+        statusBar.textContent = '❌ Gagal update.';
+        statusBar.className = 'status-bar error';
+      }
+    });
+
+    loadAnggota();
+  </script>
+</body>
+</html>
