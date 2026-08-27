@@ -224,7 +224,7 @@
           if(obj.NAMA) dataAnggota.push(obj);
         }
 
-        const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
+        const aktif = dataAnggota.filter(a => a.STATUS.toUpperCase() === 'AKTIF');
         statusBar.textContent = `✅ ${aktif.length} anggota dari GitHub`;
         statusBar.className = 'status-bar success';
         
@@ -239,7 +239,7 @@
 
     function renderTabelAktif() {
       const tbody = document.getElementById('tabelAktif');
-      const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
+      const aktif = dataAnggota.filter(a => a.STATUS.toUpperCase() === 'AKTIF');
       document.getElementById('jumlahAnggota').textContent = aktif.length;
       if (aktif.length === 0) {
         tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
@@ -256,7 +256,7 @@
 
     function populateDropdown() {
       const select = document.getElementById('editAnggota');
-      const aktif = dataAnggota.filter(a => a.STATUS === 'Aktif');
+      const aktif = dataAnggota.filter(a => a.STATUS.toUpperCase() === 'AKTIF');
       select.innerHTML = '<option value="">-- Pilih Nama --</option>';
       aktif.forEach((a, idx) => {
         const originalIdx = dataAnggota.indexOf(a);
@@ -337,10 +337,10 @@
       const anggota = dataAnggota[idx];
       if (!anggota) return;
 
-      document.getElementById('editStatus').value = anggota.STATUS;
+      document.getElementById('editStatus').value = anggota.STATUS.toUpperCase() === 'AKTIF' ? 'Aktif' : 'Tidak Aktif';
       document.getElementById('editAlasan').value = anggota.ALASAN || '';
 
-      if (anggota.STATUS === 'Tidak Aktif' && anggota['TANGGAL KELUAR']) {
+      if (anggota.STATUS.toUpperCase() === 'TIDAK AKTIF' && anggota['TANGGAL KELUAR']) {
         document.getElementById('groupTanggalKeluar').style.display = 'block';
         document.getElementById('editTanggalKeluar').value = anggota['TANGGAL KELUAR'];
       } else {
