@@ -84,6 +84,7 @@
     <div class="action-buttons">
       <button class="btn btn-tambah" onclick="toggleForm()">➕ Tambah</button>
       <button class="btn btn-kelola" onclick="openModal()">⚙️ Kelola</button>
+      <button class="btn btn-tutup" onclick="loadAnggota()">🔄 Muat Ulang</button>
     </div>
 
     <div class="form-container" id="formContainer">
@@ -121,10 +122,10 @@
     <div class="table-responsive">
       <table>
         <thead>
-          <tr><th>Nama</th><th>Jabatan</th><th>Tanggal Daftar</th></tr>
+          <tr><th>Kode</th><th>Nama</th><th>Jabatan</th><th>Tanggal Daftar</th></tr>
         </thead>
         <tbody id="tabelAktif">
-          <tr><td colspan="3" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+          <tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -242,11 +243,12 @@
       const aktif = dataAnggota.filter(a => a.STATUS.toUpperCase() === 'AKTIF');
       document.getElementById('jumlahAnggota').textContent = aktif.length;
       if (aktif.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
         return;
       }
       tbody.innerHTML = aktif.map(a => `
         <tr>
+          <td><strong>${a.KODE}</strong></td>
           <td><div class="member-name">${a.NAMA}</div><div class="member-jabatan">${a.JABATAN}</div></td>
           <td>${a.JABATAN}</td>
           <td>${a['TANGGAL DAFTAR']}</td>
@@ -299,11 +301,11 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(data) 
         });
-        statusBar.textContent = '✅ Anggota berhasil ditambahkan!';
+        statusBar.textContent = '✅ Anggota berhasil ditambahkan! Menunggu GitHub update...';
         statusBar.className = 'status-bar success';
         this.reset();
         document.getElementById('formContainer').classList.remove('show');
-        setTimeout(() => loadAnggota(), 1000);
+        setTimeout(() => loadAnggota(), 3000);
       } catch (err) {
         statusBar.textContent = '❌ Gagal menyimpan.';
         statusBar.className = 'status-bar error';
@@ -376,10 +378,10 @@
             alasan: alasan
           })
         });
-        statusBar.textContent = '✅ Status berhasil diupdate!';
+        statusBar.textContent = '✅ Status berhasil diupdate! Menunggu GitHub update...';
         statusBar.className = 'status-bar success';
         closeModal();
-        setTimeout(() => loadAnggota(), 1000);
+        setTimeout(() => loadAnggota(), 3000);
       } catch (err) {
         statusBar.textContent = '❌ Gagal update.';
         statusBar.className = 'status-bar error';
