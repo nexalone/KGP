@@ -63,8 +63,8 @@
       border-radius: 10px;
       text-align: center;
     }
-    .stat-card h3 { font-size: 1.5rem; margin-bottom: 5px; }
-    .stat-card p { font-size: 0.9rem; opacity: 0.9; }
+    .stat-card h3 { font-size: 1.4rem; margin-bottom: 5px; }
+    .stat-card p { font-size: 0.85rem; opacity: 0.9; }
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -73,6 +73,7 @@
     }
     .form-group { margin-bottom: 15px; }
     .form-group.full { grid-column: 1 / -1; }
+    .form-group.hidden { display: none; }
     .form-group label {
       display: block;
       margin-bottom: 8px;
@@ -94,6 +95,16 @@
       background: #f8f9fa;
       cursor: not-allowed;
     }
+    .info-box {
+      background: #fff3e0;
+      border: 1px solid #ffcc80;
+      border-radius: 8px;
+      padding: 12px 15px;
+      font-size: 0.85rem;
+      color: #e65100;
+      margin-bottom: 15px;
+      grid-column: 1 / -1;
+    }
     .btn {
       padding: 12px 24px;
       border: none;
@@ -112,15 +123,18 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
     th, td {
-      padding: 12px;
+      padding: 10px;
       text-align: left;
       border-bottom: 1px solid #ddd;
+      white-space: nowrap;
     }
     th { background: #1e3c72; color: #fff; }
     tr:hover { background: #f8f9fa; }
+    .masuk { color: #2e7d32; font-weight: 600; }
+    .keluar { color: #c62828; font-weight: 600; }
     .loading {
       display: inline-block;
       width: 16px;
@@ -146,11 +160,11 @@
       <h1>TRANSAKSI KEUANGAN KGP</h1>
       <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
     </header>
-    <div id="statusBar" class="status-bar">🔄 Memuat data dari GitHub...</div>
+    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
 
     <div class="stats">
-      <div class="stat-card"><h3 id="totalIuran">Rp 0</h3><p>Total Iuran/Kredit</p></div>
-      <div class="stat-card"><h3 id="totalTransaksi">0</h3><p>Jumlah Transaksi</p></div>
+      <div class="stat-card"><h3 id="totalMasuk">Rp 0</h3><p>Total Masuk</p></div>
+      <div class="stat-card"><h3 id="totalKeluar">Rp 0</h3><p>Total Keluar</p></div>
       <div class="stat-card"><h3 id="saldoKas">Rp 0</h3><p>Saldo Kas</p></div>
     </div>
 
@@ -158,43 +172,63 @@
     <form id="formTransaksi">
       <div class="form-grid">
         <div class="form-group">
-          <label for="timestamp">Time Stamp *</label>
-          <input type="datetime-local" id="timestamp" required />
+          <label for="jenis">Jenis Transaksi *</label>
+          <select id="jenis" required><option value="">-- Pilih --</option></select>
         </div>
-        <div class="form-group">
-          <label for="transaksi">Transaksi *</label>
-          <select id="transaksi" required><option value="">-- Pilih --</option></select>
+
+        <div class="form-group" id="grpJenisPinjaman" hidden>
+          <label for="jenisPinjaman">Jasa Untuk Pinjaman *</label>
+          <select id="jenisPinjaman">
+            <option value="">-- Pilih --</option>
+            <option value="PJM">Pinjaman (Kredit)</option>
+            <option value="SMT">Pinjaman Sementara</option>
+          </select>
         </div>
-        <div class="form-group">
-          <label for="kode">Kode Anggota *</label>
-          <select id="kode" required><option value="">-- Pilih Kode --</option></select>
+
+        <div class="form-group" id="grpNoid">
+          <label for="noid">Anggota *</label>
+          <select id="noid"><option value="">-- Pilih Anggota --</option></select>
         </div>
-        <div class="form-group">
-          <label for="nama">Nama Anggota</label>
-          <input type="text" id="nama" readonly placeholder="Otomatis..." />
+
+        <div class="form-group" id="grpSlot" hidden>
+          <label for="slot">Pinjaman Yang Dibayar *</label>
+          <select id="slot"><option value="">-- Pilih Anggota Dulu --</option></select>
         </div>
-        <div class="form-group">
-          <label for="caraBayar">Cara Bayar *</label>
-          <select id="caraBayar" required><option value="">-- Pilih --</option></select>
+
+        <div class="form-group" id="grpJmlCicilan" hidden>
+          <label for="jmlCicilan">Jumlah Rencana Angsuran *</label>
+          <input type="number" id="jmlCicilan" min="1" placeholder="contoh: 10" />
         </div>
+
         <div class="form-group">
           <label for="nominal">Nominal (Rp) *</label>
-          <input type="number" id="nominal" placeholder="0" min="0" required />
+          <input type="number" id="nominal" min="0" placeholder="0" required />
         </div>
-        <div class="form-group full">
-          <label for="keterangan">Keterangan</label>
-          <input type="text" id="keterangan" placeholder="Keterangan..." />
+
+        <div class="form-group">
+          <label for="caraBayar">Cara Bayar *</label>
+          <select id="caraBayar" required>
+            <option value="">-- Pilih --</option>
+            <option value="GAJI">GAJI</option>
+            <option value="SERTI">SERTI</option>
+            <option value="HONOR">HONOR</option>
+            <option value="TRANSFER">TRANSFER</option>
+            <option value="SAKU">SAKU</option>
+            <option value="LAINNYA">LAINNYA</option>
+          </select>
         </div>
+
+        <div class="info-box" id="infoBox" hidden></div>
       </div>
       <button type="submit" class="btn btn-primary" id="btnSubmit">💾 Simpan Transaksi</button>
-      <button type="reset" class="btn btn-secondary">🔄 Reset</button>
+      <button type="reset" class="btn btn-secondary" id="btnReset">🔄 Reset</button>
     </form>
 
     <h3 style="margin: 40px 0 20px; color: #1e3c72;"> Riwayat Transaksi (<span id="jumlahTransaksi">0</span>)</h3>
     <div class="table-responsive">
       <table>
         <thead>
-          <tr><th>Time Stamp</th><th>Transaksi</th><th>Kode</th><th>Nama</th><th>Cara Bayar</th><th>Nominal</th><th>Keterangan</th></tr>
+          <tr><th>Time Stamp</th><th>NOID</th><th>Nama</th><th>REF</th><th>Masuk</th><th>Keluar</th><th>Cara Bayar</th></tr>
         </thead>
         <tbody id="tabelTransaksi">
           <tr><td colspan="7" style="text-align:center;padding:20px;">Memuat...</td></tr>
@@ -204,17 +238,27 @@
   </div>
 
   <script>
-    // === Sumber data: GitHub raw CSV (sama seperti anggota-kgp.html) ===
     const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
-    const ANGGOTA_URL   = GITHUB_BASE + 'anggota.csv';
+    const ANGGOTA_URL = GITHUB_BASE + 'anggota.csv';
     const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
-    const REFERENSI_URL = GITHUB_BASE + 'referesi.csv';
-
-    // Simpan transaksi baru tetap lewat Google Apps Script (mengisi Google Sheet
-    // yang menjadi sumber file CSV di GitHub).
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
 
-    let dataTransaksi = [], dataAnggota = [], dataReferensi = { transaksi: [], caraBayar: [] };
+    // Definisi tiap jenis transaksi: label, apakah butuh NOID, slot pinjaman, jml cicilan
+    const JENIS_LIST = [
+      { kode: 'SP',    label: 'SP - Simpanan Pokok (sekali bayar)', butuhNoid: true },
+      { kode: 'SW',    label: 'SW - Simpanan Wajib (bulanan)',       butuhNoid: true },
+      { kode: 'SHR-S', label: 'SHR - Setor (bulanan)',               butuhNoid: true },
+      { kode: 'SHR-T', label: 'SHR - Tarik (jelang lebaran)',        butuhNoid: true },
+      { kode: 'PJM',   label: 'Pinjaman (Kredit) - Pencairan',       butuhNoid: true, butuhJmlCicilan: true, jmlCicilanDefault: 10 },
+      { kode: 'SMT',   label: 'Pinjaman Sementara - Pencairan',      butuhNoid: true, butuhJmlCicilan: true },
+      { kode: 'CCL',   label: 'Cicilan Pinjaman (Kredit)',           butuhNoid: true, butuhSlot: '4' },
+      { kode: 'CCS',   label: 'Cicilan Pinjaman Sementara',          butuhNoid: true, butuhSlot: '5' },
+      { kode: 'JS',    label: 'Jasa Pinjaman',                      butuhNoid: true, butuhSlot: 'pilih' },
+      { kode: 'ADM',   label: 'Biaya Administrasi/Operasional',      butuhNoid: false },
+      { kode: 'SHU',   label: 'Pembagian SHU',                      butuhNoid: true }
+    ];
+
+    let dataAnggota = [], dataTransaksi = [], pinjamanAktifCache = [];
 
     function parseCSVLine(line) {
       const result = [];
@@ -229,7 +273,6 @@
       return result.map(v => v.replace(/^"|"$/g, '').trim());
     }
 
-    // Parser generik: baris pertama = header, cocokkan kolom berdasarkan nama header
     function parseCSV(text) {
       const lines = text.trim().split('\n');
       if (lines.length === 0) return [];
@@ -245,54 +288,34 @@
       return result;
     }
 
-    // anggota.csv punya kolom ekstra (URL script) di header, jadi dipetakan
-    // berdasarkan posisi kolom, sama seperti di anggota-kgp.html
-    function parseAnggotaCSV(text) {
-      const lines = text.trim().split('\n');
-      let headerIndex = 0;
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i].toUpperCase().includes('KODE')) { headerIndex = i; break; }
-      }
-      const result = [];
-      for (let i = headerIndex + 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const v = parseCSVLine(lines[i]);
-        if (v.length < 2) continue;
-        const obj = {
-          KODE: v[0] || '',
-          NAMA: v[1] || '',
-          'TANGGAL DAFTAR': v[2] || '',
-          JABATAN: v[3] || '',
-          STATUS: (v[4] || '').toUpperCase(),
-          'TANGGAL KELUAR': v[5] || '',
-          ALASAN: v[6] || ''
-        };
-        if (obj.KODE) result.push(obj);
-      }
-      return result;
+    function populateJenisDropdown() {
+      const sel = document.getElementById('jenis');
+      sel.innerHTML = '<option value="">-- Pilih --</option>';
+      JENIS_LIST.forEach(j => { sel.innerHTML += `<option value="${j.kode}">${j.label}</option>`; });
+    }
+
+    function populateNoidDropdown() {
+      const sel = document.getElementById('noid');
+      sel.innerHTML = '<option value="">-- Pilih Anggota --</option>';
+      dataAnggota
+        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+        .forEach(a => { sel.innerHTML += `<option value="${a.NOID}">${a.NOID} - ${a.NAMA}</option>`; });
     }
 
     async function loadAllData() {
       const statusBar = document.getElementById('statusBar');
       try {
-        const [rA, rT, rR] = await Promise.all([
+        const [rA, rT] = await Promise.all([
           fetch(ANGGOTA_URL + '?t=' + Date.now()),
-          fetch(TRANSAKSI_URL + '?t=' + Date.now()),
-          fetch(REFERENSI_URL + '?t=' + Date.now())
+          fetch(TRANSAKSI_URL + '?t=' + Date.now())
         ]);
-        if (!rA.ok || !rT.ok || !rR.ok) throw new Error('Gagal mengambil data dari GitHub');
-        const [txtA, txtT, txtR] = await Promise.all([rA.text(), rT.text(), rR.text()]);
+        if (!rA.ok || !rT.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const [txtA, txtT] = await Promise.all([rA.text(), rT.text()]);
 
-        dataAnggota = parseAnggotaCSV(txtA);
+        dataAnggota = parseCSV(txtA);
         dataTransaksi = parseCSV(txtT);
 
-        dataReferensi = { transaksi: [], caraBayar: [] };
-        parseCSV(txtR).forEach(row => {
-          if (row.TRANSAKSI) dataReferensi.transaksi.push(row.TRANSAKSI);
-          if (row['MODE BAYAR']) dataReferensi.caraBayar.push(row['MODE BAYAR']);
-        });
-
-        populateDropdowns();
+        populateNoidDropdown();
         renderTabel();
         hitungStatistik();
         statusBar.textContent = `✅ ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi (dari GitHub)`;
@@ -304,72 +327,182 @@
       }
     }
 
-    function cariNamaByKode(kode) {
-      const a = dataAnggota.find(x => x.KODE === kode);
-      return a ? a.NAMA : '';
+    function formatRp(n) {
+      return 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
     }
 
-    function populateDropdowns() {
-      const selT = document.getElementById('transaksi');
-      selT.innerHTML = '<option value="">-- Pilih --</option>';
-      dataReferensi.transaksi.forEach(t => { if (t) selT.innerHTML += `<option value="${t}">${t}</option>`; });
-
-      const selK = document.getElementById('kode');
-      selK.innerHTML = '<option value="">-- Pilih Kode --</option>';
-      dataAnggota
-        .filter(a => a.STATUS !== 'TIDAK AKTIF')
-        .forEach(a => {
-          selK.innerHTML += `<option value="${a.KODE}" data-nama="${a.NAMA || ''}">${a.KODE} - ${a.NAMA || ''}</option>`;
-        });
-
-      const selC = document.getElementById('caraBayar');
-      selC.innerHTML = '<option value="">-- Pilih --</option>';
-      dataReferensi.caraBayar.forEach(c => { if (c) selC.innerHTML += `<option value="${c}">${c}</option>`; });
+    function renderTabel() {
+      const tbody = document.getElementById('tabelTransaksi');
+      const urut = [...dataTransaksi].reverse(); // terbaru di atas
+      document.getElementById('jumlahTransaksi').textContent = dataTransaksi.length;
+      if (urut.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
+        return;
+      }
+      tbody.innerHTML = urut.map(t => `
+        <tr>
+          <td>${t['TIME STAMP'] || '-'}</td>
+          <td>${t.NOID || '-'}</td>
+          <td>${t.NAMA || '-'}</td>
+          <td>${t.REF || '-'}</td>
+          <td class="masuk">${t.MASUK ? formatRp(t.MASUK) : ''}</td>
+          <td class="keluar">${t.KELUAR ? formatRp(t.KELUAR) : ''}</td>
+          <td>${t['CARA BAYAR'] || '-'}</td>
+        </tr>
+      `).join('');
     }
 
-    document.getElementById('kode').addEventListener('change', function() {
-      document.getElementById('nama').value = this.options[this.selectedIndex].getAttribute('data-nama') || '';
+    function hitungStatistik() {
+      let masuk = 0, keluar = 0;
+      dataTransaksi.forEach(t => {
+        masuk += Number(t.MASUK) || 0;
+        keluar += Number(t.KELUAR) || 0;
+      });
+      document.getElementById('totalMasuk').textContent = formatRp(masuk);
+      document.getElementById('totalKeluar').textContent = formatRp(keluar);
+      document.getElementById('saldoKas').textContent = formatRp(masuk - keluar);
+    }
+
+    // ===== FORM DINAMIS =====
+    function getJenisInfo(kode) {
+      return JENIS_LIST.find(j => j.kode === kode);
+    }
+
+    function updateFormTampilan() {
+      const kode = document.getElementById('jenis').value;
+      const info = getJenisInfo(kode);
+
+      const grpNoid = document.getElementById('grpNoid');
+      const grpSlot = document.getElementById('grpSlot');
+      const grpJmlCicilan = document.getElementById('grpJmlCicilan');
+      const grpJenisPinjaman = document.getElementById('grpJenisPinjaman');
+      const infoBox = document.getElementById('infoBox');
+
+      grpNoid.hidden = !info || !info.butuhNoid;
+      grpSlot.hidden = true;
+      grpJmlCicilan.hidden = true;
+      grpJenisPinjaman.hidden = true;
+      infoBox.hidden = true;
+      document.getElementById('slot').innerHTML = '<option value="">-- Pilih Anggota Dulu --</option>';
+
+      if (!info) return;
+
+      if (info.butuhJmlCicilan) {
+        grpJmlCicilan.hidden = false;
+        document.getElementById('jmlCicilan').value = info.jmlCicilanDefault || '';
+      }
+
+      if (info.butuhSlot === '4' || info.butuhSlot === '5') {
+        grpSlot.hidden = false;
+        muatPinjamanAktif(info.butuhSlot);
+      } else if (info.butuhSlot === 'pilih') {
+        grpJenisPinjaman.hidden = false;
+      }
+
+      if (kode === 'ADM') {
+        infoBox.hidden = false;
+        infoBox.textContent = 'Biaya operasional tidak terkait anggota tertentu.';
+      }
+    }
+
+    document.getElementById('jenisPinjaman').addEventListener('change', function() {
+      const jenisDigit = this.value === 'SMT' ? '5' : (this.value === 'PJM' ? '4' : '');
+      document.getElementById('grpSlot').hidden = !jenisDigit;
+      if (jenisDigit) muatPinjamanAktif(jenisDigit);
     });
 
-    function setCurrentTimestamp() {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      document.getElementById('timestamp').value = now.toISOString().slice(0, 16);
+    async function muatPinjamanAktif(jenisDigit) {
+      const noid = document.getElementById('noid').value;
+      const selSlot = document.getElementById('slot');
+      if (!noid) {
+        selSlot.innerHTML = '<option value="">-- Pilih Anggota Dulu --</option>';
+        return;
+      }
+      selSlot.innerHTML = '<option value="">Memuat...</option>';
+      try {
+        const url = SCRIPT_URL + '?action=pinjamanAktif&noid=' + encodeURIComponent(noid) + '&jenis=' + jenisDigit;
+        const resp = await fetch(url);
+        const json = await resp.json();
+        if (!json.success) throw new Error(json.error || 'Gagal memuat');
+        pinjamanAktifCache = json.data || [];
+        if (pinjamanAktifCache.length === 0) {
+          selSlot.innerHTML = '<option value="">Tidak ada pinjaman aktif</option>';
+          return;
+        }
+        selSlot.innerHTML = '<option value="">-- Pilih --</option>' + pinjamanAktifCache.map(p =>
+          `<option value="${p.slot}">Slot ${p.slot} — Sisa ${formatRp(p.sisaPokok)} — Angsuran ke-${p.angsuranKeBerikutnya} dari ${p.jmlCicilan}</option>`
+        ).join('');
+      } catch (e) {
+        console.error(e);
+        selSlot.innerHTML = '<option value="">Gagal memuat pinjaman aktif</option>';
+      }
     }
-    setCurrentTimestamp();
+
+    document.getElementById('jenis').addEventListener('change', updateFormTampilan);
+    document.getElementById('noid').addEventListener('change', function() {
+      const kode = document.getElementById('jenis').value;
+      const info = getJenisInfo(kode);
+      if (info && info.butuhSlot === '4') muatPinjamanAktif('4');
+      else if (info && info.butuhSlot === '5') muatPinjamanAktif('5');
+      else if (info && info.butuhSlot === 'pilih') {
+        const jp = document.getElementById('jenisPinjaman').value;
+        if (jp === 'PJM') muatPinjamanAktif('4');
+        else if (jp === 'SMT') muatPinjamanAktif('5');
+      }
+    });
+
+    populateJenisDropdown();
 
     document.getElementById('formTransaksi').addEventListener('submit', async function(e) {
       e.preventDefault();
       const statusBar = document.getElementById('statusBar');
       const btnSubmit = document.getElementById('btnSubmit');
       const originalText = btnSubmit.innerHTML;
+
+      const kode = document.getElementById('jenis').value;
+      const info = getJenisInfo(kode);
+      if (!info) return;
+
+      const payload = {
+        action: 'tambahTransaksi',
+        kode: kode,
+        noid: document.getElementById('noid').value,
+        nominal: document.getElementById('nominal').value,
+        caraBayar: document.getElementById('caraBayar').value
+      };
+
+      if (info.butuhJmlCicilan) {
+        payload.jmlCicilan = document.getElementById('jmlCicilan').value;
+      }
+      if (info.butuhSlot === '4' || info.butuhSlot === '5') {
+        payload.x = document.getElementById('slot').value;
+        if (!payload.x) { alert('Pilih dulu pinjaman yang mau dibayar.'); return; }
+      } else if (info.butuhSlot === 'pilih') {
+        const jp = document.getElementById('jenisPinjaman').value;
+        if (!jp) { alert('Pilih dulu jenis pinjaman untuk jasa ini.'); return; }
+        payload.jenisPinjaman = jp;
+        payload.x = document.getElementById('slot').value;
+        if (!payload.x) { alert('Pilih dulu pinjaman yang mau dibayar jasanya.'); return; }
+      }
+      if (info.butuhNoid && !payload.noid) { alert('Pilih dulu anggotanya.'); return; }
+
       btnSubmit.innerHTML = '<span class="loading"></span> Menyimpan...';
       btnSubmit.disabled = true;
-
-      const data = {
-        sheet: 'Sheet2',
-        timestamp: document.getElementById('timestamp').value.replace('T', ' '),
-        transaksi: document.getElementById('transaksi').value,
-        kode: document.getElementById('kode').value,
-        nama: document.getElementById('nama').value,
-        caraBayar: document.getElementById('caraBayar').value,
-        nominal: document.getElementById('nominal').value,
-        keterangan: document.getElementById('keterangan').value
-      };
 
       try {
         await fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(data)
+          body: JSON.stringify(payload)
         });
-        statusBar.textContent = '✅ Transaksi berhasil disimpan! (data GitHub akan ter-update setelah sinkronisasi)';
+        statusBar.textContent = '✅ Transaksi berhasil disimpan! Menunggu GitHub update...';
         statusBar.className = 'status-bar success';
         this.reset();
-        setCurrentTimestamp();
-        setTimeout(() => loadAllData(), 1500);
+        updateFormTampilan();
+        setTimeout(() => loadAllData(), 3000);
       } catch (err) {
+        console.error(err);
         statusBar.textContent = '❌ Gagal menyimpan.';
         statusBar.className = 'status-bar error';
       } finally {
@@ -377,37 +510,6 @@
         btnSubmit.disabled = false;
       }
     });
-
-    function renderTabel() {
-      const tbody = document.getElementById('tabelTransaksi');
-      document.getElementById('jumlahTransaksi').textContent = dataTransaksi.length;
-      if (dataTransaksi.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
-        return;
-      }
-      tbody.innerHTML = dataTransaksi.map(t => `
-        <tr>
-          <td>${t['TIME STAMP'] || '-'}</td>
-          <td>${t.TRANSAKSI || '-'}</td>
-          <td>${t.KODE || '-'}</td>
-          <td>${t.NAMA || cariNamaByKode(t.KODE) || '-'}</td>
-          <td>${t['CARA BAYAR'] || '-'}</td>
-          <td>Rp ${parseInt(t.NOMINAL || 0).toLocaleString('id-ID')}</td>
-          <td>${t.KETERANGAN || '-'}</td>
-        </tr>
-      `).join('');
-    }
-
-    function hitungStatistik() {
-      let total = 0, saldo = 0;
-      dataTransaksi.forEach(t => {
-        const n = parseInt(t.NOMINAL) || 0;
-        total += n; saldo += n;
-      });
-      document.getElementById('totalIuran').textContent = 'Rp ' + total.toLocaleString('id-ID');
-      document.getElementById('totalTransaksi').textContent = dataTransaksi.length;
-      document.getElementById('saldoKas').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
-    }
 
     loadAllData();
   </script>
