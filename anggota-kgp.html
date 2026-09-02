@@ -193,6 +193,15 @@
       return result.map(v => v.replace(/^"|"$/g, '').trim());
     }
 
+    // Ubah format tanggal dari yyyy-MM-dd (atau format lain yang bisa dibaca Date) menjadi D-MMM-YYYY
+    function formatTanggal(tgl) {
+      if (!tgl) return '-';
+      const d = new Date(tgl);
+      if (isNaN(d.getTime())) return tgl; // kalau gagal parse, tampilkan apa adanya
+      const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      return d.getDate() + '-' + bulan[d.getMonth()] + '-' + d.getFullYear();
+    }
+
     async function loadAnggota() {
       const statusBar = document.getElementById('statusBar');
       try {
@@ -251,7 +260,7 @@
           <td><strong>${a.KODE}</strong></td>
           <td><div class="member-name">${a.NAMA}</div><div class="member-jabatan">${a.JABATAN}</div></td>
           <td>${a.JABATAN}</td>
-          <td>${a['TANGGAL DAFTAR']}</td>
+          <td>${formatTanggal(a['TANGGAL DAFTAR'])}</td>
         </tr>
       `).join('');
     }
