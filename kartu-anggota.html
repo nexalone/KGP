@@ -86,20 +86,35 @@
       background: #1e3c72; color: #fff; padding: 6px 14px; border-radius: 20px;
       font-weight: 700; font-size: 0.95rem; letter-spacing: 1px;
     }
-    .simpanan-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+    .simpanan-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 2px dashed #ddd;
     }
     .simpanan-item {
       background: #f8f9fa;
       border-radius: 10px;
-      padding: 14px;
-      text-align: center;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .simpanan-item .label { font-size: 0.75rem; color: #666; font-weight: 600; margin-bottom: 6px; }
-    .simpanan-item .nilai { font-size: 1rem; font-weight: 700; color: #1e3c72; }
+    .simpanan-item .label { font-size: 0.85rem; color: #666; font-weight: 600; }
+    .simpanan-item .nilai { font-size: 1.05rem; font-weight: 700; color: #1e3c72; }
+    .total-pinjaman {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffe0b2;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+    }
+    .total-pinjaman .label { font-size: 0.85rem; color: #7a4a00; font-weight: 700; }
+    .total-pinjaman .nilai { font-size: 1.1rem; font-weight: 800; color: #e65100; }
     .pinjaman-section h4 {
       color: #1e3c72; font-size: 0.95rem; margin-bottom: 10px;
       display: flex; align-items: center; gap: 6px;
@@ -166,7 +181,7 @@
           <div class="noid" id="kNoid">-</div>
         </div>
 
-        <div class="simpanan-grid">
+        <div class="simpanan-list">
           <div class="simpanan-item">
             <div class="label">SIMPANAN POKOK</div>
             <div class="nilai" id="kSP">Rp 0</div>
@@ -182,7 +197,11 @@
         </div>
 
         <div class="pinjaman-section">
-          <h4>💳 Sisa Pinjaman Aktif</h4>
+          <h4>💳 Pinjaman</h4>
+          <div class="total-pinjaman">
+            <div class="label">TOTAL SISA PINJAMAN</div>
+            <div class="nilai" id="kTotalSisaPinjaman">Rp 0</div>
+          </div>
           <div id="kPinjaman"></div>
         </div>
       </div>
@@ -348,6 +367,9 @@
       document.getElementById('kSHR').textContent = formatRp(ringkasan.shr);
 
       const pinjamanEl = document.getElementById('kPinjaman');
+      const totalSisa = ringkasan.pinjamanAktif.reduce((sum, p) => sum + p.sisaPokok, 0);
+      document.getElementById('kTotalSisaPinjaman').textContent = formatRp(totalSisa);
+
       if (ringkasan.pinjamanAktif.length === 0) {
         pinjamanEl.innerHTML = '<div class="pinjaman-kosong">Tidak ada pinjaman aktif</div>';
       } else {
