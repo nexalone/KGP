@@ -260,8 +260,8 @@
       { kode: 'SHR-T', label: 'SHR - Tarik (jelang lebaran)',        butuhNoid: true },
       { kode: 'PJM',   label: 'Pinjaman (Kredit) - Pencairan',       butuhNoid: true, butuhJmlCicilan: true, jmlCicilanDefault: 10 },
       { kode: 'SMT',   label: 'Pinjaman Sementara - Pencairan',      butuhNoid: true, butuhJmlCicilan: true },
-      { kode: 'CCL',   label: 'Cicilan Pinjaman (Kredit)',           butuhNoid: true, butuhSlot: '4' },
-      { kode: 'CCS',   label: 'Cicilan Pinjaman Sementara',          butuhNoid: true, butuhSlot: '5' },
+      { kode: 'CCL',   label: 'Cicilan Pinjaman (Kredit)',           butuhNoid: true, butuhSlot: 'K' },
+      { kode: 'CCS',   label: 'Cicilan Pinjaman Sementara',          butuhNoid: true, butuhSlot: 'KS' },
       { kode: 'JS',    label: 'Jasa Pinjaman',                      butuhNoid: true, butuhSlot: 'pilih' },
       { kode: 'ADM',   label: 'Biaya Administrasi/Operasional',      butuhNoid: false },
       { kode: 'SHU',   label: 'Pembagian SHU',                      butuhNoid: true }
@@ -401,7 +401,7 @@
         document.getElementById('jmlCicilan').value = info.jmlCicilanDefault || '';
       }
 
-      if (info.butuhSlot === '4' || info.butuhSlot === '5') {
+      if (info.butuhSlot === 'K' || info.butuhSlot === 'KS') {
         grpSlot.hidden = false;
         muatPinjamanAktif(info.butuhSlot);
       } else if (info.butuhSlot === 'pilih') {
@@ -415,7 +415,7 @@
     }
 
     document.getElementById('jenisPinjaman').addEventListener('change', function() {
-      const jenisDigit = this.value === 'SMT' ? '5' : (this.value === 'PJM' ? '4' : '');
+      const jenisDigit = this.value === 'SMT' ? 'KS' : (this.value === 'PJM' ? 'K' : '');
       document.getElementById('grpSlot').hidden = !jenisDigit;
       if (jenisDigit) muatPinjamanAktif(jenisDigit);
     });
@@ -451,12 +451,12 @@
     document.getElementById('noid').addEventListener('change', function() {
       const kode = document.getElementById('jenis').value;
       const info = getJenisInfo(kode);
-      if (info && info.butuhSlot === '4') muatPinjamanAktif('4');
-      else if (info && info.butuhSlot === '5') muatPinjamanAktif('5');
+      if (info && info.butuhSlot === 'K') muatPinjamanAktif('K');
+      else if (info && info.butuhSlot === 'KS') muatPinjamanAktif('KS');
       else if (info && info.butuhSlot === 'pilih') {
         const jp = document.getElementById('jenisPinjaman').value;
-        if (jp === 'PJM') muatPinjamanAktif('4');
-        else if (jp === 'SMT') muatPinjamanAktif('5');
+        if (jp === 'PJM') muatPinjamanAktif('K');
+        else if (jp === 'SMT') muatPinjamanAktif('KS');
       }
     });
 
@@ -483,7 +483,7 @@
       if (info.butuhJmlCicilan) {
         payload.jmlCicilan = document.getElementById('jmlCicilan').value;
       }
-      if (info.butuhSlot === '4' || info.butuhSlot === '5') {
+      if (info.butuhSlot === 'K' || info.butuhSlot === 'KS') {
         payload.x = document.getElementById('slot').value;
         if (!payload.x) { alert('Pilih dulu pinjaman yang mau dibayar.'); return; }
       } else if (info.butuhSlot === 'pilih') {
