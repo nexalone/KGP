@@ -241,23 +241,25 @@
     const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
     const ANGGOTA_URL = GITHUB_BASE + 'anggota.csv';
     const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
+    const REF_URL = GITHUB_BASE + 'ref.csv';
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
 
-    // Definisi tiap jenis transaksi: label, apakah butuh NOID, slot pinjaman, jml cicilan
-    const JENIS_LIST = [
-      { kode: 'SP',    label: 'SP - Simpanan Pokok (sekali bayar)', butuhNoid: true },
-      { kode: 'SW',    label: 'SW - Simpanan Wajib (bulanan)',       butuhNoid: true },
-      { kode: 'SHR-S', label: 'SHR - Setor (bulanan)',               butuhNoid: true },
-      { kode: 'SHR-T', label: 'SHR - Tarik (jelang lebaran)',        butuhNoid: true },
-      { kode: 'PJM',   label: 'Pinjaman (Kredit) - Pencairan',       butuhNoid: true, butuhJmlCicilan: true, jmlCicilanDefault: 10 },
-      { kode: 'SMT',   label: 'Pinjaman Sementara - Pencairan',      butuhNoid: true, butuhJmlCicilan: true },
-      { kode: 'CCL',   label: 'Cicilan Pinjaman (Kredit)',           butuhNoid: true, butuhSlot: 'K' },
-      { kode: 'CCS',   label: 'Cicilan Pinjaman Sementara',          butuhNoid: true, butuhSlot: 'KS' },
-      { kode: 'ADM',   label: 'Biaya Administrasi/Operasional',      butuhNoid: false },
-      { kode: 'SHU',   label: 'Pembagian SHU',                      butuhNoid: true }
-    ];
+    // Perilaku tiap jenis transaksi (label TIDAK di sini lagi — diambil dari sheet REF kolom KETERANGAN).
+    // 'JS' (Jasa) sengaja tidak dimasukkan karena sekarang otomatis, tidak dipilih manual.
+    const JENIS_META = {
+      'SP':    { butuhNoid: true },
+      'SW':    { butuhNoid: true },
+      'SHR-S': { butuhNoid: true },
+      'SHR-T': { butuhNoid: true },
+      'PJM':   { butuhNoid: true, butuhJmlCicilan: true, jmlCicilanDefault: 10 },
+      'SMT':   { butuhNoid: true, butuhJmlCicilan: true },
+      'CCL':   { butuhNoid: true, butuhSlot: 'K' },
+      'CCS':   { butuhNoid: true, butuhSlot: 'KS' },
+      'ADM':   { butuhNoid: false },
+      'SHU':   { butuhNoid: true }
+    };
 
-    let dataAnggota = [], dataTransaksi = [], pinjamanAktifCache = [];
+    let dataAnggota = [], dataTransaksi = [], dataRef = [], pinjamanAktifCache = [];
 
     function parseCSVLine(line) {
       const result = [];
@@ -290,7 +292,10 @@
     function populateJenisDropdown() {
       const sel = document.getElementById('jenis');
       sel.innerHTML = '<option value="">-- Pilih --</option>';
-      JENIS_LIST.forEach(j => { sel.innerHTML += `<option value="${j.kode}">${j.label}</option>`; });
+      dataRef
+        .filter(r => JENIS_META.hasOwnProperty(r.KODE)) // buang JS & baris tak dikenal
+        .sort((a, b) => (Number(a.NO) || 0) - (Number(b.NO) || 0))
+        .forEach(r => { sel.innerHTML += `<option value="${r.KODE}">${r.KETERANGAN}</option>`; });
     }
 
     function populateNoidDropdown() {
@@ -304,17 +309,20 @@
     async function loadAllData() {
       const statusBar = document.getElementById('statusBar');
       try {
-        const [rA, rT] = await Promise.all([
+        const [rA, rT, rR] = await Promise.all([
           fetch(ANGGOTA_URL + '?t=' + Date.now()),
-          fetch(TRANSAKSI_URL + '?t=' + Date.now())
+          fetch(TRANSAKSI_URL + '?t=' + Date.now()),
+          fetch(REF_URL + '?t=' + Date.now())
         ]);
-        if (!rA.ok || !rT.ok) throw new Error('Gagal mengambil data dari GitHub');
-        const [txtA, txtT] = await Promise.all([rA.text(), rT.text()]);
+        if (!rA.ok || !rT.ok || !rR.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const [txtA, txtT, txtR] = await Promise.all([rA.text(), rT.text(), rR.text()]);
 
         dataAnggota = parseCSV(txtA);
         dataTransaksi = parseCSV(txtT);
+        dataRef = parseCSV(txtR);
 
         populateNoidDropdown();
+        populateJenisDropdown();
         renderTabel();
         hitungStatistik();
         statusBar.textContent = `✅ ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi (dari GitHub)`;
@@ -364,7 +372,7 @@
 
     // ===== FORM DINAMIS =====
     function getJenisInfo(kode) {
-      return JENIS_LIST.find(j => j.kode === kode);
+      return JENIS_META[kode];
     }
 
     function updateFormTampilan() {
@@ -436,8 +444,6 @@
       if (info && info.butuhSlot === 'K') muatPinjamanAktif('K');
       else if (info && info.butuhSlot === 'KS') muatPinjamanAktif('KS');
     });
-
-    populateJenisDropdown();
 
     document.getElementById('formTransaksi').addEventListener('submit', async function(e) {
       e.preventDefault();
