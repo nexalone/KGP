@@ -300,20 +300,20 @@
         const masuk = Number(t.MASUK) || 0;
         const keluar = Number(t.KELUAR) || 0;
 
-        if (ref === '1') sp += masuk;                              // SP: ref persis "1"
-        else if (/^\d{4}-2$/.test(ref)) sw += masuk;                // SW: YYMM-2
-        else if (/^\d{4}-3$/.test(ref)) shrSetor += masuk;          // SHR Setor: YYMM-3
-        else if (/^\d{4}-11$/.test(ref)) shrTarik += keluar;        // SHR Tarik: YYYY-11
+        if (ref === 'SP') sp += masuk;                        // SP: ref persis "SP"
+        else if (/^SW-\d{4}$/.test(ref)) sw += masuk;          // SW: SW-YYMM
+        else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;   // SHR Setor: SHR-YYMM
+        else if (ref === 'SHRT') shrTarik += keluar;           // SHR Tarik: SHRT
       });
 
-      // Pinjaman aktif: cari semua slot PJM(4) & SMT(5) yang pokoknya belum lunas
+      // Pinjaman aktif: cari semua slot Pinjaman(K) & Sementara(KS) yang pokoknya belum lunas
       const pinjamanAktif = [];
-      ['4', '5'].forEach(jenisDigit => {
+      ['K', 'KS'].forEach(jenisPrefix => {
         for (let slot = 1; slot <= 5; slot++) {
-          const info = getInfoPinjamanLokal(punya, jenisDigit, slot);
+          const info = getInfoPinjamanLokal(punya, jenisPrefix, slot);
           if (info && info.pokokTerbayar < info.pokokAwal) {
             pinjamanAktif.push({
-              jenis: jenisDigit === '4' ? 'Pinjaman (Kredit)' : 'Pinjaman Sementara',
+              jenis: jenisPrefix === 'K' ? 'Pinjaman (Kredit)' : 'Pinjaman Sementara',
               pokokAwal: info.pokokAwal,
               sisaPokok: info.pokokAwal - info.pokokTerbayar,
               jmlCicilan: info.jmlCicilan,
@@ -327,13 +327,14 @@
     }
 
     // Versi ringan dari logika getInfoPinjaman di Code.gs, dijalankan di browser
-    function getInfoPinjamanLokal(rows, jenisDigit, slot) {
+    // jenisPrefix: 'K' (cicilannya berawalan 'CP') atau 'KS' (cicilannya 'CS')
+    function getInfoPinjamanLokal(rows, jenisPrefix, slot) {
       let pokokAwal = 0, jmlCicilan = 0, tglCair = null, found = false;
-      const cicilanDigit = jenisDigit === '4' ? '6' : '7';
+      const cicilanPrefix = jenisPrefix === 'K' ? 'CP' : 'CS';
 
       rows.forEach(t => {
         const parts = (t.REF || '').split('-');
-        if (parts.length === 3 && parts[1] === jenisDigit && parts[2] === String(slot)) {
+        if (parts.length === 3 && parts[0] === jenisPrefix && parts[2] === String(slot)) {
           const tgl = new Date(t['TIME STAMP']);
           if (!tglCair || tgl > tglCair) {
             tglCair = tgl;
@@ -348,7 +349,7 @@
       let pokokTerbayar = 0, angsuranTerbayar = 0;
       rows.forEach(t => {
         const parts = (t.REF || '').split('-');
-        if (parts.length === 4 && parts[1] === cicilanDigit && parts[2] === String(slot)) {
+        if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === String(slot)) {
           const tgl = new Date(t['TIME STAMP']);
           if (tgl >= tglCair) {
             pokokTerbayar += Number(t.MASUK) || 0;
