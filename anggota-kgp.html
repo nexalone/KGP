@@ -294,13 +294,11 @@
       btnSubmit.disabled = true;
 
       const data = {
-        sheet: 'Sheet1',
+        action: 'tambahAnggota',
         nama: document.getElementById('nama').value,
         tanggal: new Date().toISOString().split('T')[0],
         jabatan: document.getElementById('jabatan').value,
-        status: 'Aktif',
-        tanggalKeluar: '',
-        alasan: ''
+        nominalShr: document.getElementById('nominalShr') ? (document.getElementById('nominalShr').value || 0) : 0
       };
 
       try {
@@ -310,11 +308,25 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(data) 
         });
-        statusBar.textContent = '✅ Anggota berhasil ditambahkan! Menunggu GitHub update...';
+
+        // Update tampilan langsung (NOID final baru diketahui setelah reload dari GitHub)
+        dataAnggota.push({
+          NOID: '(diproses...)',
+          NAMA: data.nama,
+          'TANGGAL DAFTAR': data.tanggal,
+          JABATAN: data.jabatan,
+          STATUS: 'AKTIF',
+          'TANGGAL KELUAR': '',
+          ALASAN: '',
+          'NOMINAL SHR': data.nominalShr
+        });
+        renderTabelAktif();
+
+        statusBar.textContent = '✅ Anggota berhasil ditambahkan!';
         statusBar.className = 'status-bar success';
         this.reset();
         document.getElementById('formContainer').classList.remove('show');
-        setTimeout(() => loadAnggota(), 3000);
+        setTimeout(() => loadAnggota(), 4000);
       } catch (err) {
         statusBar.textContent = '❌ Gagal menyimpan.';
         statusBar.className = 'status-bar error';
@@ -379,18 +391,24 @@
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
-            sheet: 'Sheet1',
-            action: 'updateStatus',
-            nama: anggota.NAMA,
+            action: 'updateStatusAnggota',
+            noid: anggota.NOID,
             status: status,
             tanggalKeluar: tanggalKeluar,
             alasan: alasan
           })
         });
-        statusBar.textContent = '✅ Status berhasil diupdate! Menunggu GitHub update...';
+
+        // Update tampilan langsung
+        anggota.STATUS = status.toUpperCase();
+        anggota['TANGGAL KELUAR'] = tanggalKeluar;
+        anggota.ALASAN = alasan;
+        renderTabelAktif();
+
+        statusBar.textContent = '✅ Status berhasil diupdate!';
         statusBar.className = 'status-bar success';
         closeModal();
-        setTimeout(() => loadAnggota(), 3000);
+        setTimeout(() => loadAnggota(), 4000);
       } catch (err) {
         statusBar.textContent = '❌ Gagal update.';
         statusBar.className = 'status-bar error';
