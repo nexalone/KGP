@@ -52,19 +52,20 @@
     .status-bar.success { background: #e8f5e9; color: #2e7d32; }
     .stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 25px;
     }
     .stat-card {
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-      color: #fff;
-      padding: 20px;
+      background: #eef2fb;
+      color: #3a4a6b;
+      padding: 12px 14px;
       border-radius: 10px;
       text-align: center;
+      border: 1px solid #dde4f5;
     }
-    .stat-card h3 { font-size: 1.4rem; margin-bottom: 5px; }
-    .stat-card p { font-size: 0.85rem; opacity: 0.9; }
+    .stat-card h3 { font-size: 1rem; margin-bottom: 3px; font-weight: 700; color: #2a5298; }
+    .stat-card p { font-size: 0.7rem; opacity: 0.75; letter-spacing: 0.3px; }
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -82,10 +83,10 @@
     }
     .form-group input, .form-group select {
       width: 100%;
-      padding: 12px;
-      border: 2px solid #ddd;
+      padding: 10px 12px;
+      border: 1.5px solid #ddd;
       border-radius: 8px;
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
     .form-group input:focus, .form-group select:focus {
       outline: none;
@@ -135,6 +136,14 @@
     tr:hover { background: #f8f9fa; }
     .masuk { color: #2e7d32; font-weight: 600; }
     .keluar { color: #c62828; font-weight: 600; }
+    .nama-link {
+      color: #1e3c72;
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px dashed #90a4c9;
+      cursor: pointer;
+    }
+    .nama-link:hover { color: #2a5298; border-bottom-color: #2a5298; }
     .loading {
       display: inline-block;
       width: 16px;
@@ -343,7 +352,7 @@
         <tr>
           <td>${t['TIME STAMP'] || '-'}</td>
           <td>${t.NOID || '-'}</td>
-          <td>${t.NAMA || '-'}</td>
+          <td>${t.NOID ? `<a class="nama-link" href="kartu-anggota.html?noid=${encodeURIComponent(t.NOID)}">${t.NAMA || '-'}</a>` : (t.NAMA || '-')}</td>
           <td>${t.REF || '-'}</td>
           <td class="masuk">${t.MASUK ? formatRp(t.MASUK) : ''}</td>
           <td class="keluar">${t.KELUAR ? formatRp(t.KELUAR) : ''}</td>
