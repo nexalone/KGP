@@ -496,11 +496,29 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
-        statusBar.textContent = '✅ Transaksi berhasil disimpan! Menunggu GitHub update...';
+
+        // ===== UPDATE TAMPILAN LANGSUNG (tidak nunggu GitHub) =====
+        const namaAnggota = payload.noid ? (dataAnggota.find(a => a.NOID === payload.noid)?.NAMA || '') : '';
+        const arahMasuk = ['SP', 'SW', 'SHR-S', 'CCL', 'CCS', 'JS'].includes(kode);
+        dataTransaksi.push({
+          'TIME STAMP': new Date().toLocaleString('id-ID'),
+          'NOID': payload.noid || '',
+          'NAMA': namaAnggota,
+          'REF': '(diproses...)',
+          'MASUK': arahMasuk ? payload.nominal : '',
+          'KELUAR': !arahMasuk ? payload.nominal : '',
+          'JML CICILAN': payload.jmlCicilan || '',
+          'CARA BAYAR': payload.caraBayar
+        });
+        renderTabel();
+        hitungStatistik();
+        // ============================================================
+
+        statusBar.textContent = '✅ Transaksi berhasil disimpan!';
         statusBar.className = 'status-bar success';
         this.reset();
         updateFormTampilan();
-        setTimeout(() => loadAllData(), 3000);
+        setTimeout(() => loadAllData(), 4000); // ganti dengan data resmi dari GitHub setelah beberapa detik
       } catch (err) {
         console.error(err);
         statusBar.textContent = '❌ Gagal menyimpan.';
