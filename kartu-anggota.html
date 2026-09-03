@@ -53,7 +53,7 @@
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #1e3c72; }
     .form-group select {
-      width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;
+      width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem;
     }
 
     /* KARTU */
@@ -268,6 +268,13 @@
         populateDropdown();
         statusBar.textContent = `✅ ${dataAnggota.length} anggota dimuat`;
         statusBar.className = 'status-bar success';
+
+        // Kalau dibuka dengan ?noid=xxx (misal dari tap nama di Riwayat Transaksi), langsung tampilkan kartunya
+        const noidUrl = new URLSearchParams(window.location.search).get('noid');
+        if (noidUrl) {
+          document.getElementById('pilihAnggota').value = noidUrl;
+          tampilkanKartu(noidUrl);
+        }
       } catch (e) {
         console.error(e);
         statusBar.textContent = '❌ Gagal memuat data dari GitHub.';
