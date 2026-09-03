@@ -185,15 +185,6 @@
           <select id="jenis" required><option value="">-- Pilih --</option></select>
         </div>
 
-        <div class="form-group" id="grpJenisPinjaman" hidden>
-          <label for="jenisPinjaman">Jasa Untuk Pinjaman *</label>
-          <select id="jenisPinjaman">
-            <option value="">-- Pilih --</option>
-            <option value="PJM">Pinjaman (Kredit)</option>
-            <option value="SMT">Pinjaman Sementara</option>
-          </select>
-        </div>
-
         <div class="form-group" id="grpNoid">
           <label for="noid">Anggota *</label>
           <select id="noid"><option value="">-- Pilih Anggota --</option></select>
@@ -262,7 +253,6 @@
       { kode: 'SMT',   label: 'Pinjaman Sementara - Pencairan',      butuhNoid: true, butuhJmlCicilan: true },
       { kode: 'CCL',   label: 'Cicilan Pinjaman (Kredit)',           butuhNoid: true, butuhSlot: 'K' },
       { kode: 'CCS',   label: 'Cicilan Pinjaman Sementara',          butuhNoid: true, butuhSlot: 'KS' },
-      { kode: 'JS',    label: 'Jasa Pinjaman',                      butuhNoid: true, butuhSlot: 'pilih' },
       { kode: 'ADM',   label: 'Biaya Administrasi/Operasional',      butuhNoid: false },
       { kode: 'SHU',   label: 'Pembagian SHU',                      butuhNoid: true }
     ];
@@ -384,13 +374,11 @@
       const grpNoid = document.getElementById('grpNoid');
       const grpSlot = document.getElementById('grpSlot');
       const grpJmlCicilan = document.getElementById('grpJmlCicilan');
-      const grpJenisPinjaman = document.getElementById('grpJenisPinjaman');
       const infoBox = document.getElementById('infoBox');
 
       grpNoid.hidden = !info || !info.butuhNoid;
       grpSlot.hidden = true;
       grpJmlCicilan.hidden = true;
-      grpJenisPinjaman.hidden = true;
       infoBox.hidden = true;
       document.getElementById('slot').innerHTML = '<option value="">-- Pilih Anggota Dulu --</option>';
 
@@ -404,8 +392,8 @@
       if (info.butuhSlot === 'K' || info.butuhSlot === 'KS') {
         grpSlot.hidden = false;
         muatPinjamanAktif(info.butuhSlot);
-      } else if (info.butuhSlot === 'pilih') {
-        grpJenisPinjaman.hidden = false;
+        infoBox.hidden = false;
+        infoBox.textContent = 'Jasa keterlambatan (1% dari sisa pokok) otomatis ditambahkan kalau pembayaran ini lewat 1 bulan sejak cicilan terakhir — tidak perlu diinput manual.';
       }
 
       if (kode === 'ADM') {
@@ -414,13 +402,7 @@
       }
     }
 
-    document.getElementById('jenisPinjaman').addEventListener('change', function() {
-      const jenisDigit = this.value === 'SMT' ? 'KS' : (this.value === 'PJM' ? 'K' : '');
-      document.getElementById('grpSlot').hidden = !jenisDigit;
-      if (jenisDigit) muatPinjamanAktif(jenisDigit);
-    });
-
-    async function muatPinjamanAktif(jenisDigit) {
+    async function muatPinjamanAktif(jenisPrefix) {
       const noid = document.getElementById('noid').value;
       const selSlot = document.getElementById('slot');
       if (!noid) {
@@ -429,7 +411,7 @@
       }
       selSlot.innerHTML = '<option value="">Memuat...</option>';
       try {
-        const url = SCRIPT_URL + '?action=pinjamanAktif&noid=' + encodeURIComponent(noid) + '&jenis=' + jenisDigit;
+        const url = SCRIPT_URL + '?action=pinjamanAktif&noid=' + encodeURIComponent(noid) + '&jenis=' + jenisPrefix;
         const resp = await fetch(url);
         const json = await resp.json();
         if (!json.success) throw new Error(json.error || 'Gagal memuat');
@@ -453,11 +435,6 @@
       const info = getJenisInfo(kode);
       if (info && info.butuhSlot === 'K') muatPinjamanAktif('K');
       else if (info && info.butuhSlot === 'KS') muatPinjamanAktif('KS');
-      else if (info && info.butuhSlot === 'pilih') {
-        const jp = document.getElementById('jenisPinjaman').value;
-        if (jp === 'PJM') muatPinjamanAktif('K');
-        else if (jp === 'SMT') muatPinjamanAktif('KS');
-      }
     });
 
     populateJenisDropdown();
@@ -486,12 +463,6 @@
       if (info.butuhSlot === 'K' || info.butuhSlot === 'KS') {
         payload.x = document.getElementById('slot').value;
         if (!payload.x) { alert('Pilih dulu pinjaman yang mau dibayar.'); return; }
-      } else if (info.butuhSlot === 'pilih') {
-        const jp = document.getElementById('jenisPinjaman').value;
-        if (!jp) { alert('Pilih dulu jenis pinjaman untuk jasa ini.'); return; }
-        payload.jenisPinjaman = jp;
-        payload.x = document.getElementById('slot').value;
-        if (!payload.x) { alert('Pilih dulu pinjaman yang mau dibayar jasanya.'); return; }
       }
       if (info.butuhNoid && !payload.noid) { alert('Pilih dulu anggotanya.'); return; }
 
