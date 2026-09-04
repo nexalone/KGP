@@ -104,17 +104,14 @@
     }
     .simpanan-item .label { font-size: 0.85rem; color: #666; font-weight: 600; }
     .simpanan-item .nilai { font-size: 1.05rem; font-weight: 700; color: #1e3c72; }
-    .total-pinjaman {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffe0b2;
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 12px;
+    .total-pinjaman-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;
     }
-    .total-pinjaman .label { font-size: 0.85rem; color: #7a4a00; font-weight: 700; }
-    .total-pinjaman .nilai { font-size: 1.1rem; font-weight: 800; color: #e65100; }
+    .total-pinjaman-grid .total-item {
+      background: #ffe0b2; border-radius: 10px; padding: 10px 8px; text-align: center;
+    }
+    .total-pinjaman-grid .label { font-size: 0.68rem; color: #7a4a00; font-weight: 700; margin-bottom: 4px; }
+    .total-pinjaman-grid .nilai { font-size: 0.85rem; font-weight: 800; color: #e65100; }
     .pinjaman-section h4 {
       color: #1e3c72; font-size: 0.95rem; margin-bottom: 10px;
       display: flex; align-items: center; gap: 6px;
@@ -175,11 +172,6 @@
       <select id="pilihAnggota"><option value="">-- Pilih Anggota --</option></select>
     </div>
 
-    <div class="form-group" id="grpTahun" style="display:none;">
-      <label for="pilihTahun">Tahun Riwayat Pinjaman</label>
-      <select id="pilihTahun"></select>
-    </div>
-
     <div id="kartu">
       <div class="kartu-header">
         <div class="sekolah">SMP NEGERI 1 KALIWEDI</div>
@@ -209,17 +201,13 @@
           </div>
         </div>
 
-        <div class="pinjaman-section">
-          <h4>💳 Pinjaman</h4>
-          <div class="total-pinjaman">
-            <div class="label">TOTAL SISA PINJAMAN (SAAT INI)</div>
-            <div class="nilai" id="kTotalSisaPinjaman">Rp 0</div>
+        <div class="pinjaman-section" id="grpPinjaman" style="display:none;">
+          <h4>💳 Riwayat Pinjaman</h4>
+          <div class="total-pinjaman-grid">
+            <div class="total-item"><div class="label">Pinjaman</div><div class="nilai" id="kTotalPinjaman">Rp 0</div></div>
+            <div class="total-item"><div class="label">Angsuran</div><div class="nilai" id="kTotalAngsuran">Rp 0</div></div>
+            <div class="total-item"><div class="label">Sisa Pinjaman</div><div class="nilai" id="kTotalSisaPinjaman">Rp 0</div></div>
           </div>
-          <div id="kPinjaman"></div>
-        </div>
-
-        <div class="pinjaman-section" style="margin-top:20px;">
-          <h4>📜 Riwayat Pinjaman Tahun <span id="kTahunRiwayat"></span></h4>
           <div id="kRiwayatPinjaman"></div>
         </div>
       </div>
@@ -392,49 +380,23 @@
       document.getElementById('kSW').textContent = formatRp(ringkasan.sw);
       document.getElementById('kSHR').textContent = formatRp(ringkasan.shr);
 
-      const pinjamanEl = document.getElementById('kPinjaman');
-      const totalSisa = ringkasan.pinjamanAktif.reduce((sum, p) => sum + p.sisaPokok, 0);
-      document.getElementById('kTotalSisaPinjaman').textContent = formatRp(totalSisa);
-
-      if (ringkasan.pinjamanAktif.length === 0) {
-        pinjamanEl.innerHTML = '<div class="pinjaman-kosong">Tidak ada pinjaman aktif</div>';
-      } else {
-        pinjamanEl.innerHTML = ringkasan.pinjamanAktif.map(p => `
-          <div class="pinjaman-card">
-            <div class="baris"><span>${p.jenis}</span><span></span></div>
-            <div class="baris"><span>Pinjaman Awal</span><span>${formatRp(p.pokokAwal)}</span></div>
-            <div class="baris"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
-            <div class="baris"><span>Jumlah Angsuran</span><span>${formatRp(p.pokokAwal - p.sisaPokok)}</span></div>
-          </div>
-        `).join('');
-      }
-
-      // Siapkan pilihan tahun & tampilkan riwayat pinjaman tahun terpilih
-      document.getElementById('grpTahun').style.display = 'block';
-      populateTahunDropdown(noid);
-      tampilkanRiwayatPinjaman(noid, Number(document.getElementById('pilihTahun').value));
+      // Tampilkan riwayat pinjaman (semua, lunas & aktif) — section otomatis
+      // disembunyikan kalau anggota ini tidak pernah punya pinjaman sama sekali
+      tampilkanRiwayatPinjaman(noid);
 
       document.getElementById('kTanggalCetak').textContent = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
       document.getElementById('kartu').style.display = 'block';
       document.getElementById('btnCetak').style.display = 'inline-block';
     }
 
-    function populateTahunDropdown(noid) {
-      const sel = document.getElementById('pilihTahun');
-      const tahunSekarang = new Date().getFullYear();
-      const tahunSet = new Set([tahunSekarang]);
-      dataTransaksi.filter(t => t.NOID === noid).forEach(t => {
-        const d = new Date(t['TIME STAMP']);
-        if (!isNaN(d.getTime())) tahunSet.add(d.getFullYear());
-      });
-      const tahunList = [...tahunSet].sort((a, b) => b - a);
-      sel.innerHTML = tahunList.map(y => `<option value="${y}">${y}</option>`).join('');
-      sel.value = tahunSekarang;
+    function formatTanggalSingkat(d) {
+      const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      return d.getDate() + '/' + bulan[d.getMonth()] + '/' + d.getFullYear();
     }
 
-    // Cari SEMUA pinjaman (K & KS) yang CAIR di tahun tertentu — termasuk yang sudah lunas,
+    // Cari SEMUA pinjaman (K & KS) sepanjang riwayat — termasuk yang sudah lunas,
     // dan tetap benar walau nomor slot-nya sudah dipakai ulang untuk pinjaman lain.
-    function cariRiwayatPinjamanTahun(noid, tahun) {
+    function cariSemuaPinjaman(noid) {
       const rows = dataTransaksi.filter(t => t.NOID === noid);
 
       // Kumpulkan semua baris pencairan (K-/KS-), urutkan per waktu
@@ -445,15 +407,13 @@
           jenisPrefix: x.parts[0],
           slot: x.parts[2],
           tanggal: new Date(x.t['TIME STAMP']),
-          pokokAwal: Number(x.t.KELUAR) || 0,
-          jmlCicilan: Number(x.t['JML CICILAN']) || 0
+          pokokAwal: Number(x.t.KELUAR) || 0
         }))
+        .filter(p => !isNaN(p.tanggal.getTime()))
         .sort((a, b) => a.tanggal - b.tanggal);
 
       const hasil = [];
       pencairan.forEach((p, idx) => {
-        if (isNaN(p.tanggal.getTime()) || p.tanggal.getFullYear() !== tahun) return;
-
         // Batas akhir "masa berlaku" slot ini = pencairan BERIKUTNYA di slot sama (kalau ada)
         const berikutnyaSlotSama = pencairan.find((q, i) =>
           i > idx && q.jenisPrefix === p.jenisPrefix && q.slot === p.slot
@@ -461,66 +421,67 @@
         const batasAkhir = berikutnyaSlotSama ? berikutnyaSlotSama.tanggal : null;
 
         const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
-        let pokokTerbayar = 0, angsuranKe = 0;
+        let pokokTerbayar = 0;
         rows.forEach(t => {
           const parts = (t.REF || '').split('-');
           if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === p.slot) {
             const tgl = new Date(t['TIME STAMP']);
             if (tgl >= p.tanggal && (!batasAkhir || tgl < batasAkhir)) {
               pokokTerbayar += Number(t.MASUK) || 0;
-              angsuranKe++;
             }
           }
         });
 
         hasil.push({
-          jenis: p.jenisPrefix === 'K' ? 'Pinjaman (Kredit)' : 'Pinjaman Sementara',
+          jenisLabel: p.jenisPrefix === 'K' ? 'Kredit' : 'Sementara',
+          slot: p.slot,
           tanggalCair: p.tanggal,
           pokokAwal: p.pokokAwal,
+          pokokTerbayar,
           sisaPokok: p.pokokAwal - pokokTerbayar,
-          jmlCicilan: p.jmlCicilan,
-          angsuranKe,
           lunas: pokokTerbayar >= p.pokokAwal
         });
       });
 
-      return hasil.sort((a, b) => a.tanggalCair - b.tanggalCair);
+      return hasil.sort((a, b) => b.tanggalCair - a.tanggalCair); // terbaru dulu
     }
 
-    function tampilkanRiwayatPinjaman(noid, tahun) {
-      document.getElementById('kTahunRiwayat').textContent = tahun;
-      const riwayat = cariRiwayatPinjamanTahun(noid, tahun);
-      const el = document.getElementById('kRiwayatPinjaman');
+    function tampilkanRiwayatPinjaman(noid) {
+      const grp = document.getElementById('grpPinjaman');
+      const riwayat = cariSemuaPinjaman(noid);
 
       if (riwayat.length === 0) {
-        el.innerHTML = '<div class="pinjaman-kosong">Tidak ada pinjaman yang cair di tahun ini</div>';
+        grp.style.display = 'none'; // tidak ada riwayat pinjaman -> sembunyikan section, cukup simpanan saja
         return;
       }
+      grp.style.display = 'block';
 
+      const totalPinjaman = riwayat.reduce((s, p) => s + p.pokokAwal, 0);
+      const totalAngsuran = riwayat.reduce((s, p) => s + p.pokokTerbayar, 0);
+      const totalSisa = riwayat.reduce((s, p) => s + p.sisaPokok, 0);
+      document.getElementById('kTotalPinjaman').textContent = formatRp(totalPinjaman);
+      document.getElementById('kTotalAngsuran').textContent = formatRp(totalAngsuran);
+      document.getElementById('kTotalSisaPinjaman').textContent = formatRp(totalSisa);
+
+      const el = document.getElementById('kRiwayatPinjaman');
       el.innerHTML = riwayat.map(p => `
         <div class="pinjaman-card ${p.lunas ? 'lunas' : ''}">
           <div class="baris">
-            <span>${p.jenis} — ${p.tanggalCair.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })}</span>
+            <span>${p.jenisLabel} ${p.slot} — ${formatTanggalSingkat(p.tanggalCair)}</span>
             <span class="status-badge ${p.lunas ? 'lunas' : 'aktif'}">${p.lunas ? 'LUNAS' : 'AKTIF'}</span>
           </div>
           <div class="baris"><span>Pinjaman Awal</span><span>${formatRp(p.pokokAwal)}</span></div>
+          <div class="baris"><span>Jumlah Angsuran</span><span>${formatRp(p.pokokTerbayar)}</span></div>
           <div class="baris"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
-          <div class="baris"><span>Jumlah Angsuran</span><span>${formatRp(p.pokokAwal - p.sisaPokok)}</span></div>
         </div>
       `).join('');
     }
-
-    document.getElementById('pilihTahun').addEventListener('change', function() {
-      const noid = document.getElementById('pilihAnggota').value;
-      if (noid) tampilkanRiwayatPinjaman(noid, Number(this.value));
-    });
 
     document.getElementById('pilihAnggota').addEventListener('change', function() {
       if (this.value) tampilkanKartu(this.value);
       else {
         document.getElementById('kartu').style.display = 'none';
         document.getElementById('btnCetak').style.display = 'none';
-        document.getElementById('grpTahun').style.display = 'none';
       }
     });
 
