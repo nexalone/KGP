@@ -80,10 +80,11 @@
             <th class="num">Jml Pinjaman</th>
             <th class="num">Jml Cicilan</th>
             <th class="num">Jml Jasa</th>
+            <th class="num">Sisa Pinjaman</th>
           </tr>
         </thead>
         <tbody id="tabelRekap">
-          <tr><td colspan="6" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
         </tbody>
         <tfoot>
           <tr>
@@ -93,6 +94,7 @@
             <td class="num" id="totPinjaman">Rp 0</td>
             <td class="num" id="totCicilan">Rp 0</td>
             <td class="num" id="totJasa">Rp 0</td>
+            <td class="num" id="totSisaPinjaman">Rp 0</td>
           </tr>
         </tfoot>
       </table>
@@ -148,7 +150,7 @@
         if (!rA.ok || !rT.ok) throw new Error('Gagal mengambil data dari GitHub');
         const [txtA, txtT] = await Promise.all([rA.text(), rT.text()]);
 
-        dataAnggota = parseCSV(txtA);
+        dataAnggota = parseCSV(txtA).filter(a => a.NOID && a.NOID.toUpperCase() !== 'NOID');
         dataTransaksi = parseCSV(txtT);
 
         populateTahunDropdown();
@@ -208,19 +210,64 @@
       return { spSw, shr: shrSetor - shrTarik, pinjaman, cicilan, jasa };
     }
 
+    // Sisa pinjaman AKTIF saat ini (seluruh riwayat, tidak dibatasi tahun)
+    function hitungSisaPinjaman(noid) {
+      const punya = dataTransaksi.filter(t => t.NOID === noid);
+      let total = 0;
+      ['K', 'KS'].forEach(jenisPrefix => {
+        for (let slot = 1; slot <= 5; slot++) {
+          const info = getInfoPinjamanLokal(punya, jenisPrefix, slot);
+          if (info && info.pokokTerbayar < info.pokokAwal) {
+            total += (info.pokokAwal - info.pokokTerbayar);
+          }
+        }
+      });
+      return total;
+    }
+
+    function getInfoPinjamanLokal(rows, jenisPrefix, slot) {
+      let pokokAwal = 0, tglCair = null, found = false;
+      const cicilanPrefix = jenisPrefix === 'K' ? 'CP' : 'CS';
+
+      rows.forEach(t => {
+        const parts = (t.REF || '').split('-');
+        if (parts.length === 3 && parts[0] === jenisPrefix && parts[2] === String(slot)) {
+          const tgl = new Date(t['TIME STAMP']);
+          if (!tglCair || tgl > tglCair) {
+            tglCair = tgl;
+            pokokAwal = Number(t.KELUAR) || 0;
+            found = true;
+          }
+        }
+      });
+      if (!found) return null;
+
+      let pokokTerbayar = 0;
+      rows.forEach(t => {
+        const parts = (t.REF || '').split('-');
+        if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === String(slot)) {
+          const tgl = new Date(t['TIME STAMP']);
+          if (tgl >= tglCair) pokokTerbayar += Number(t.MASUK) || 0;
+        }
+      });
+
+      return { pokokAwal, pokokTerbayar };
+    }
+
     function renderRekap() {
       const tahun = Number(document.getElementById('pilihTahun').value) || new Date().getFullYear();
       const tbody = document.getElementById('tabelRekap');
 
       const baris = dataAnggota.map(a => {
         const r = hitungRekapAnggota(a.NOID, tahun);
-        return { anggota: a, ...r };
+        const sisaPinjaman = hitungSisaPinjaman(a.NOID);
+        return { anggota: a, sisaPinjaman, ...r };
       });
 
       document.getElementById('jumlahAnggota').textContent = baris.length;
 
       if (baris.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
       } else {
         tbody.innerHTML = baris.map(b => `
           <tr>
@@ -233,6 +280,7 @@
             <td class="num">${formatRp(b.pinjaman)}</td>
             <td class="num">${formatRp(b.cicilan)}</td>
             <td class="num">${formatRp(b.jasa)}</td>
+            <td class="num">${formatRp(b.sisaPinjaman)}</td>
           </tr>
         `).join('');
       }
@@ -242,14 +290,16 @@
         shr: acc.shr + b.shr,
         pinjaman: acc.pinjaman + b.pinjaman,
         cicilan: acc.cicilan + b.cicilan,
-        jasa: acc.jasa + b.jasa
-      }), { spSw: 0, shr: 0, pinjaman: 0, cicilan: 0, jasa: 0 });
+        jasa: acc.jasa + b.jasa,
+        sisaPinjaman: acc.sisaPinjaman + b.sisaPinjaman
+      }), { spSw: 0, shr: 0, pinjaman: 0, cicilan: 0, jasa: 0, sisaPinjaman: 0 });
 
       document.getElementById('totSpSw').textContent = formatRp(total.spSw);
       document.getElementById('totShr').textContent = formatRp(total.shr);
       document.getElementById('totPinjaman').textContent = formatRp(total.pinjaman);
       document.getElementById('totCicilan').textContent = formatRp(total.cicilan);
       document.getElementById('totJasa').textContent = formatRp(total.jasa);
+      document.getElementById('totSisaPinjaman').textContent = formatRp(total.sisaPinjaman);
     }
 
     loadAllData();
