@@ -225,6 +225,10 @@
     </form>
 
     <h3 style="margin: 40px 0 20px; color: #1e3c72;"> Riwayat Transaksi (<span id="jumlahTransaksi">0</span>)</h3>
+    <div id="filterBanner" class="status-bar" style="display:none; background:#fff3e0; color:#e65100;">
+      Menampilkan transaksi untuk: <strong id="filterNama"></strong>
+      &nbsp;·&nbsp;<a href="transaksi-kgp.html" style="color:#1e3c72; font-weight:600;">Tampilkan Semua</a>
+    </div>
     <div class="table-responsive">
       <table>
         <thead>
@@ -322,6 +326,8 @@
         dataRef = parseCSV(txtR);
 
         populateNoidDropdown();
+        const noidUrl = new URLSearchParams(window.location.search).get('noid');
+        if (noidUrl) document.getElementById('noid').value = noidUrl;
         populateJenisDropdown();
         renderTabel();
         hitungStatistik();
@@ -340,8 +346,21 @@
 
     function renderTabel() {
       const tbody = document.getElementById('tabelTransaksi');
-      const urut = [...dataTransaksi].reverse(); // terbaru di atas
-      document.getElementById('jumlahTransaksi').textContent = dataTransaksi.length;
+      const noidFilter = new URLSearchParams(window.location.search).get('noid');
+
+      let data = dataTransaksi;
+      const banner = document.getElementById('filterBanner');
+      if (noidFilter) {
+        data = dataTransaksi.filter(t => t.NOID === noidFilter);
+        const anggota = dataAnggota.find(a => a.NOID === noidFilter);
+        document.getElementById('filterNama').textContent = anggota ? `${anggota.NAMA} (${noidFilter})` : noidFilter;
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+
+      const urut = [...data].reverse(); // terbaru di atas
+      document.getElementById('jumlahTransaksi').textContent = data.length;
       if (urut.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
         return;
