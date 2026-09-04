@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rekap Tahunan - KGP SMPN 1 Kaliwedi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); flex-shrink: 0; }
+    .home-btn:hover { transform: scale(1.08); }
+    .home-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .top-header h1 { font-size: 1.1rem; color: #333; font-weight: 700; }
+
+    .status-bar { background: #f0f4ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #555; border-left: 4px solid #667eea; }
+    .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
+    .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
+
+    .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-row label { font-weight: 600; font-size: 0.85rem; color: #555; }
+    .filter-row select { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+
+    .section-title { color: #333; margin: 5px 0 12px 0; font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .section-title .count { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem; }
+
+    .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 720px; }
+    th { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 10px 8px; text-align: left; white-space: nowrap; }
+    th.num, td.num { text-align: right; }
+    td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+    tr:hover { background: #f8f9ff; }
+    .nama-link { color: #333; font-weight: 700; text-decoration: none; }
+    .nama-link:hover { color: #667eea; }
+    .sub-noid { font-size: 0.72rem; color: #999; }
+    tfoot td { font-weight: 700; background: #f5f7fb; border-top: 2px solid #667eea; }
+
+    @media (max-width: 600px) {
+      .container { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-header">
+      <a href="Index.html" class="home-btn" title="Beranda">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </a>
+      <h1>REKAP TAHUNAN KGP</h1>
+    </div>
+
+    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
+
+    <div class="filter-row">
+      <label for="pilihTahun">Tahun:</label>
+      <select id="pilihTahun"></select>
+    </div>
+
+    <div class="section-title">
+      <span>📊 Rekap Per Anggota (Januari – Desember)</span>
+      <span class="count" id="jumlahAnggota">0</span>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Anggota</th>
+            <th class="num">SP+SW</th>
+            <th class="num">SHR</th>
+            <th class="num">Jml Pinjaman</th>
+            <th class="num">Jml Cicilan</th>
+            <th class="num">Jml Jasa</th>
+          </tr>
+        </thead>
+        <tbody id="tabelRekap">
+          <tr><td colspan="6" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>TOTAL</td>
+            <td class="num" id="totSpSw">Rp 0</td>
+            <td class="num" id="totShr">Rp 0</td>
+            <td class="num" id="totPinjaman">Rp 0</td>
+            <td class="num" id="totCicilan">Rp 0</td>
+            <td class="num" id="totJasa">Rp 0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const ANGGOTA_URL = GITHUB_BASE + 'anggota.csv';
+    const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
+
+    let dataAnggota = [], dataTransaksi = [];
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes; }
+        else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+        else current += c;
+      }
+      result.push(current);
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
+      const result = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    function formatRp(n) {
+      return 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+    }
+
+    async function loadAllData() {
+      const statusBar = document.getElementById('statusBar');
+      try {
+        const [rA, rT] = await Promise.all([
+          fetch(ANGGOTA_URL + '?t=' + Date.now()),
+          fetch(TRANSAKSI_URL + '?t=' + Date.now())
+        ]);
+        if (!rA.ok || !rT.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const [txtA, txtT] = await Promise.all([rA.text(), rT.text()]);
+
+        dataAnggota = parseCSV(txtA);
+        dataTransaksi = parseCSV(txtT);
+
+        populateTahunDropdown();
+        renderRekap();
+        statusBar.textContent = `✅ ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi (dari GitHub)`;
+        statusBar.className = 'status-bar success';
+      } catch (e) {
+        console.error(e);
+        statusBar.textContent = '❌ Gagal memuat data dari GitHub.';
+        statusBar.className = 'status-bar error';
+      }
+    }
+
+    function populateTahunDropdown() {
+      const sel = document.getElementById('pilihTahun');
+      const tahunSekarang = new Date().getFullYear();
+
+      // Kumpulkan tahun dari data transaksi (kalau ada), gabung dengan tahun sekarang
+      const tahunSet = new Set([tahunSekarang]);
+      dataTransaksi.forEach(t => {
+        const d = new Date(t['TIME STAMP']);
+        if (!isNaN(d.getTime())) tahunSet.add(d.getFullYear());
+      });
+
+      const tahunList = [...tahunSet].sort((a, b) => b - a); // terbaru dulu
+      sel.innerHTML = tahunList.map(y => `<option value="${y}">${y}</option>`).join('');
+      sel.value = tahunSekarang;
+      sel.addEventListener('change', renderRekap);
+    }
+
+    // Hitung rekap satu anggota untuk tahun tertentu (Januari s.d. Desember)
+    function hitungRekapAnggota(noid, tahun) {
+      const punya = dataTransaksi.filter(t => {
+        if (t.NOID !== noid) return false;
+        const d = new Date(t['TIME STAMP']);
+        return !isNaN(d.getTime()) && d.getFullYear() === tahun;
+      });
+
+      let spSw = 0, shrSetor = 0, shrTarik = 0, pinjaman = 0, cicilan = 0, jasa = 0;
+
+      punya.forEach(t => {
+        const ref = t.REF || '';
+        const masuk = Number(t.MASUK) || 0;
+        const keluar = Number(t.KELUAR) || 0;
+
+        if (ref === 'SP') spSw += masuk;                              // SP sekali bayar
+        else if (/^SW-\d{4}$/.test(ref)) spSw += masuk;                // SW bulanan
+        else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;           // SHR setor
+        else if (ref === 'SHRT') shrTarik += keluar;                   // SHR tarik
+        else if (/^K-\d{4}-\d+$/.test(ref)) pinjaman += keluar;        // Pencairan Pinjaman
+        else if (/^KS-\d{4}-\d+$/.test(ref)) pinjaman += keluar;       // Pencairan Sementara
+        else if (/^CP-/.test(ref)) cicilan += masuk;                   // Cicilan Pinjaman
+        else if (/^CS-/.test(ref)) cicilan += masuk;                   // Cicilan Sementara
+        else if (/^JP-/.test(ref)) jasa += masuk;                      // Jasa
+      });
+
+      return { spSw, shr: shrSetor - shrTarik, pinjaman, cicilan, jasa };
+    }
+
+    function renderRekap() {
+      const tahun = Number(document.getElementById('pilihTahun').value) || new Date().getFullYear();
+      const tbody = document.getElementById('tabelRekap');
+
+      const baris = dataAnggota.map(a => {
+        const r = hitungRekapAnggota(a.NOID, tahun);
+        return { anggota: a, ...r };
+      });
+
+      document.getElementById('jumlahAnggota').textContent = baris.length;
+
+      if (baris.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
+      } else {
+        tbody.innerHTML = baris.map(b => `
+          <tr>
+            <td>
+              <a class="nama-link" href="kartu-anggota.html?noid=${encodeURIComponent(b.anggota.NOID)}">${b.anggota.NAMA}</a>
+              <div class="sub-noid">${b.anggota.NOID}</div>
+            </td>
+            <td class="num">${formatRp(b.spSw)}</td>
+            <td class="num">${formatRp(b.shr)}</td>
+            <td class="num">${formatRp(b.pinjaman)}</td>
+            <td class="num">${formatRp(b.cicilan)}</td>
+            <td class="num">${formatRp(b.jasa)}</td>
+          </tr>
+        `).join('');
+      }
+
+      const total = baris.reduce((acc, b) => ({
+        spSw: acc.spSw + b.spSw,
+        shr: acc.shr + b.shr,
+        pinjaman: acc.pinjaman + b.pinjaman,
+        cicilan: acc.cicilan + b.cicilan,
+        jasa: acc.jasa + b.jasa
+      }), { spSw: 0, shr: 0, pinjaman: 0, cicilan: 0, jasa: 0 });
+
+      document.getElementById('totSpSw').textContent = formatRp(total.spSw);
+      document.getElementById('totShr').textContent = formatRp(total.shr);
+      document.getElementById('totPinjaman').textContent = formatRp(total.pinjaman);
+      document.getElementById('totCicilan').textContent = formatRp(total.cicilan);
+      document.getElementById('totJasa').textContent = formatRp(total.jasa);
+    }
+
+    loadAllData();
+  </script>
+</body>
+</html>
