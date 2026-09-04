@@ -327,7 +327,10 @@
 
         populateNoidDropdown();
         const noidUrl = new URLSearchParams(window.location.search).get('noid');
-        if (noidUrl) document.getElementById('noid').value = noidUrl;
+        if (noidUrl) {
+          document.getElementById('noid').value = noidUrl;
+          document.getElementById('grpNoid').hidden = false; // tampilkan meski Jenis belum dipilih
+        }
         populateJenisDropdown();
         renderTabel();
         hitungStatistik();
