@@ -57,6 +57,12 @@
     tr:hover { background: #f8f9ff; }
     .member-name { font-weight: 700; color: #333; }
     .member-jabatan { font-size: 0.8rem; color: #888; margin-top: 2px; }
+    .nama-link { color: #333; text-decoration: none; }
+    .nama-link:active, .nama-link:hover { color: #667eea; }
+    .sub-info { font-size: 0.78rem; color: #888; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+    .sub-info span { white-space: nowrap; }
+    .sub-info .label { color: #aaa; }
+    .sub-info .pinjaman-ada { color: #e65100; font-weight: 600; }
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; padding: 15px; overflow-y: auto; }
     .modal-overlay.show { display: block; }
@@ -122,10 +128,10 @@
     <div class="table-responsive">
       <table>
         <thead>
-          <tr><th>NOID</th><th>Nama</th><th>Jabatan</th><th>Tanggal Daftar</th></tr>
+          <tr><th>Anggota</th></tr>
         </thead>
         <tbody id="tabelAktif">
-          <tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+          <tr><td style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -171,10 +177,12 @@
   </div>
 
   <script>
-    const GITHUB_RAW = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/anggota.csv';
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const ANGGOTA_URL = GITHUB_BASE + 'anggota.csv';
+    const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJME38r7ZR6qlZI0ZefDbk0odOf0a9CGXzFTG9FeR8yim266-ZKcz89yP6z1djV-qN/exec';
 
-    let dataAnggota = [];
+    let dataAnggota = [], dataTransaksi = [];
 
     // Parser CSV yang lebih robust untuk file CSV biasa
     function parseCSVLine(line) {
@@ -193,6 +201,21 @@
       return result.map(v => v.replace(/^"|"$/g, '').trim());
     }
 
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
+      const result = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
     // Ubah format tanggal dari yyyy-MM-dd (atau format lain yang bisa dibaca Date) menjadi D-MMM-YYYY
     function formatTanggal(tgl) {
       if (!tgl) return '-';
@@ -202,42 +225,83 @@
       return d.getDate() + '-' + bulan[d.getMonth()] + '-' + d.getFullYear();
     }
 
+    function formatRp(n) {
+      return 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+    }
+
+    // Hitung total simpanan (SP+SW+SHR net) & total sisa pinjaman aktif untuk satu NOID
+    function hitungRingkasan(noid) {
+      const punya = dataTransaksi.filter(t => t.NOID === noid);
+      let sp = 0, sw = 0, shrSetor = 0, shrTarik = 0;
+      punya.forEach(t => {
+        const ref = t.REF || '';
+        const masuk = Number(t.MASUK) || 0;
+        const keluar = Number(t.KELUAR) || 0;
+        if (ref === 'SP') sp += masuk;
+        else if (/^SW-\d{4}$/.test(ref)) sw += masuk;
+        else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;
+        else if (ref === 'SHRT') shrTarik += keluar;
+      });
+
+      let sisaPinjaman = 0;
+      ['K', 'KS'].forEach(jenisPrefix => {
+        for (let slot = 1; slot <= 5; slot++) {
+          const info = getInfoPinjamanLokal(punya, jenisPrefix, slot);
+          if (info && info.pokokTerbayar < info.pokokAwal) {
+            sisaPinjaman += (info.pokokAwal - info.pokokTerbayar);
+          }
+        }
+      });
+
+      return { jmlSimp: sp + sw + (shrSetor - shrTarik), sisaPinjaman };
+    }
+
+    function getInfoPinjamanLokal(rows, jenisPrefix, slot) {
+      let pokokAwal = 0, tglCair = null, found = false;
+      const cicilanPrefix = jenisPrefix === 'K' ? 'CP' : 'CS';
+
+      rows.forEach(t => {
+        const parts = (t.REF || '').split('-');
+        if (parts.length === 3 && parts[0] === jenisPrefix && parts[2] === String(slot)) {
+          const tgl = new Date(t['TIME STAMP']);
+          if (!tglCair || tgl > tglCair) {
+            tglCair = tgl;
+            pokokAwal = Number(t.KELUAR) || 0;
+            found = true;
+          }
+        }
+      });
+      if (!found) return null;
+
+      let pokokTerbayar = 0;
+      rows.forEach(t => {
+        const parts = (t.REF || '').split('-');
+        if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === String(slot)) {
+          const tgl = new Date(t['TIME STAMP']);
+          if (tgl >= tglCair) pokokTerbayar += Number(t.MASUK) || 0;
+        }
+      });
+
+      return { pokokAwal, pokokTerbayar };
+    }
+
     async function loadAnggota() {
       const statusBar = document.getElementById('statusBar');
       try {
-        const response = await fetch(GITHUB_RAW + '?t=' + Date.now());
-        if (!response.ok) throw new Error('Gagal mengambil data');
-        const text = await response.text();
-        const lines = text.trim().split('\n');
-        dataAnggota = [];
+        const [rA, rT] = await Promise.all([
+          fetch(ANGGOTA_URL + '?t=' + Date.now()),
+          fetch(TRANSAKSI_URL + '?t=' + Date.now())
+        ]);
+        if (!rA.ok || !rT.ok) throw new Error('Gagal mengambil data');
+        const [txtA, txtT] = await Promise.all([rA.text(), rT.text()]);
 
-        let headerIndex = -1;
-        for(let i=0; i<lines.length; i++) {
-          if(lines[i].toUpperCase().includes('KODE')) { headerIndex = i; break; } // header baru
-        }
-        if(headerIndex === -1) headerIndex = 0;
+        dataAnggota = parseCSV(txtA);
+        dataTransaksi = parseCSV(txtT);
 
-        for (let i = headerIndex + 1; i < lines.length; i++) {
-          if (!lines[i].trim()) continue;
-          const values = parseCSVLine(lines[i]);
-          if(values.length < 2) continue;
-          
-          const obj = {
-            NAMA: values[1] || '',
-            'TANGGAL DAFTAR': values[2] || '',
-            JABATAN: values[3] || '',
-            STATUS: values[4] || 'Aktif',
-            'TANGGAL KELUAR': values[5] || '',
-            ALASAN: values[6] || '',
-            KODE: values[0] || ''
-          };
-          if(obj.NAMA) dataAnggota.push(obj);
-        }
-
-        const aktif = dataAnggota.filter(a => a.STATUS.toUpperCase() === 'AKTIF');
+        const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
         statusBar.textContent = `✅ ${aktif.length} anggota dari GitHub`;
         statusBar.className = 'status-bar success';
-        
+
         renderTabelAktif();
         populateDropdown();
       } catch (e) {
@@ -249,20 +313,28 @@
 
     function renderTabelAktif() {
       const tbody = document.getElementById('tabelAktif');
-      const aktif = dataAnggota.filter(a => a.STATUS.toUpperCase() === 'AKTIF');
+      const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
       document.getElementById('jumlahAnggota').textContent = aktif.length;
       if (aktif.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
+        tbody.innerHTML = '<tr><td style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
         return;
       }
-      tbody.innerHTML = aktif.map(a => `
+      tbody.innerHTML = aktif.map(a => {
+        const r = hitungRingkasan(a.NOID);
+        return `
         <tr>
-          <td><strong>${a.KODE}</strong></td>
-          <td><div class="member-name">${a.NAMA}</div><div class="member-jabatan">${a.JABATAN}</div></td>
-          <td>${a.JABATAN}</td>
-          <td>${formatTanggal(a['TANGGAL DAFTAR'])}</td>
-        </tr>
-      `).join('');
+          <td>
+            <a class="nama-link" href="transaksi-kgp.html?noid=${encodeURIComponent(a.NOID)}">
+              <div class="member-name">${a.NAMA}</div>
+            </a>
+            <div class="sub-info">
+              <span><span class="label">NOID:</span> ${a.NOID}</span>
+              <span><span class="label">Simpanan:</span> ${formatRp(r.jmlSimp)}</span>
+              <span class="${r.sisaPinjaman > 0 ? 'pinjaman-ada' : ''}"><span class="label">Sisa Pinjaman:</span> ${formatRp(r.sisaPinjaman)}</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
     }
 
     function populateDropdown() {
