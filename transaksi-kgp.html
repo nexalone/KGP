@@ -401,7 +401,9 @@
         grpSlot.hidden = false;
         muatPinjamanAktif(info.butuhSlot);
         infoBox.hidden = false;
-        infoBox.textContent = 'Jasa 10% dari nominal cicilan otomatis ditambahkan sebagai baris terpisah setiap kali cicilan ini disimpan.';
+        infoBox.textContent = info.butuhSlot === 'K'
+          ? 'Jasa 10% dari nominal cicilan otomatis ditambahkan sebagai baris terpisah setiap kali cicilan ini disimpan.'
+          : 'Jasa 1% per bulan dari sisa pokok otomatis ditambahkan sebagai baris terpisah setiap kali cicilan ini disimpan.';
       }
 
       if (kode === 'ADM') {
