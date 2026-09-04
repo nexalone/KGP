@@ -202,7 +202,7 @@
 
         <div class="form-group">
           <label for="nominal">Nominal (Rp) *</label>
-          <input type="number" id="nominal" min="0" placeholder="0" required />
+          <input type="text" inputmode="numeric" id="nominal" placeholder="0" required />
         </div>
 
         <div class="form-group">
@@ -347,6 +347,20 @@
       return 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
     }
 
+    // Ambil angka murni dari teks berformat (buang titik pemisah ribuan)
+    function angkaMurni(str) {
+      return (str || '').toString().replace(/\D/g, '');
+    }
+
+    // Pasang pemisah ribuan otomatis saat mengetik di field Nominal
+    (function setupNominalFormatter() {
+      const input = document.getElementById('nominal');
+      input.addEventListener('input', function() {
+        const angka = angkaMurni(this.value);
+        this.value = angka ? Number(angka).toLocaleString('id-ID') : '';
+      });
+    })();
+
     function renderTabel() {
       const tbody = document.getElementById('tabelTransaksi');
       const noidFilter = new URLSearchParams(window.location.search).get('noid');
@@ -483,7 +497,7 @@
         action: 'tambahTransaksi',
         kode: kode,
         noid: document.getElementById('noid').value,
-        nominal: document.getElementById('nominal').value,
+        nominal: angkaMurni(document.getElementById('nominal').value),
         caraBayar: document.getElementById('caraBayar').value
       };
 
