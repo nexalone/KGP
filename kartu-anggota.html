@@ -404,7 +404,7 @@
             <div class="baris"><span>${p.jenis}</span><span></span></div>
             <div class="baris"><span>Pinjaman Awal</span><span>${formatRp(p.pokokAwal)}</span></div>
             <div class="baris"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
-            <div class="baris"><span>Jumlah Angsuran</span><span>${p.angsuranKe} dari ${p.jmlCicilan || '-'}</span></div>
+            <div class="baris"><span>Jumlah Angsuran</span><span>${formatRp(p.pokokAwal - p.sisaPokok)}</span></div>
           </div>
         `).join('');
       }
@@ -505,7 +505,7 @@
           </div>
           <div class="baris"><span>Pinjaman Awal</span><span>${formatRp(p.pokokAwal)}</span></div>
           <div class="baris"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
-          <div class="baris"><span>Jumlah Angsuran</span><span>${p.angsuranKe} dari ${p.jmlCicilan || '-'}</span></div>
+          <div class="baris"><span>Jumlah Angsuran</span><span>${formatRp(p.pokokAwal - p.sisaPokok)}</span></div>
         </div>
       `).join('');
     }
