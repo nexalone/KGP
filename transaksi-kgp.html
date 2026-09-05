@@ -161,6 +161,7 @@
       .stats { grid-template-columns: 1fr; }
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -200,9 +201,15 @@
           <input type="number" id="jmlCicilan" min="1" placeholder="contoh: 10" />
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="grpKaliBayar" hidden>
+          <label for="kaliBayar">Jumlah Kali Bayar *</label>
+          <input type="number" id="kaliBayar" min="1" value="1" placeholder="1" />
+          <div id="previewCicilan" style="font-size:0.78rem; color:#666; margin-top:4px;"></div>
+        </div>
+
+        <div class="form-group" id="grpNominal">
           <label for="nominal">Nominal (Rp) *</label>
-          <input type="text" inputmode="numeric" id="nominal" placeholder="0" required />
+          <input type="text" inputmode="numeric" id="nominal" placeholder="0" />
         </div>
 
         <div class="form-group">
@@ -260,7 +267,7 @@
       'SHR-T': { butuhNoid: true },
       'PJM':   { butuhNoid: true, butuhJmlCicilan: true, jmlCicilanDefault: 10 },
       'SMT':   { butuhNoid: true, butuhJmlCicilan: true },
-      'CCL':   { butuhNoid: true, butuhSlot: 'K' },
+      'CCL':   { butuhNoid: true, butuhSlot: 'K', inputMode: 'kaliBayar' },
       'CCS':   { butuhNoid: true, butuhSlot: 'KS' },
       'ADM':   { butuhNoid: false },
       'SHU':   { butuhNoid: true }
@@ -421,13 +428,22 @@
       const grpNoid = document.getElementById('grpNoid');
       const grpSlot = document.getElementById('grpSlot');
       const grpJmlCicilan = document.getElementById('grpJmlCicilan');
+      const grpKaliBayar = document.getElementById('grpKaliBayar');
+      const grpNominal = document.getElementById('grpNominal');
       const infoBox = document.getElementById('infoBox');
+      const nominalInput = document.getElementById('nominal');
+      const kaliBayarInput = document.getElementById('kaliBayar');
 
       grpNoid.hidden = !info || !info.butuhNoid;
       grpSlot.hidden = true;
       grpJmlCicilan.hidden = true;
+      grpKaliBayar.hidden = true;
+      grpNominal.hidden = false;
+      nominalInput.required = true;
+      kaliBayarInput.required = false;
       infoBox.hidden = true;
       document.getElementById('slot').innerHTML = '<option value="">-- Pilih Anggota Dulu --</option>';
+      document.getElementById('previewCicilan').textContent = '';
 
       if (!info) return;
 
@@ -436,12 +452,20 @@
         document.getElementById('jmlCicilan').value = info.jmlCicilanDefault || '';
       }
 
+      if (info.inputMode === 'kaliBayar') {
+        grpNominal.hidden = true;
+        nominalInput.required = false;
+        grpKaliBayar.hidden = false;
+        kaliBayarInput.required = true;
+        kaliBayarInput.value = 1;
+      }
+
       if (info.butuhSlot === 'K' || info.butuhSlot === 'KS') {
         grpSlot.hidden = false;
         muatPinjamanAktif(info.butuhSlot);
         infoBox.hidden = false;
         infoBox.textContent = info.butuhSlot === 'K'
-          ? 'Jasa 10% dari nominal cicilan otomatis ditambahkan sebagai baris terpisah setiap kali cicilan ini disimpan.'
+          ? 'Nominal otomatis dihitung dari cicilan per bulan × jumlah kali bayar. Jasa 10% dari nominal cicilan otomatis ditambahkan tiap kali bayar.'
           : 'Jasa 1% per bulan dari sisa pokok otomatis ditambahkan sebagai baris terpisah setiap kali cicilan ini disimpan.';
       }
 
@@ -450,6 +474,23 @@
         infoBox.textContent = 'Biaya operasional tidak terkait anggota tertentu.';
       }
     }
+
+    function updatePreviewCicilan() {
+      const kode = document.getElementById('jenis').value;
+      if (kode !== 'CCL') return;
+      const slot = document.getElementById('slot').value;
+      const kaliBayar = Number(document.getElementById('kaliBayar').value) || 1;
+      const pinjaman = pinjamanAktifCache.find(p => String(p.slot) === String(slot));
+      const previewEl = document.getElementById('previewCicilan');
+      if (!pinjaman || !pinjaman.jmlCicilan) { previewEl.textContent = ''; return; }
+      const cicilanPerBulan = Math.round(pinjaman.pokokAwal / pinjaman.jmlCicilan);
+      const jasaPerBulan = Math.round(cicilanPerBulan * 0.10);
+      const totalNominal = (cicilanPerBulan + jasaPerBulan) * kaliBayar;
+      previewEl.textContent = `Cicilan/bulan: ${formatRp(cicilanPerBulan)} + Jasa: ${formatRp(jasaPerBulan)} → Total ${kaliBayar}x bayar: ${formatRp(totalNominal)}`;
+    }
+
+    document.getElementById('kaliBayar').addEventListener('input', updatePreviewCicilan);
+    document.getElementById('slot').addEventListener('change', updatePreviewCicilan);
 
     async function muatPinjamanAktif(jenisPrefix) {
       const noid = document.getElementById('noid').value;
@@ -500,9 +541,14 @@
         action: 'tambahTransaksi',
         kode: kode,
         noid: document.getElementById('noid').value,
-        nominal: angkaMurni(document.getElementById('nominal').value),
         caraBayar: document.getElementById('caraBayar').value
       };
+
+      if (info.inputMode === 'kaliBayar') {
+        payload.kaliBayar = document.getElementById('kaliBayar').value || 1;
+      } else {
+        payload.nominal = angkaMurni(document.getElementById('nominal').value);
+      }
 
       if (info.butuhJmlCicilan) {
         payload.jmlCicilan = document.getElementById('jmlCicilan').value;
@@ -525,20 +571,24 @@
         });
 
         // ===== UPDATE TAMPILAN LANGSUNG (tidak nunggu GitHub) =====
-        const namaAnggota = payload.noid ? (dataAnggota.find(a => a.NOID === payload.noid)?.NAMA || '') : '';
-        const arahMasuk = ['SP', 'SW', 'SHR-S', 'CCL', 'CCS', 'JS'].includes(kode);
-        dataTransaksi.push({
-          'TIME STAMP': new Date().toLocaleString('id-ID'),
-          'NOID': payload.noid || '',
-          'NAMA': namaAnggota,
-          'REF': '(diproses...)',
-          'MASUK': arahMasuk ? payload.nominal : '',
-          'KELUAR': !arahMasuk ? payload.nominal : '',
-          'JML CICILAN': payload.jmlCicilan || '',
-          'CARA BAYAR': payload.caraBayar
-        });
-        renderTabel();
-        hitungStatistik();
+        // Untuk CCL dilewati (karena bisa menghasilkan beberapa baris sekaligus - cicilan + jasa per kali bayar),
+        // cukup tunggu reload dari GitHub di bawah.
+        if (kode !== 'CCL') {
+          const namaAnggota = payload.noid ? (dataAnggota.find(a => a.NOID === payload.noid)?.NAMA || '') : '';
+          const arahMasuk = ['SP', 'SW', 'SHR-S', 'CCS', 'JS'].includes(kode);
+          dataTransaksi.push({
+            'TIME STAMP': new Date().toLocaleString('id-ID'),
+            'NOID': payload.noid || '',
+            'NAMA': namaAnggota,
+            'REF': '(diproses...)',
+            'MASUK': arahMasuk ? payload.nominal : '',
+            'KELUAR': !arahMasuk ? payload.nominal : '',
+            'JML CICILAN': payload.jmlCicilan || '',
+            'CARA BAYAR': payload.caraBayar
+          });
+          renderTabel();
+          hitungStatistik();
+        }
         // ============================================================
 
         statusBar.textContent = '✅ Transaksi berhasil disimpan!';
@@ -558,16 +608,11 @@
 
     // ===== EKSPOR EXCEL (universal) =====
     function downloadExcel(filename, headers, rows) {
-      let html = '<table border="1"><thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
-      rows.forEach(r => { html += '<tr>' + r.map(c => `<td>${c === undefined || c === null ? '' : c}</td>`).join('') + '</tr>'; });
-      html += '</tbody></table>';
-      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const data = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data');
+      XLSX.writeFile(wb, filename.replace(/\.xls$/, '.xlsx'));
     }
 
     function unduhExcelTransaksi() {
