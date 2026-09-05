@@ -407,7 +407,8 @@
           jenisPrefix: x.parts[0],
           slot: x.parts[2],
           tanggal: new Date(x.t['TIME STAMP']),
-          pokokAwal: Number(x.t.KELUAR) || 0
+          pokokAwal: Number(x.t.KELUAR) || 0,
+          jmlCicilan: Number(x.t['JML CICILAN']) || 0
         }))
         .filter(p => !isNaN(p.tanggal.getTime()))
         .sort((a, b) => a.tanggal - b.tanggal);
@@ -421,13 +422,14 @@
         const batasAkhir = berikutnyaSlotSama ? berikutnyaSlotSama.tanggal : null;
 
         const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
-        let pokokTerbayar = 0;
+        let pokokTerbayar = 0, angsuranKe = 0;
         rows.forEach(t => {
           const parts = (t.REF || '').split('-');
           if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === p.slot) {
             const tgl = new Date(t['TIME STAMP']);
             if (tgl >= p.tanggal && (!batasAkhir || tgl < batasAkhir)) {
               pokokTerbayar += Number(t.MASUK) || 0;
+              angsuranKe++;
             }
           }
         });
@@ -437,6 +439,9 @@
           slot: p.slot,
           tanggalCair: p.tanggal,
           pokokAwal: p.pokokAwal,
+          jmlCicilan: p.jmlCicilan,
+          angsuranKe,
+          angsuranPerBulan: p.jmlCicilan ? Math.round(p.pokokAwal / p.jmlCicilan) : null,
           pokokTerbayar,
           sisaPokok: p.pokokAwal - pokokTerbayar,
           lunas: pokokTerbayar >= p.pokokAwal
@@ -471,6 +476,8 @@
             <span class="status-badge ${p.lunas ? 'lunas' : 'aktif'}">${p.lunas ? 'LUNAS' : 'AKTIF'}</span>
           </div>
           <div class="baris"><span>Pinjaman Awal</span><span>${formatRp(p.pokokAwal)}</span></div>
+          <div class="baris"><span>Angsuran per Bulan</span><span>${p.angsuranPerBulan ? formatRp(p.angsuranPerBulan) : '-'}</span></div>
+          <div class="baris"><span>Sampai Cicilan Ke</span><span>${p.angsuranKe} dari ${p.jmlCicilan || '-'}</span></div>
           <div class="baris"><span>Jumlah Angsuran</span><span>${formatRp(p.pokokTerbayar)}</span></div>
           <div class="baris"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
         </div>
