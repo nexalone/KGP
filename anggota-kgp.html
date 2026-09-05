@@ -75,6 +75,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -492,16 +493,11 @@
 
     // ===== EKSPOR EXCEL =====
     function downloadExcel(filename, headers, rows) {
-      let html = '<table border="1"><thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
-      rows.forEach(r => { html += '<tr>' + r.map(c => `<td>${c === undefined || c === null ? '' : c}</td>`).join('') + '</tr>'; });
-      html += '</tbody></table>';
-      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const data = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data');
+      XLSX.writeFile(wb, filename.replace(/\.xls$/, '.xlsx'));
     }
 
     function unduhExcelAnggota() {
