@@ -224,7 +224,10 @@
       <button type="reset" class="btn btn-secondary" id="btnReset">🔄 Reset</button>
     </form>
 
-    <h3 style="margin: 40px 0 20px; color: #1e3c72;"> Riwayat Transaksi (<span id="jumlahTransaksi">0</span>)</h3>
+    <h3 style="margin: 40px 0 20px; color: #1e3c72; display:flex; justify-content:space-between; align-items:center;">
+      <span>Riwayat Transaksi (<span id="jumlahTransaksi">0</span>)</span>
+      <button type="button" class="btn btn-secondary" style="margin:0; font-size:0.8rem; padding:8px 14px;" onclick="unduhExcelTransaksi()">⬇️ Unduh Excel</button>
+    </h3>
     <div id="filterBanner" class="status-bar" style="display:none; background:#fff3e0; color:#e65100;">
       Menampilkan transaksi untuk: <strong id="filterNama"></strong>
       &nbsp;·&nbsp;<a href="transaksi-kgp.html" style="color:#1e3c72; font-weight:600;">Tampilkan Semua</a>
@@ -552,6 +555,31 @@
         btnSubmit.disabled = false;
       }
     });
+
+    // ===== EKSPOR EXCEL (universal) =====
+    function downloadExcel(filename, headers, rows) {
+      let html = '<table border="1"><thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+      rows.forEach(r => { html += '<tr>' + r.map(c => `<td>${c === undefined || c === null ? '' : c}</td>`).join('') + '</tr>'; });
+      html += '</tbody></table>';
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function unduhExcelTransaksi() {
+      const noidFilter = new URLSearchParams(window.location.search).get('noid');
+      const data = noidFilter ? dataTransaksi.filter(t => t.NOID === noidFilter) : dataTransaksi;
+      const rows = [...data].reverse().map(t => [
+        t['TIME STAMP'] || '', t.NOID || '', t.NAMA || '', t.REF || '',
+        t.MASUK || '', t.KELUAR || '', t['CARA BAYAR'] || ''
+      ]);
+      const namaFile = noidFilter ? `transaksi_${noidFilter}.xls` : 'riwayat_transaksi.xls';
+      downloadExcel(namaFile, ['Time Stamp', 'NOID', 'Nama', 'REF', 'Masuk', 'Keluar', 'Cara Bayar'], rows);
+    }
 
     loadAllData();
   </script>
