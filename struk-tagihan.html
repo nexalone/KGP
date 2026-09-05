@@ -341,6 +341,55 @@
     document.getElementById('pilihAnggota').addEventListener('change', tampilkanStruk);
     document.getElementById('pilihBulan').addEventListener('change', tampilkanStruk);
 
+    // Bikin markup satu struk (dipakai berkali-kali untuk cetak semua anggota)
+    function strukBlockHTML(d) {
+      return `
+        <div class="struk-cetak-satu">
+          <div class="struk-header">
+            <div class="sekolah">SMP NEGERI 1 KALIWEDI</div>
+            <div class="judul">STRUK TAGIHAN KGP</div>
+          </div>
+          <div class="struk-nama">
+            <div class="nama">${d.anggota.NAMA}</div>
+            <div class="noid">${d.anggota.NOID}</div>
+          </div>
+          <div class="struk-section">
+            <div class="struk-section-title">💰 SIMPANAN SAMPAI BULAN ${d.labelBulan}</div>
+            <div class="struk-row"><span>Simpanan Pokok (SP)</span><span class="nilai">${formatRp(d.sp)}</span></div>
+            <div class="struk-row"><span>Simpanan Wajib (SW)</span><span class="nilai">${formatRp(d.sw)}</span></div>
+            <div class="struk-row"><span>Simpanan Hari Raya (SHR)</span><span class="nilai">${formatRp(d.shr)}</span></div>
+            <div class="struk-row total"><span>JUMLAH SIMPANAN</span><span>${formatRp(d.jumlahSimpanan)}</span></div>
+          </div>
+          <div class="struk-section">
+            <div class="struk-section-title">🧾 TAGIHAN BULAN ${d.labelBulan}</div>
+            <div class="struk-row"><span>Simpanan Wajib (SW)</span><span class="nilai">${formatRp(d.nominalSW)}</span></div>
+            <div class="struk-row"><span>Simpanan Hari Raya (SHR)</span><span class="nilai">${formatRp(d.nominalSHR)}</span></div>
+            ${rincianPinjamanHTML(d.semuaPinjamanAktif)}
+            <div class="struk-row total"><span>TOTAL TAGIHAN BULAN INI</span><span>${formatRp(d.totalTagihan)}</span></div>
+          </div>
+          <div class="struk-footer">Dicetak otomatis dari sistem KGP · ${new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}</div>
+        </div>
+      `;
+    }
+
+    function cetakSemuaAnggota() {
+      const bulanInput = document.getElementById('pilihBulan').value;
+      if (!bulanInput) { alert('Pilih dulu bulan tagihannya.'); return; }
+
+      const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
+      if (aktif.length === 0) { alert('Tidak ada anggota aktif.'); return; }
+
+      const semuaHTML = aktif.map(a => strukBlockHTML(hitungDataStruk(a, bulanInput))).join('');
+      document.getElementById('strukSemuaContainer').innerHTML = semuaHTML;
+
+      document.body.classList.add('mode-semua');
+      window.print();
+    }
+
+    window.addEventListener('afterprint', function() {
+      document.body.classList.remove('mode-semua');
+    });
+
     loadAllData();
   </script>
 </body>
