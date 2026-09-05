@@ -1,15 +1,104 @@
-nexalone/KGP/
-├── Index.html
-├── manifest.json          <-- (File BARU yang dibuat di Langkah 2)
-├── anggota-kgp.html
-├── transaksi-kgp.html
-├── kartu-anggota.html
-├── rekap-kgp.html
-├── neraca-kgp.html
-└── data/
-    ├── icon_KGP1.png      <-- (Pastikan file ini sudah diupload)
-    ├── icon_data_anggota.png
-    ├── icon_transaksi.png
-    ├── icon_kartu_anggota.png
-    ├── icon_rekap_tahunan.png
-    └── icon_neraca.png
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KGP - SMP Negeri 1 Kaliwedi</title>
+    
+    <!-- PWA & Icon Meta Tags -->
+    <link rel="icon" type="image/png" href="data/icon_KGP1.png">
+    <link rel="apple-touch-icon" href="data/icon_KGP1.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#a8e6cf">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KGP SMPN 1">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8e6cf 0%, #88d8a8 50%, #6bcf9e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .header { text-align: center; margin-bottom: 40px; color: #2d5a3d; }
+        .header img { width: 120px; height: auto; margin-bottom: 20px; }
+        .header h1 {
+            font-size: 24px; font-weight: 700; margin-bottom: 10px;
+            color: #1e4d2b; text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+        }
+        .header h2 { font-size: 18px; font-weight: 500; color: #2d6a3f; }
+        .header p { font-size: 14px; color: #3d7a50; margin-top: 5px; }
+        
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px; max-width: 1200px; width: 100%; margin-bottom: 40px;
+        }
+        .menu-item {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px; padding: 30px 20px; text-align: center;
+            text-decoration: none; color: #1e4d2b; transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(46, 125, 50, 0.15);
+        }
+        .menu-item:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 15px 40px rgba(46, 125, 50, 0.25);
+        }
+        .menu-item img { width: 90px; height: 90px; margin-bottom: 15px; border-radius: 12px; }
+        .menu-item span { display: block; font-size: 16px; font-weight: 600; color: #1e4d2b; }
+        
+        footer {
+            color: #2d5a3d; text-align: center; font-size: 14px;
+            font-weight: 500; margin-top: auto; padding: 20px;
+        }
+        @media (max-width: 768px) {
+            .menu-container { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+            .menu-item { padding: 20px 15px; }
+            .menu-item img { width: 70px; height: 70px; }
+            .header h1 { font-size: 20px; }
+            .header h2 { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj_B7CwV-8fChbKdjVlBPyzW64K2ROcs4MLQfoZTxXrFG-fYMopVJWpISURDn0mIvbGtY6EqS2VYA1mizLD10nI104RiG2WvcP64AeSjDXW9C2_MxIEma_CsaT68v_yzY5MvSZE62eoeaPg_W3BuctXGM_iLnuYoIze6yS2di45nsiS9OFdvx0HtAj-xKs/s2145/logo_smp.png" alt="Logo SMP">
+        <h1>KESEJAHTERAAN GURU DAN PEGAWAI</h1>
+        <h2>SMP NEGERI 1 KALIWEDI</h2>
+        <p>Portal Sistem Informasi Internal</p>
+    </div>
+
+    <div class="menu-container">
+        <a href="anggota-kgp.html" class="menu-item">
+            <img src="https://raw.githubusercontent.com/nexalone/KGP/main/data/icon_data_anggota.png" alt="Data Anggota">
+            <span>Data Anggota</span>
+        </a>
+        <a href="transaksi-kgp.html" class="menu-item">
+            <img src="https://raw.githubusercontent.com/nexalone/KGP/main/data/icon_transaksi.png" alt="Transaksi">
+            <span>Transaksi</span>
+        </a>
+        <a href="kartu-anggota.html" class="menu-item">
+            <img src="https://raw.githubusercontent.com/nexalone/KGP/main/data/icon_kartu_anggota.png" alt="Kartu Anggota">
+            <span>Kartu Anggota</span>
+        </a>
+        <a href="rekap-kgp.html" class="menu-item">
+            <img src="https://raw.githubusercontent.com/nexalone/KGP/main/data/icon_rekap_tahunan.png" alt="Rekap Tahunan">
+            <span>Rekap Tahunan</span>
+        </a>
+        <a href="neraca-kgp.html" class="menu-item">
+            <img src="https://raw.githubusercontent.com/nexalone/KGP/main/data/icon_neraca.png" alt="Neraca">
+            <span>Neraca</span>
+        </a>
+    </div>
+
+    <footer>© 2026 KGP SMP Negeri 1 Kaliwedi. All rights reserved.</footer>
+</body>
+</html>
