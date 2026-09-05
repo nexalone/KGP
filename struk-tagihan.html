@@ -50,6 +50,9 @@
     .struk-row { display: flex; justify-content: space-between; padding: 6px 8px; font-size: 0.88rem; border-bottom: 1px dotted #eee; }
     .struk-row.total { font-weight: 800; color: #1e3c72; border-top: 2px solid #1e3c72; border-bottom: none; margin-top: 4px; padding-top: 8px; }
     .struk-row .nilai { font-weight: 600; }
+    .struk-pinjaman-item { background: #fff8e1; border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
+    .struk-pinjaman-item .judul { font-size: 0.8rem; font-weight: 700; color: #7a4a00; margin-bottom: 4px; }
+    .struk-pinjaman-item .sub-row { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 2px 0; }
 
     .struk-footer { text-align: center; margin-top: 16px; padding-top: 12px; border-top: 1px dashed #ccc; font-size: 0.72rem; color: #999; }
 
@@ -62,6 +65,13 @@
       .nav-back, .form-group, .status-bar, .btn { display: none !important; }
       .container { box-shadow: none; max-width: 100%; padding: 0; }
       #struk { display: block !important; }
+      body.mode-semua .container { display: none !important; }
+      #strukSemuaContainer { display: none; }
+      body.mode-semua #strukSemuaContainer { display: block !important; }
+      .struk-cetak-satu {
+        border: 2px dashed #1e3c72; border-radius: 12px; padding: 20px;
+        max-width: 600px; margin: 0 auto 0; page-break-after: always;
+      }
     }
   </style>
 </head>
@@ -85,6 +95,8 @@
       </div>
     </div>
 
+    <button class="btn btn-primary" style="background:#e65100; width:100%;" onclick="cetakSemuaAnggota()">🖨️ Cetak Struk Semua Anggota (Bulan Ini)</button>
+
     <div id="struk">
       <div class="struk-header">
         <div class="sekolah">SMP NEGERI 1 KALIWEDI</div>
@@ -107,8 +119,7 @@
         <div class="struk-section-title">🧾 TAGIHAN BULAN <span id="sBulanTagihan"></span></div>
         <div class="struk-row"><span>Simpanan Wajib (SW)</span><span class="nilai" id="tSW">Rp 0</span></div>
         <div class="struk-row"><span>Simpanan Hari Raya (SHR)</span><span class="nilai" id="tSHR">Rp 0</span></div>
-        <div class="struk-row"><span>Cicilan Pinjaman</span><span class="nilai" id="tPinjaman">Rp 0</span></div>
-        <div class="struk-row"><span>Jasa Pinjaman</span><span class="nilai" id="tJasa">Rp 0</span></div>
+        <div id="tRincianPinjaman"></div>
         <div class="struk-row total"><span>TOTAL TAGIHAN BULAN INI</span><span id="tTotal">Rp 0</span></div>
       </div>
 
@@ -119,6 +130,8 @@
 
     <button class="btn btn-primary" id="btnCetak" onclick="window.print()" style="display:none;">🖨️ Cetak / Simpan PDF</button>
   </div>
+
+  <div id="strukSemuaContainer"></div>
 
   <script>
     const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
@@ -219,19 +232,77 @@
         });
         if (!found) continue;
 
-        let pokokTerbayar = 0;
+        let pokokTerbayar = 0, angsuranTerbayar = 0;
         rows.forEach(t => {
           const parts = (t.REF || '').split('-');
           if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === String(slot)) {
             const tgl = new Date(t['TIME STAMP']);
-            if (tgl >= tglCair) pokokTerbayar += Number(t.MASUK) || 0;
+            if (tgl >= tglCair) { pokokTerbayar += Number(t.MASUK) || 0; angsuranTerbayar++; }
           }
         });
 
         const sisaPokok = pokokAwal - pokokTerbayar;
-        if (sisaPokok > 0) hasil.push({ jenisPrefix, slot, pokokAwal, sisaPokok, jmlCicilan });
+        if (sisaPokok > 0) hasil.push({ jenisPrefix, slot, pokokAwal, sisaPokok, jmlCicilan, angsuranTerbayar });
       }
       return hasil;
+    }
+
+    // Hitung semua data struk untuk satu anggota & bulan tertentu (dipakai untuk tampilan single & cetak semua)
+    function hitungDataStruk(anggota, bulanInput) {
+      const noid = anggota.NOID;
+      const [tahunStr, bulanStr] = bulanInput.split('-');
+      const tahun = Number(tahunStr), bulan = Number(bulanStr);
+      const labelBulan = NAMA_BULAN[bulan - 1] + ' ' + tahun;
+      const akhirBulan = new Date(tahun, bulan, 0, 23, 59, 59);
+      const awalBulan = new Date(tahun, bulan - 1, 1);
+
+      const rows = dataTransaksi.filter(t => t.NOID === noid);
+      const rowsSampaiBulan = rows.filter(t => new Date(t['TIME STAMP']) <= akhirBulan);
+      const rowsSebelumBulan = rows.filter(t => new Date(t['TIME STAMP']) < awalBulan);
+
+      let sp = 0, sw = 0, shrSetor = 0, shrTarik = 0;
+      rowsSampaiBulan.forEach(t => {
+        const ref = t.REF || '';
+        const masuk = Number(t.MASUK) || 0;
+        const keluar = Number(t.KELUAR) || 0;
+        if (ref === 'SP') sp += masuk;
+        else if (/^SW-\d{4}$/.test(ref)) sw += masuk;
+        else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;
+        else if (ref === 'SHRT') shrTarik += keluar;
+      });
+      const shr = shrSetor - shrTarik;
+      const jumlahSimpanan = sp + sw + shr;
+
+      const nominalSW = getNominalDefault('SW');
+      const nominalSHR = Number(anggota['NOMINAL SHR']) || 0;
+
+      const pinjamanAktifK = cariPinjamanAktif(rowsSebelumBulan, 'K');
+      const pinjamanAktifKS = cariPinjamanAktif(rowsSebelumBulan, 'KS');
+      const semuaPinjamanAktif = [
+        ...pinjamanAktifK.map(p => ({ ...p, label: 'Kredit' })),
+        ...pinjamanAktifKS.map(p => ({ ...p, label: 'Sementara' }))
+      ].map(p => {
+        const cicilan = p.jmlCicilan ? Math.round(p.pokokAwal / p.jmlCicilan) : 0;
+        const jasa = p.jenisPrefix === 'K' ? Math.round(cicilan * 0.10) : Math.round(p.sisaPokok * 0.01);
+        return { ...p, cicilan, jasa, angsuranKe: p.angsuranTerbayar + 1 };
+      });
+
+      const tagihanPinjaman = semuaPinjamanAktif.reduce((s, p) => s + p.cicilan, 0);
+      const tagihanJasa = semuaPinjamanAktif.reduce((s, p) => s + p.jasa, 0);
+      const totalTagihan = nominalSW + nominalSHR + tagihanPinjaman + tagihanJasa;
+
+      return { anggota, labelBulan, sp, sw, shr, jumlahSimpanan, nominalSW, nominalSHR, semuaPinjamanAktif, totalTagihan };
+    }
+
+    function rincianPinjamanHTML(semuaPinjamanAktif) {
+      if (semuaPinjamanAktif.length === 0) return '';
+      return semuaPinjamanAktif.map(p => `
+        <div class="struk-pinjaman-item">
+          <div class="judul">${p.label} ${p.slot} — Cicilan ke-${p.angsuranKe} dari ${p.jmlCicilan || '-'}</div>
+          <div class="sub-row"><span>Cicilan Pokok</span><span>${formatRp(p.cicilan)}</span></div>
+          <div class="sub-row"><span>Jasa</span><span>${formatRp(p.jasa)}</span></div>
+        </div>
+      `).join('');
     }
 
     function tampilkanStruk() {
@@ -246,64 +317,21 @@
       const anggota = dataAnggota.find(a => a.NOID === noid);
       if (!anggota) return;
 
-      const [tahunStr, bulanStr] = bulanInput.split('-');
-      const tahun = Number(tahunStr), bulan = Number(bulanStr); // bulan 1-12
-      const labelBulan = NAMA_BULAN[bulan - 1] + ' ' + tahun;
-      const akhirBulan = new Date(tahun, bulan, 0, 23, 59, 59); // hari terakhir bulan itu
+      const d = hitungDataStruk(anggota, bulanInput);
 
-      const rows = dataTransaksi.filter(t => t.NOID === noid);
-      const rowsSampaiBulan = rows.filter(t => new Date(t['TIME STAMP']) <= akhirBulan);
+      document.getElementById('sNama').textContent = d.anggota.NAMA;
+      document.getElementById('sNoid').textContent = d.anggota.NOID;
+      document.getElementById('sBulanSimpanan').textContent = d.labelBulan;
+      document.getElementById('sSP').textContent = formatRp(d.sp);
+      document.getElementById('sSW').textContent = formatRp(d.sw);
+      document.getElementById('sSHR').textContent = formatRp(d.shr);
+      document.getElementById('sJumlahSimpanan').textContent = formatRp(d.jumlahSimpanan);
 
-      // ===== SIMPANAN SAMPAI BULAN INI =====
-      let sp = 0, sw = 0, shrSetor = 0, shrTarik = 0;
-      rowsSampaiBulan.forEach(t => {
-        const ref = t.REF || '';
-        const masuk = Number(t.MASUK) || 0;
-        const keluar = Number(t.KELUAR) || 0;
-        if (ref === 'SP') sp += masuk;
-        else if (/^SW-\d{4}$/.test(ref)) sw += masuk;
-        else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;
-        else if (ref === 'SHRT') shrTarik += keluar;
-      });
-      const shr = shrSetor - shrTarik;
-      const jumlahSimpanan = sp + sw + shr;
-
-      // ===== TAGIHAN BULAN INI =====
-      const nominalSW = getNominalDefault('SW');
-      const nominalSHR = Number(anggota['NOMINAL SHR']) || 0;
-
-      const pinjamanAktifK = cariPinjamanAktif(rowsSampaiBulan, 'K');
-      const pinjamanAktifKS = cariPinjamanAktif(rowsSampaiBulan, 'KS');
-
-      let tagihanPinjaman = 0, tagihanJasa = 0;
-      pinjamanAktifK.forEach(p => {
-        const cicilan = p.jmlCicilan ? Math.round(p.pokokAwal / p.jmlCicilan) : 0;
-        tagihanPinjaman += cicilan;
-        tagihanJasa += Math.round(cicilan * 0.10); // Jasa Kredit: 10% dari nominal cicilan
-      });
-      pinjamanAktifKS.forEach(p => {
-        const cicilan = p.jmlCicilan ? Math.round(p.pokokAwal / p.jmlCicilan) : 0;
-        tagihanPinjaman += cicilan;
-        tagihanJasa += Math.round(p.sisaPokok * 0.01); // Jasa Sementara: 1%/bulan dari sisa pokok
-      });
-
-      const totalTagihan = nominalSW + nominalSHR + tagihanPinjaman + tagihanJasa;
-
-      // ===== RENDER =====
-      document.getElementById('sNama').textContent = anggota.NAMA;
-      document.getElementById('sNoid').textContent = anggota.NOID;
-      document.getElementById('sBulanSimpanan').textContent = labelBulan;
-      document.getElementById('sSP').textContent = formatRp(sp);
-      document.getElementById('sSW').textContent = formatRp(sw);
-      document.getElementById('sSHR').textContent = formatRp(shr);
-      document.getElementById('sJumlahSimpanan').textContent = formatRp(jumlahSimpanan);
-
-      document.getElementById('sBulanTagihan').textContent = labelBulan;
-      document.getElementById('tSW').textContent = formatRp(nominalSW);
-      document.getElementById('tSHR').textContent = formatRp(nominalSHR);
-      document.getElementById('tPinjaman').textContent = formatRp(tagihanPinjaman);
-      document.getElementById('tJasa').textContent = formatRp(tagihanJasa);
-      document.getElementById('tTotal').textContent = formatRp(totalTagihan);
+      document.getElementById('sBulanTagihan').textContent = d.labelBulan;
+      document.getElementById('tSW').textContent = formatRp(d.nominalSW);
+      document.getElementById('tSHR').textContent = formatRp(d.nominalSHR);
+      document.getElementById('tRincianPinjaman').innerHTML = rincianPinjamanHTML(d.semuaPinjamanAktif);
+      document.getElementById('tTotal').textContent = formatRp(d.totalTagihan);
 
       document.getElementById('sTanggalCetak').textContent = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
       document.getElementById('struk').style.display = 'block';
