@@ -123,7 +123,10 @@
 
     <div class="section-title">
       <span>👥 Daftar Anggota</span>
-      <span class="count" id="jumlahAnggota">0</span>
+      <span style="display:flex; align-items:center; gap:8px;">
+        <span class="count" id="jumlahAnggota">0</span>
+        <button type="button" class="btn btn-tutup" style="margin:0; padding:6px 12px; font-size:0.78rem;" onclick="unduhExcelAnggota()">⬇️ Excel</button>
+      </span>
     </div>
     <div class="table-responsive">
       <table>
@@ -486,6 +489,29 @@
         statusBar.className = 'status-bar error';
       }
     });
+
+    // ===== EKSPOR EXCEL =====
+    function downloadExcel(filename, headers, rows) {
+      let html = '<table border="1"><thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+      rows.forEach(r => { html += '<tr>' + r.map(c => `<td>${c === undefined || c === null ? '' : c}</td>`).join('') + '</tr>'; });
+      html += '</tbody></table>';
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function unduhExcelAnggota() {
+      const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
+      const rows = aktif.map(a => {
+        const r = hitungRingkasan(a.NOID);
+        return [a.NOID, a.NAMA, a.JABATAN || '', formatTanggal(a['TANGGAL DAFTAR']), r.jmlSimp, r.sisaPinjaman];
+      });
+      downloadExcel('data_anggota.xls', ['NOID', 'Nama', 'Jabatan', 'Tanggal Daftar', 'Simpanan', 'Sisa Pinjaman'], rows);
+    }
 
     loadAnggota();
   </script>
