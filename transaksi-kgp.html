@@ -196,6 +196,11 @@
           <select id="noid"><option value="">-- Pilih Anggota --</option></select>
         </div>
 
+        <div class="form-group" id="grpKategoriBiaya" hidden>
+          <label for="kategoriBiaya">Kategori Biaya *</label>
+          <select id="kategoriBiaya"></select>
+        </div>
+
         <div class="form-group" id="grpSlot" hidden>
           <label for="slot">Pinjaman Yang Dibayar *</label>
           <select id="slot"><option value="">-- Pilih Anggota Dulu --</option></select>
@@ -274,9 +279,22 @@
       'SMT':   { butuhNoid: true, butuhJmlCicilan: true },
       'CCL':   { butuhNoid: true, butuhSlot: 'K', inputMode: 'kaliBayar' },
       'CCS':   { butuhNoid: true, butuhSlot: 'KS' },
-      'ADM':   { butuhNoid: false },
-      'SHU':   { butuhNoid: true }
+      'ADM':   { butuhNoid: false, butuhKategoriBiaya: true },
+      'SHU':   { butuhNoid: true },
+      'SP-T':  { butuhNoid: true },
+      'SW-T':  { butuhNoid: true }
     };
+
+    const KATEGORI_BIAYA = [
+      { kode: 'ATK',  label: 'ATK' },
+      { kode: 'THR',  label: 'Bingkisan THR' },
+      { kode: 'RPT',  label: 'Rapat Pengurus' },
+      { kode: 'KSM',  label: 'Konsumsi' },
+      { kode: 'RAT',  label: 'RAT' },
+      { kode: 'ZKT',  label: 'Zakat' },
+      { kode: 'DP',   label: 'Doorprize' },
+      { kode: 'LAIN', label: 'Lainnya' }
+    ];
 
     let dataAnggota = [], dataTransaksi = [], dataRef = [], pinjamanAktifCache = [];
 
@@ -437,17 +455,21 @@
       const grpJmlCicilan = document.getElementById('grpJmlCicilan');
       const grpKaliBayar = document.getElementById('grpKaliBayar');
       const grpNominal = document.getElementById('grpNominal');
+      const grpKategoriBiaya = document.getElementById('grpKategoriBiaya');
       const infoBox = document.getElementById('infoBox');
       const nominalInput = document.getElementById('nominal');
       const kaliBayarInput = document.getElementById('kaliBayar');
+      const kategoriBiayaInput = document.getElementById('kategoriBiaya');
 
       grpNoid.hidden = !info || !info.butuhNoid;
       grpSlot.hidden = true;
       grpJmlCicilan.hidden = true;
       grpKaliBayar.hidden = true;
       grpNominal.hidden = false;
+      grpKategoriBiaya.hidden = true;
       nominalInput.required = true;
       kaliBayarInput.required = false;
+      kategoriBiayaInput.required = false;
       infoBox.hidden = true;
       document.getElementById('slot').innerHTML = '<option value="">-- Pilih Anggota Dulu --</option>';
       document.getElementById('previewCicilan').textContent = '';
@@ -467,6 +489,15 @@
         kaliBayarInput.value = 1;
       }
 
+      if (info.butuhKategoriBiaya) {
+        grpKategoriBiaya.hidden = false;
+        kategoriBiayaInput.required = true;
+        if (!kategoriBiayaInput.innerHTML) {
+          kategoriBiayaInput.innerHTML = '<option value="">-- Pilih --</option>' +
+            KATEGORI_BIAYA.map(k => `<option value="${k.kode}">${k.label}</option>`).join('');
+        }
+      }
+
       if (info.butuhSlot === 'K' || info.butuhSlot === 'KS') {
         grpSlot.hidden = false;
         muatPinjamanAktif(info.butuhSlot);
@@ -479,6 +510,11 @@
       if (kode === 'ADM') {
         infoBox.hidden = false;
         infoBox.textContent = 'Biaya operasional tidak terkait anggota tertentu.';
+      }
+
+      if (kode === 'SP-T' || kode === 'SW-T') {
+        infoBox.hidden = false;
+        infoBox.textContent = 'Penarikan saldo — gunakan saat anggota keluar/berhenti dari KGP.';
       }
     }
 
@@ -563,6 +599,10 @@
       if (info.butuhSlot === 'K' || info.butuhSlot === 'KS') {
         payload.x = document.getElementById('slot').value;
         if (!payload.x) { alert('Pilih dulu pinjaman yang mau dibayar.'); return; }
+      }
+      if (info.butuhKategoriBiaya) {
+        payload.kategori = document.getElementById('kategoriBiaya').value;
+        if (!payload.kategori) { alert('Pilih dulu kategori biayanya.'); return; }
       }
       if (info.butuhNoid && !payload.noid) { alert('Pilih dulu anggotanya.'); return; }
 
