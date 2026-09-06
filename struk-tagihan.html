@@ -72,6 +72,37 @@
         border: 2px dashed #1e3c72; border-radius: 12px; padding: 20px;
         max-width: 600px; margin: 0 auto 0; page-break-after: always;
       }
+
+      @page { size: landscape; margin: 8mm; }
+      .struk-mini-page {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 6mm;
+        width: 100%;
+        height: 190mm;
+        page-break-after: always;
+      }
+      .struk-mini {
+        border: 1.5px dashed #1e3c72;
+        border-radius: 6px;
+        padding: 6px 8px;
+        display: flex;
+        flex-direction: column;
+        font-size: 9.5px;
+        overflow: hidden;
+      }
+      .struk-mini-header { text-align: center; border-bottom: 1px dashed #999; padding-bottom: 3px; margin-bottom: 3px; }
+      .struk-mini-header .sekolah { font-size: 7px; color: #666; }
+      .struk-mini-header .nama { font-weight: 800; font-size: 10px; color: #1e3c72; }
+      .struk-mini-header .noid { font-size: 8px; color: #888; }
+      .struk-mini-header .bulan { font-size: 7.5px; color: #999; }
+      .struk-mini-table { width: 100%; border-collapse: collapse; flex: 1; }
+      .struk-mini-table td { padding: 1.5px 2px; border-bottom: 1px dotted #ddd; }
+      .struk-mini-table td:first-child { font-weight: 600; color: #555; }
+      .struk-mini-table td:last-child { text-align: right; font-weight: 600; }
+      .struk-mini-table tr.total td { border-top: 1.5px solid #1e3c72; border-bottom: none; font-weight: 800; color: #1e3c72; padding-top: 3px; }
+      .struk-mini-table tr.kosong td { color: #ccc; font-weight: 400; }
     }
   </style>
 </head>
@@ -276,8 +307,8 @@
       const nominalSW = getNominalDefault('SW');
       const nominalSHR = Number(anggota['NOMINAL SHR']) || 0;
 
-      const pinjamanAktifK = cariPinjamanAktif(rowsSebelumBulan, 'K');
-      const pinjamanAktifKS = cariPinjamanAktif(rowsSebelumBulan, 'KS');
+      const pinjamanAktifK = cariPinjamanAktif(rowsSampaiBulan, 'K');
+      const pinjamanAktifKS = cariPinjamanAktif(rowsSampaiBulan, 'KS');
       const semuaPinjamanAktif = [
         ...pinjamanAktifK.map(p => ({ ...p, label: 'Kredit' })),
         ...pinjamanAktifKS.map(p => ({ ...p, label: 'Sementara' }))
@@ -372,6 +403,44 @@
       `;
     }
 
+    // Ambil tagihan (cicilan+jasa) satu slot pinjaman tertentu dari daftar semuaPinjamanAktif, atau null kalau tidak ada
+    function cariTagihanSlot(semuaPinjamanAktif, jenisPrefix, slot) {
+      const p = semuaPinjamanAktif.find(x => x.jenisPrefix === jenisPrefix && String(x.slot) === String(slot));
+      return p ? (p.cicilan + p.jasa) : null;
+    }
+
+    // Markup struk RINGKAS (dipakai untuk cetak semua, 8 per lembar)
+    function strukMiniHTML(d) {
+      const k1 = cariTagihanSlot(d.semuaPinjamanAktif, 'K', 1);
+      const k2 = cariTagihanSlot(d.semuaPinjamanAktif, 'K', 2);
+      const s1 = cariTagihanSlot(d.semuaPinjamanAktif, 'KS', 1);
+      const s2 = cariTagihanSlot(d.semuaPinjamanAktif, 'KS', 2);
+      const baris = (label, nilai) => nilai === null
+        ? `<tr class="kosong"><td>${label}</td><td>-</td></tr>`
+        : `<tr><td>${label}</td><td>${formatRp(nilai)}</td></tr>`;
+
+      return `
+        <div class="struk-mini">
+          <div class="struk-mini-header">
+            <div class="sekolah">KGP SMPN 1 KALIWEDI</div>
+            <div class="nama">${d.anggota.NAMA}</div>
+            <div class="noid">${d.anggota.NOID}</div>
+            <div class="bulan">Tagihan ${d.labelBulan}</div>
+          </div>
+          <table class="struk-mini-table">
+            <tr><td>SP (s.d. bulan ini)</td><td>${formatRp(d.sp)}</td></tr>
+            <tr><td>SW</td><td>${formatRp(d.nominalSW)}</td></tr>
+            <tr><td>SHR</td><td>${formatRp(d.nominalSHR)}</td></tr>
+            ${baris('K-1', k1)}
+            ${baris('K-2', k2)}
+            ${baris('S-1', s1)}
+            ${baris('S-2', s2)}
+            <tr class="total"><td>TOTAL TAGIHAN</td><td>${formatRp(d.totalTagihan)}</td></tr>
+          </table>
+        </div>
+      `;
+    }
+
     function cetakSemuaAnggota() {
       const bulanInput = document.getElementById('pilihBulan').value;
       if (!bulanInput) { alert('Pilih dulu bulan tagihannya.'); return; }
@@ -379,8 +448,15 @@
       const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
       if (aktif.length === 0) { alert('Tidak ada anggota aktif.'); return; }
 
-      const semuaHTML = aktif.map(a => strukBlockHTML(hitungDataStruk(a, bulanInput))).join('');
-      document.getElementById('strukSemuaContainer').innerHTML = semuaHTML;
+      const semuaData = aktif.map(a => hitungDataStruk(a, bulanInput));
+
+      // Kelompokkan jadi halaman berisi 8 struk mini masing-masing (grid 4x2, folio landscape)
+      let halamanHTML = '';
+      for (let i = 0; i < semuaData.length; i += 8) {
+        const kelompok = semuaData.slice(i, i + 8);
+        halamanHTML += `<div class="struk-mini-page">${kelompok.map(strukMiniHTML).join('')}</div>`;
+      }
+      document.getElementById('strukSemuaContainer').innerHTML = halamanHTML;
 
       document.body.classList.add('mode-semua');
       window.print();
