@@ -163,6 +163,10 @@
               <option value="Tidak Aktif">Tidak Aktif</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Nominal SHR (Rp/bulan)</label>
+            <input type="text" inputmode="numeric" id="editNominalShr" placeholder="0" style="font-size:0.85rem;" />
+          </div>
           <div class="form-group" id="groupTanggalKeluar" style="display:none;">
             <label>Tanggal Keluar</label>
             <input type="date" id="editTanggalKeluar" style="font-size:0.85rem;" />
@@ -438,6 +442,7 @@
 
       document.getElementById('editStatus').value = anggota.STATUS.toUpperCase() === 'AKTIF' ? 'Aktif' : 'Tidak Aktif';
       document.getElementById('editAlasan').value = anggota.ALASAN || '';
+      document.getElementById('editNominalShr').value = anggota['NOMINAL SHR'] || '';
 
       if (anggota.STATUS.toUpperCase() === 'TIDAK AKTIF' && anggota['TANGGAL KELUAR']) {
         document.getElementById('groupTanggalKeluar').style.display = 'block';
@@ -447,6 +452,12 @@
         document.getElementById('editTanggalKeluar').value = '';
       }
     }
+
+    // Format otomatis pemisah ribuan untuk Nominal SHR
+    document.getElementById('editNominalShr').addEventListener('input', function() {
+      const angka = this.value.replace(/\D/g, '');
+      this.value = angka ? Number(angka).toLocaleString('id-ID') : '';
+    });
 
     document.getElementById('formKelola').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -458,6 +469,7 @@
       const status = document.getElementById('editStatus').value;
       const tanggalKeluar = document.getElementById('editTanggalKeluar').value;
       const alasan = document.getElementById('editAlasan').value;
+      const nominalShr = document.getElementById('editNominalShr').value.replace(/\D/g, '') || '0';
 
       if (status === 'Tidak Aktif' && !tanggalKeluar) { alert('Tanggal keluar wajib diisi!'); return; }
 
@@ -471,7 +483,8 @@
             noid: anggota.NOID,
             status: status,
             tanggalKeluar: tanggalKeluar,
-            alasan: alasan
+            alasan: alasan,
+            nominalShr: nominalShr
           })
         });
 
@@ -479,6 +492,7 @@
         anggota.STATUS = status.toUpperCase();
         anggota['TANGGAL KELUAR'] = tanggalKeluar;
         anggota.ALASAN = alasan;
+        anggota['NOMINAL SHR'] = nominalShr;
         renderTabelAktif();
 
         statusBar.textContent = '✅ Status berhasil diupdate!';
