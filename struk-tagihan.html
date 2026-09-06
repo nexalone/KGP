@@ -73,36 +73,30 @@
         max-width: 600px; margin: 0 auto 0; page-break-after: always;
       }
 
-      @page { size: landscape; margin: 8mm; }
-      .struk-mini-page {
+      @page { size: A4 portrait; margin: 10mm; }
+      .struk-a4-page {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(2, 1fr);
-        gap: 6mm;
-        width: 100%;
-        height: 190mm;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 4mm;
+        width: 190mm;
+        height: 277mm;
         page-break-after: always;
       }
-      .struk-mini {
+      .struk-a4-cell {
         border: 1.5px dashed #1e3c72;
         border-radius: 6px;
-        padding: 6px 8px;
-        display: flex;
-        flex-direction: column;
-        font-size: 9.5px;
         overflow: hidden;
+        position: relative;
       }
-      .struk-mini-header { text-align: center; border-bottom: 1px dashed #999; padding-bottom: 3px; margin-bottom: 3px; }
-      .struk-mini-header .sekolah { font-size: 7px; color: #666; }
-      .struk-mini-header .nama { font-weight: 800; font-size: 10px; color: #1e3c72; }
-      .struk-mini-header .noid { font-size: 8px; color: #888; }
-      .struk-mini-header .bulan { font-size: 7.5px; color: #999; }
-      .struk-mini-table { width: 100%; border-collapse: collapse; flex: 1; }
-      .struk-mini-table td { padding: 1.5px 2px; border-bottom: 1px dotted #ddd; }
-      .struk-mini-table td:first-child { font-weight: 600; color: #555; }
-      .struk-mini-table td:last-child { text-align: right; font-weight: 600; }
-      .struk-mini-table tr.total td { border-top: 1.5px solid #1e3c72; border-bottom: none; font-weight: 800; color: #1e3c72; padding-top: 3px; }
-      .struk-mini-table tr.kosong td { color: #ccc; font-weight: 400; }
+      .struk-a4-cell .struk-mini-inner {
+        transform: scale(0.5);
+        transform-origin: top left;
+        width: 200%;
+        padding: 14px;
+      }
+      .struk-a4-cell .struk-header { margin-bottom: 10px; padding-bottom: 8px; }
+      .struk-a4-cell .struk-nama { margin-bottom: 10px; }
     }
   </style>
 </head>
@@ -403,40 +397,34 @@
       `;
     }
 
-    // Ambil tagihan (cicilan+jasa) satu slot pinjaman tertentu dari daftar semuaPinjamanAktif, atau null kalau tidak ada
-    function cariTagihanSlot(semuaPinjamanAktif, jenisPrefix, slot) {
-      const p = semuaPinjamanAktif.find(x => x.jenisPrefix === jenisPrefix && String(x.slot) === String(slot));
-      return p ? (p.cicilan + p.jasa) : null;
-    }
-
-    // Markup struk RINGKAS (dipakai untuk cetak semua, 8 per lembar)
-    function strukMiniHTML(d) {
-      const k1 = cariTagihanSlot(d.semuaPinjamanAktif, 'K', 1);
-      const k2 = cariTagihanSlot(d.semuaPinjamanAktif, 'K', 2);
-      const s1 = cariTagihanSlot(d.semuaPinjamanAktif, 'KS', 1);
-      const s2 = cariTagihanSlot(d.semuaPinjamanAktif, 'KS', 2);
-      const baris = (label, nilai) => nilai === null
-        ? `<tr class="kosong"><td>${label}</td><td>-</td></tr>`
-        : `<tr><td>${label}</td><td>${formatRp(nilai)}</td></tr>`;
-
+    // Markup satu sel struk untuk cetak A4 (6/lembar) — desain SAMA PERSIS dengan struk tunggal, cuma dibungkus supaya bisa diskalakan
+    function strukA4CellHTML(d) {
       return `
-        <div class="struk-mini">
-          <div class="struk-mini-header">
-            <div class="sekolah">KGP SMPN 1 KALIWEDI</div>
-            <div class="nama">${d.anggota.NAMA}</div>
-            <div class="noid">${d.anggota.NOID}</div>
-            <div class="bulan">Tagihan ${d.labelBulan}</div>
+        <div class="struk-a4-cell">
+          <div class="struk-mini-inner">
+            <div class="struk-header">
+              <div class="sekolah">SMP NEGERI 1 KALIWEDI</div>
+              <div class="judul">STRUK TAGIHAN KGP</div>
+            </div>
+            <div class="struk-nama">
+              <div class="nama">${d.anggota.NAMA}</div>
+              <div class="noid">${d.anggota.NOID}</div>
+            </div>
+            <div class="struk-section">
+              <div class="struk-section-title">💰 SIMPANAN SAMPAI BULAN ${d.labelBulan}</div>
+              <div class="struk-row"><span>Simpanan Pokok (SP)</span><span class="nilai">${formatRp(d.sp)}</span></div>
+              <div class="struk-row"><span>Simpanan Wajib (SW)</span><span class="nilai">${formatRp(d.sw)}</span></div>
+              <div class="struk-row"><span>Simpanan Hari Raya (SHR)</span><span class="nilai">${formatRp(d.shr)}</span></div>
+              <div class="struk-row total"><span>JUMLAH SIMPANAN</span><span>${formatRp(d.jumlahSimpanan)}</span></div>
+            </div>
+            <div class="struk-section">
+              <div class="struk-section-title">🧾 TAGIHAN BULAN ${d.labelBulan}</div>
+              <div class="struk-row"><span>Simpanan Wajib (SW)</span><span class="nilai">${formatRp(d.nominalSW)}</span></div>
+              <div class="struk-row"><span>Simpanan Hari Raya (SHR)</span><span class="nilai">${formatRp(d.nominalSHR)}</span></div>
+              ${rincianPinjamanHTML(d.semuaPinjamanAktif)}
+              <div class="struk-row total"><span>TOTAL TAGIHAN BULAN INI</span><span>${formatRp(d.totalTagihan)}</span></div>
+            </div>
           </div>
-          <table class="struk-mini-table">
-            <tr><td>SP (s.d. bulan ini)</td><td>${formatRp(d.sp)}</td></tr>
-            <tr><td>SW</td><td>${formatRp(d.nominalSW)}</td></tr>
-            <tr><td>SHR</td><td>${formatRp(d.nominalSHR)}</td></tr>
-            ${baris('K-1', k1)}
-            ${baris('K-2', k2)}
-            ${baris('S-1', s1)}
-            ${baris('S-2', s2)}
-            <tr class="total"><td>TOTAL TAGIHAN</td><td>${formatRp(d.totalTagihan)}</td></tr>
-          </table>
         </div>
       `;
     }
@@ -450,11 +438,11 @@
 
       const semuaData = aktif.map(a => hitungDataStruk(a, bulanInput));
 
-      // Kelompokkan jadi halaman berisi 8 struk mini masing-masing (grid 4x2, folio landscape)
+      // Kelompokkan jadi halaman berisi 6 struk (grid 2x3, kertas A4)
       let halamanHTML = '';
-      for (let i = 0; i < semuaData.length; i += 8) {
-        const kelompok = semuaData.slice(i, i + 8);
-        halamanHTML += `<div class="struk-mini-page">${kelompok.map(strukMiniHTML).join('')}</div>`;
+      for (let i = 0; i < semuaData.length; i += 6) {
+        const kelompok = semuaData.slice(i, i + 6);
+        halamanHTML += `<div class="struk-a4-page">${kelompok.map(strukA4CellHTML).join('')}</div>`;
       }
       document.getElementById('strukSemuaContainer').innerHTML = halamanHTML;
 
