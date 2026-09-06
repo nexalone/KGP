@@ -201,7 +201,9 @@
         const keluar = Number(t.KELUAR) || 0;
 
         if (ref === 'SP') spSw += masuk;                              // SP sekali bayar
+        else if (ref === 'SPT') spSw -= keluar;                       // Penarikan SP
         else if (/^SW-\d{4}$/.test(ref)) spSw += masuk;                // SW bulanan
+        else if (ref === 'SWT') spSw -= keluar;                       // Penarikan SW
         else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;           // SHR setor
         else if (ref === 'SHRT') shrTarik += keluar;                   // SHR tarik
         else if (/^K-\d{4}-\d+$/.test(ref)) pinjaman += keluar;        // Pencairan Pinjaman
