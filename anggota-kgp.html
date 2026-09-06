@@ -164,6 +164,18 @@
             </select>
           </div>
           <div class="form-group">
+            <label>Jabatan</label>
+            <select id="editJabatan" required style="font-size:0.85rem;">
+              <option value="Anggota">Anggota</option>
+              <option value="Penasehat">Penasehat</option>
+              <option value="Ketua">Ketua</option>
+              <option value="Sekretaris">Sekretaris</option>
+              <option value="Bendahara">Bendahara</option>
+              <option value="Pengurus">Pengurus</option>
+              <option value="Badan Pemeriksa">Badan Pemeriksa</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>Nominal SHR (Rp/bulan)</label>
             <input type="text" inputmode="numeric" id="editNominalShr" placeholder="0" style="font-size:0.85rem;" />
           </div>
@@ -171,7 +183,7 @@
             <label>Tanggal Keluar</label>
             <input type="date" id="editTanggalKeluar" style="font-size:0.85rem;" />
           </div>
-          <div class="form-group full">
+          <div class="form-group full" id="groupAlasan" style="display:none;">
             <label>Alasan</label>
             <textarea id="editAlasan" rows="2" placeholder="Alasan keluar..." style="font-size:0.85rem;"></textarea>
           </div>
@@ -321,7 +333,9 @@
 
     function renderTabelAktif() {
       const tbody = document.getElementById('tabelAktif');
-      const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
+      const aktif = dataAnggota
+        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+        .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
       document.getElementById('jumlahAnggota').textContent = aktif.length;
       if (aktif.length === 0) {
         tbody.innerHTML = '<tr><td style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
@@ -347,7 +361,9 @@
 
     function populateDropdown() {
       const select = document.getElementById('editAnggota');
-      const aktif = dataAnggota.filter(a => a.STATUS.toUpperCase() === 'AKTIF');
+      const aktif = dataAnggota
+        .filter(a => a.STATUS.toUpperCase() === 'AKTIF')
+        .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
       select.innerHTML = '<option value="">-- Pilih Nama --</option>';
       aktif.forEach((a, idx) => {
         const originalIdx = dataAnggota.indexOf(a);
@@ -418,13 +434,16 @@
 
     function toggleFieldKeluar() {
       const status = document.getElementById('editStatus').value;
-      document.getElementById('groupTanggalKeluar').style.display = status === 'Tidak Aktif' ? 'block' : 'none';
+      const tampilkan = status === 'Tidak Aktif';
+      document.getElementById('groupTanggalKeluar').style.display = tampilkan ? 'block' : 'none';
+      document.getElementById('groupAlasan').style.display = tampilkan ? 'block' : 'none';
     }
 
     function openModal() {
       document.getElementById('modalOverlay').classList.add('show');
       document.getElementById('formKelola').reset();
       document.getElementById('groupTanggalKeluar').style.display = 'none';
+      document.getElementById('groupAlasan').style.display = 'none';
       document.getElementById('editAnggota').value = '';
       document.getElementById('editStatus').value = 'Aktif';
       document.getElementById('editTanggalKeluar').value = '';
@@ -441,14 +460,14 @@
       if (!anggota) return;
 
       document.getElementById('editStatus').value = anggota.STATUS.toUpperCase() === 'AKTIF' ? 'Aktif' : 'Tidak Aktif';
+      document.getElementById('editJabatan').value = anggota.JABATAN || 'Anggota';
       document.getElementById('editAlasan').value = anggota.ALASAN || '';
       document.getElementById('editNominalShr').value = anggota['NOMINAL SHR'] || '';
+      toggleFieldKeluar();
 
       if (anggota.STATUS.toUpperCase() === 'TIDAK AKTIF' && anggota['TANGGAL KELUAR']) {
-        document.getElementById('groupTanggalKeluar').style.display = 'block';
         document.getElementById('editTanggalKeluar').value = anggota['TANGGAL KELUAR'];
       } else {
-        document.getElementById('groupTanggalKeluar').style.display = 'none';
         document.getElementById('editTanggalKeluar').value = '';
       }
     }
@@ -467,6 +486,7 @@
       
       const anggota = dataAnggota[idx];
       const status = document.getElementById('editStatus').value;
+      const jabatan = document.getElementById('editJabatan').value;
       const tanggalKeluar = document.getElementById('editTanggalKeluar').value;
       const alasan = document.getElementById('editAlasan').value;
       const nominalShr = document.getElementById('editNominalShr').value.replace(/\D/g, '') || '0';
@@ -482,6 +502,7 @@
             action: 'updateStatusAnggota',
             noid: anggota.NOID,
             status: status,
+            jabatan: jabatan,
             tanggalKeluar: tanggalKeluar,
             alasan: alasan,
             nominalShr: nominalShr
@@ -490,6 +511,7 @@
 
         // Update tampilan langsung
         anggota.STATUS = status.toUpperCase();
+        anggota.JABATAN = jabatan;
         anggota['TANGGAL KELUAR'] = tanggalKeluar;
         anggota.ALASAN = alasan;
         anggota['NOMINAL SHR'] = nominalShr;
