@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pembukuan Bulanan - KGP SMPN 1 Kaliwedi</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); flex-shrink: 0; }
+    .home-btn:hover { transform: scale(1.08); }
+    .home-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .top-header h1 { font-size: 1.1rem; color: #333; font-weight: 700; }
+
+    .status-bar { background: #f0f4ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #555; border-left: 4px solid #667eea; }
+    .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
+    .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
+
+    .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-row label { font-weight: 600; font-size: 0.85rem; color: #555; }
+    .filter-row input, .filter-row select { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+    .filter-row button {
+      border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;
+      padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+
+    .saldo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .saldo-grid { grid-template-columns: repeat(2, 1fr); } }
+    .saldo-card { border-radius: 10px; padding: 14px; text-align: center; }
+    .saldo-card .label { font-size: 0.7rem; font-weight: 700; opacity: 0.85; margin-bottom: 4px; text-transform: uppercase; }
+    .saldo-card .nilai { font-size: 1.05rem; font-weight: 800; }
+    .saldo-card.awal { background: #eef2fb; color: #2a5298; }
+    .saldo-card.masuk { background: #e8f5e9; color: #2e7d32; }
+    .saldo-card.keluar { background: #ffebee; color: #c62828; }
+    .saldo-card.akhir { background: #1e3c72; color: #fff; }
+
+    .section-title { color: #333; margin: 5px 0 12px 0; font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 700px; }
+    th { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 10px 8px; text-align: left; white-space: nowrap; }
+    th.num, td.num { text-align: right; }
+    td { padding: 9px 8px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+    tr:hover { background: #f8f9ff; }
+    .masuk-txt { color: #2e7d32; font-weight: 600; }
+    .keluar-txt { color: #c62828; font-weight: 600; }
+    tfoot td { font-weight: 700; background: #f5f7fb; border-top: 2px solid #667eea; }
+
+    @media (max-width: 600px) { .container { padding: 14px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-header">
+      <a href="Index.html" class="home-btn" title="Beranda">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </a>
+      <h1>PEMBUKUAN BULANAN KGP</h1>
+    </div>
+
+    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
+
+    <div class="filter-row">
+      <label for="pilihBulan">Bulan:</label>
+      <input type="month" id="pilihBulan" />
+      <button type="button" onclick="unduhExcelPembukuan()">⬇️ Unduh Excel</button>
+    </div>
+
+    <div class="saldo-grid">
+      <div class="saldo-card awal"><div class="label">Saldo Awal</div><div class="nilai" id="sdAwal">Rp 0</div></div>
+      <div class="saldo-card masuk"><div class="label">Total Masuk</div><div class="nilai" id="sdMasuk">Rp 0</div></div>
+      <div class="saldo-card keluar"><div class="label">Total Keluar</div><div class="nilai" id="sdKeluar">Rp 0</div></div>
+      <div class="saldo-card akhir"><div class="label">Saldo Akhir</div><div class="nilai" id="sdAkhir">Rp 0</div></div>
+    </div>
+
+    <div class="section-title">
+      <span>📒 Rincian Transaksi Bulan <span id="labelBulanTabel"></span></span>
+      <span id="jumlahBaris" style="font-size:0.8rem; color:#888;">0 transaksi</span>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr><th>Time Stamp</th><th>NOID</th><th>Nama</th><th>REF</th><th class="num">Masuk</th><th class="num">Keluar</th><th>Cara Bayar</th></tr>
+        </thead>
+        <tbody id="tabelPembukuan">
+          <tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">TOTAL BULAN INI</td>
+            <td class="num" id="tfMasuk">Rp 0</td>
+            <td class="num" id="tfKeluar">Rp 0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
+
+    let dataTransaksi = [];
+    const NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes; }
+        else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+        else current += c;
+      }
+      result.push(current);
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
+      const result = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    function formatRp(n) {
+      return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID');
+    }
+
+    async function loadAllData() {
+      const statusBar = document.getElementById('statusBar');
+      try {
+        const rT = await fetch(TRANSAKSI_URL + '?t=' + Date.now());
+        if (!rT.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const txtT = await rT.text();
+        dataTransaksi = parseCSV(txtT).filter(t => t['TIME STAMP'] && !isNaN(new Date(t['TIME STAMP']).getTime()));
+
+        const now = new Date();
+        document.getElementById('pilihBulan').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+        renderPembukuan();
+        statusBar.textContent = `✅ ${dataTransaksi.length} transaksi dimuat dari GitHub`;
+        statusBar.className = 'status-bar success';
+      } catch (e) {
+        console.error(e);
+        statusBar.textContent = '❌ Gagal memuat data dari GitHub.';
+        statusBar.className = 'status-bar error';
+      }
+    }
+
+    let barisTerkini = [];
+
+    function renderPembukuan() {
+      const bulanInput = document.getElementById('pilihBulan').value;
+      if (!bulanInput) return;
+      const [tahunStr, bulanStr] = bulanInput.split('-');
+      const tahun = Number(tahunStr), bulan = Number(bulanStr);
+      const labelBulan = NAMA_BULAN[bulan - 1] + ' ' + tahun;
+      document.getElementById('labelBulanTabel').textContent = labelBulan;
+
+      const awalBulan = new Date(tahun, bulan - 1, 1);
+      const akhirBulan = new Date(tahun, bulan, 0, 23, 59, 59);
+
+      // Saldo Awal = akumulasi semua transaksi SEBELUM bulan ini
+      let saldoAwal = 0;
+      dataTransaksi.forEach(t => {
+        const tgl = new Date(t['TIME STAMP']);
+        if (tgl < awalBulan) saldoAwal += (Number(t.MASUK) || 0) - (Number(t.KELUAR) || 0);
+      });
+
+      // Transaksi bulan ini saja, urut berdasarkan waktu
+      const bulanIni = dataTransaksi
+        .filter(t => {
+          const tgl = new Date(t['TIME STAMP']);
+          return tgl >= awalBulan && tgl <= akhirBulan;
+        })
+        .sort((a, b) => new Date(a['TIME STAMP']) - new Date(b['TIME STAMP']));
+
+      let totalMasuk = 0, totalKeluar = 0;
+      bulanIni.forEach(t => {
+        totalMasuk += Number(t.MASUK) || 0;
+        totalKeluar += Number(t.KELUAR) || 0;
+      });
+      const saldoAkhir = saldoAwal + totalMasuk - totalKeluar;
+
+      document.getElementById('sdAwal').textContent = formatRp(saldoAwal);
+      document.getElementById('sdMasuk').textContent = formatRp(totalMasuk);
+      document.getElementById('sdKeluar').textContent = formatRp(totalKeluar);
+      document.getElementById('sdAkhir').textContent = formatRp(saldoAkhir);
+      document.getElementById('tfMasuk').textContent = formatRp(totalMasuk);
+      document.getElementById('tfKeluar').textContent = formatRp(totalKeluar);
+      document.getElementById('jumlahBaris').textContent = bulanIni.length + ' transaksi';
+
+      barisTerkini = { labelBulan, saldoAwal, totalMasuk, totalKeluar, saldoAkhir, bulanIni };
+
+      const tbody = document.getElementById('tabelPembukuan');
+      if (bulanIni.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Tidak ada transaksi bulan ini</td></tr>';
+        return;
+      }
+      tbody.innerHTML = bulanIni.map(t => `
+        <tr>
+          <td>${t['TIME STAMP'] || '-'}</td>
+          <td>${t.NOID || '-'}</td>
+          <td>${t.NAMA || '-'}</td>
+          <td>${t.REF || '-'}</td>
+          <td class="num masuk-txt">${t.MASUK ? formatRp(t.MASUK) : ''}</td>
+          <td class="num keluar-txt">${t.KELUAR ? formatRp(t.KELUAR) : ''}</td>
+          <td>${t['CARA BAYAR'] || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('pilihBulan').addEventListener('change', renderPembukuan);
+
+    function downloadExcel(filename, headers, rows) {
+      const data = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data');
+      XLSX.writeFile(wb, filename.replace(/\.xls$/, '.xlsx'));
+    }
+
+    function unduhExcelPembukuan() {
+      const b = barisTerkini;
+      const rows = [
+        ['SALDO AWAL', '', '', '', '', formatRp(b.saldoAwal), ''],
+        ['', '', '', '', '', '', '']
+      ];
+      b.bulanIni.forEach(t => {
+        rows.push([t['TIME STAMP'], t.NOID, t.NAMA, t.REF, t.MASUK || '', t.KELUAR || '', t['CARA BAYAR'] || '']);
+      });
+      rows.push(['', '', '', 'TOTAL BULAN INI', formatRp(b.totalMasuk), formatRp(b.totalKeluar), '']);
+      rows.push(['', '', '', '', '', '', '']);
+      rows.push(['SALDO AKHIR', '', '', '', '', formatRp(b.saldoAkhir), '']);
+
+      downloadExcel(`pembukuan_${b.labelBulan.replace(' ', '_')}.xls`,
+        ['Time Stamp', 'NOID', 'Nama', 'REF', 'Masuk', 'Keluar', 'Cara Bayar'], rows);
+    }
+
+    loadAllData();
+  </script>
+</body>
+</html>
