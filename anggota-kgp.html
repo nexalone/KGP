@@ -258,7 +258,9 @@
         const masuk = Number(t.MASUK) || 0;
         const keluar = Number(t.KELUAR) || 0;
         if (ref === 'SP') sp += masuk;
+        else if (ref === 'SPT') sp -= keluar;
         else if (/^SW-\d{4}$/.test(ref)) sw += masuk;
+        else if (ref === 'SWT') sw -= keluar;
         else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;
         else if (ref === 'SHRT') shrTarik += keluar;
       });
