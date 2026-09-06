@@ -77,27 +77,38 @@
       @page { size: A4 portrait; margin: 10mm; }
       .struk-a4-page {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        gap: 4mm;
+        grid-template-columns: repeat(3, 27%);
+        grid-template-rows: repeat(3, 27%);
+        justify-content: space-between;
+        align-content: space-between;
         width: 190mm;
         height: 277mm;
         page-break-after: always;
       }
       .struk-a4-cell {
-        border: 1.5px dashed #1e3c72;
-        border-radius: 6px;
+        border: 1.2px dashed #1e3c72;
+        border-radius: 4px;
         overflow: hidden;
         position: relative;
       }
       .struk-a4-cell .struk-mini-inner {
-        transform: scale(0.5);
+        transform: scale(0.34);
         transform-origin: top left;
-        width: 200%;
-        padding: 14px;
+        width: 294%;
+        padding: 8px;
       }
-      .struk-a4-cell .struk-header { margin-bottom: 10px; padding-bottom: 8px; }
-      .struk-a4-cell .struk-nama { margin-bottom: 10px; }
+      /* Padatkan jarak-jarak yang tadinya lebar (dirancang untuk struk tunggal ukuran penuh) */
+      .struk-a4-cell .struk-header { margin-bottom: 4px; padding-bottom: 4px; }
+      .struk-a4-cell .struk-header .judul { font-size: 0.95rem; }
+      .struk-a4-cell .struk-nama { margin-bottom: 4px; }
+      .struk-a4-cell .struk-nama .nama { font-size: 1rem; }
+      .struk-a4-cell .struk-section { margin-bottom: 6px; }
+      .struk-a4-cell .struk-section-title { padding: 3px 8px; margin-bottom: 3px; font-size: 0.72rem; }
+      .struk-a4-cell .struk-row { padding: 2px 4px; font-size: 0.78rem; }
+      .struk-a4-cell .struk-row.total { padding-top: 4px; margin-top: 2px; }
+      .struk-a4-cell .struk-pinjaman-item { padding: 4px 6px; margin: 3px 0; }
+      .struk-a4-cell .struk-pinjaman-item .judul { font-size: 0.7rem; margin-bottom: 2px; }
+      .struk-a4-cell .struk-pinjaman-item .sub-row { padding: 1px 0; font-size: 0.72rem; }
     }
   </style>
 </head>
@@ -466,10 +477,10 @@
 
       const semuaData = aktif.map(a => hitungDataStruk(a, bulanInput));
 
-      // Kelompokkan jadi halaman berisi 6 struk (grid 2x3, kertas A4)
+      // Kelompokkan jadi halaman berisi 9 struk (grid 3x3, kertas A4)
       let halamanHTML = '';
-      for (let i = 0; i < semuaData.length; i += 6) {
-        const kelompok = semuaData.slice(i, i + 6);
+      for (let i = 0; i < semuaData.length; i += 9) {
+        const kelompok = semuaData.slice(i, i + 9);
         halamanHTML += `<div class="struk-a4-page">${kelompok.map(strukA4CellHTML).join('')}</div>`;
       }
       document.getElementById('strukSemuaContainer').innerHTML = halamanHTML;
