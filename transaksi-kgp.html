@@ -144,6 +144,11 @@
       cursor: pointer;
     }
     .nama-link:hover { color: #2a5298; border-bottom-color: #2a5298; }
+    .btn-hapus-baris {
+      border: none; background: #ffebee; color: #c62828; border-radius: 6px;
+      padding: 5px 9px; cursor: pointer; font-size: 0.85rem;
+    }
+    .btn-hapus-baris:hover { background: #ffcdd2; }
     .loading {
       display: inline-block;
       width: 16px;
@@ -242,7 +247,7 @@
     <div class="table-responsive">
       <table>
         <thead>
-          <tr><th>Time Stamp</th><th>NOID</th><th>Nama</th><th>REF</th><th>Masuk</th><th>Keluar</th><th>Cara Bayar</th></tr>
+          <tr><th>Time Stamp</th><th>NOID</th><th>Nama</th><th>REF</th><th>Masuk</th><th>Keluar</th><th>Cara Bayar</th><th>Aksi</th></tr>
         </thead>
         <tbody id="tabelTransaksi">
           <tr><td colspan="7" style="text-align:center;padding:20px;">Memuat...</td></tr>
@@ -387,12 +392,13 @@
       }
 
       const urut = [...data].reverse(); // terbaru di atas
+      window.__urutTransaksiSaatIni = urut; // dipakai tombol hapus (hindari masalah escaping string di onclick)
       document.getElementById('jumlahTransaksi').textContent = data.length;
       if (urut.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">Belum ada data</td></tr>';
         return;
       }
-      tbody.innerHTML = urut.map(t => `
+      tbody.innerHTML = urut.map((t, i) => `
         <tr>
           <td>${t['TIME STAMP'] || '-'}</td>
           <td>${t.NOID || '-'}</td>
@@ -401,6 +407,7 @@
           <td class="masuk">${t.MASUK ? formatRp(t.MASUK) : ''}</td>
           <td class="keluar">${t.KELUAR ? formatRp(t.KELUAR) : ''}</td>
           <td>${t['CARA BAYAR'] || '-'}</td>
+          <td><button type="button" class="btn-hapus-baris" onclick="hapusTransaksiBaris(${i})" title="Hapus transaksi ini">🗑️</button></td>
         </tr>
       `).join('');
     }
@@ -624,6 +631,41 @@
       ]);
       const namaFile = noidFilter ? `transaksi_${noidFilter}.xls` : 'riwayat_transaksi.xls';
       downloadExcel(namaFile, ['Time Stamp', 'NOID', 'Nama', 'REF', 'Masuk', 'Keluar', 'Cara Bayar'], rows);
+    }
+
+    async function hapusTransaksiBaris(index) {
+      const t = window.__urutTransaksiSaatIni[index];
+      if (!t) return;
+      const konfirmasi = confirm(`Hapus transaksi ini?\n\n${t['TIME STAMP']} — ${t.NAMA || t.NOID} — ${t.REF}\nMasuk: ${t.MASUK || '-'} | Keluar: ${t.KELUAR || '-'}\n\nTindakan ini tidak bisa dibatalkan.`);
+      if (!konfirmasi) return;
+
+      const statusBar = document.getElementById('statusBar');
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'hapusTransaksi',
+            timeStamp: t['TIME STAMP'],
+            noid: t.NOID,
+            ref: t.REF
+          })
+        });
+
+        // Hapus dari tampilan langsung
+        dataTransaksi = dataTransaksi.filter(x => !(x['TIME STAMP'] === t['TIME STAMP'] && x.NOID === t.NOID && x.REF === t.REF));
+        renderTabel();
+        hitungStatistik();
+
+        statusBar.textContent = '✅ Transaksi berhasil dihapus.';
+        statusBar.className = 'status-bar success';
+        setTimeout(() => loadAllData(), 4000);
+      } catch (err) {
+        console.error(err);
+        statusBar.textContent = '❌ Gagal menghapus transaksi.';
+        statusBar.className = 'status-bar error';
+      }
     }
 
     loadAllData();
