@@ -307,7 +307,9 @@
         const keluar = Number(t.KELUAR) || 0;
 
         if (ref === 'SP') sp += masuk;                        // SP: ref persis "SP"
+        else if (ref === 'SPT') sp -= keluar;                 // Penarikan SP
         else if (/^SW-\d{4}$/.test(ref)) sw += masuk;          // SW: SW-YYMM
+        else if (ref === 'SWT') sw -= keluar;                 // Penarikan SW
         else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;   // SHR Setor: SHR-YYMM
         else if (ref === 'SHRT') shrTarik += keluar;           // SHR Tarik: SHRT
       });
