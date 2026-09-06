@@ -273,7 +273,7 @@
         }
       });
 
-      return { jmlSimp: sp + sw + (shrSetor - shrTarik), sisaPinjaman };
+      return { jmlSimp: sp + sw + (shrSetor - shrTarik), shr: shrSetor - shrTarik, sisaPinjaman };
     }
 
     function getInfoPinjamanLokal(rows, jenisPrefix, slot) {
@@ -351,7 +351,7 @@
             </a>
             <div class="sub-info">
               <span><span class="label">NOID:</span> ${a.NOID}</span>
-              <span><span class="label">Simpanan:</span> ${formatRp(r.jmlSimp)}</span>
+              <span><span class="label">SHR:</span> ${formatRp(r.shr)}</span>
               <span class="${r.sisaPinjaman > 0 ? 'pinjaman-ada' : ''}"><span class="label">Sisa Pinjaman:</span> ${formatRp(r.sisaPinjaman)}</span>
             </div>
           </td>
@@ -460,7 +460,11 @@
       if (!anggota) return;
 
       document.getElementById('editStatus').value = anggota.STATUS.toUpperCase() === 'AKTIF' ? 'Aktif' : 'Tidak Aktif';
-      document.getElementById('editJabatan').value = anggota.JABATAN || 'Anggota';
+      // Cocokkan jabatan tanpa peduli besar/kecil huruf (data lama mungkin beda kapitalisasi)
+      const selJabatan = document.getElementById('editJabatan');
+      const jabatanData = (anggota.JABATAN || 'Anggota').trim();
+      const opsiCocok = Array.from(selJabatan.options).find(o => o.value.toLowerCase() === jabatanData.toLowerCase());
+      selJabatan.value = opsiCocok ? opsiCocok.value : 'Anggota';
       document.getElementById('editAlasan').value = anggota.ALASAN || '';
       document.getElementById('editNominalShr').value = anggota['NOMINAL SHR'] || '';
       toggleFieldKeluar();
