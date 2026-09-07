@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <script>
+    (function() {
+      const sesiStr = sessionStorage.getItem("kgpSesi");
+      if (!sesiStr) { window.location.href = "login.html"; return; }
+      window.KGP_SESI = JSON.parse(sesiStr);
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Struk Tagihan - KGP SMPN 1 Kaliwedi</title>
@@ -122,6 +129,7 @@
 <body>
   <div class="container">
     <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
+    <button onclick="sessionStorage.removeItem('kgpSesi'); window.location.href='login.html';" style="margin-left:10px; margin-bottom:20px; border:none; background:#ffebee; color:#c62828; padding:10px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer;">Keluar</button>
     <header>
       <h1>STRUK TAGIHAN KGP</h1>
       <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
@@ -139,7 +147,7 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" style="background:#e65100; width:100%;" onclick="cetakSemuaAnggota()">🖨️ Cetak Struk Semua Anggota (Bulan Ini)</button>
+    <button class="btn btn-primary" id="btnCetakSemua" style="background:#e65100; width:100%;" onclick="cetakSemuaAnggota()">🖨️ Cetak Struk Semua Anggota (Bulan Ini)</button>
 
     <div id="struk">
       <div class="struk-header">
@@ -239,6 +247,20 @@
 
         statusBar.textContent = `✅ ${dataAnggota.length} anggota dimuat`;
         statusBar.className = 'status-bar success';
+
+        // Kalau login sebagai anggota (bukan admin): kunci ke NOID sendiri, sembunyikan tombol cetak semua
+        if (window.KGP_SESI && window.KGP_SESI.role === 'anggota') {
+          const selEl = document.getElementById('pilihAnggota');
+          selEl.value = window.KGP_SESI.noid;
+          selEl.disabled = true;
+          selEl.style.background = '#f0f0f0';
+          document.getElementById('btnCetakSemua').style.display = 'none';
+          tampilkanStruk();
+          return;
+        }
+
+        const noidUrl = new URLSearchParams(window.location.search).get('noid');
+        if (noidUrl) document.getElementById('pilihAnggota').value = noidUrl;
       } catch (e) {
         console.error(e);
         statusBar.textContent = '❌ Gagal memuat data dari GitHub.';
