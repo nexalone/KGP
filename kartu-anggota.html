@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <script>
+    (function() {
+      const sesiStr = sessionStorage.getItem("kgpSesi");
+      if (!sesiStr) { window.location.href = "login.html"; return; }
+      window.KGP_SESI = JSON.parse(sesiStr);
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kartu Anggota - KGP SMPN 1 Kaliwedi</title>
@@ -161,6 +168,7 @@
 <body>
   <div class="container">
     <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
+    <button onclick="sessionStorage.removeItem('kgpSesi'); window.location.href='login.html';" style="margin-left:10px; margin-bottom:20px; border:none; background:#ffebee; color:#c62828; padding:10px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer;">Keluar</button>
     <header>
       <h1>KARTU ANGGOTA KGP</h1>
       <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
@@ -274,6 +282,17 @@
         populateDropdown();
         statusBar.textContent = `✅ ${dataAnggota.length} anggota dimuat`;
         statusBar.className = 'status-bar success';
+
+        // Kalau login sebagai anggota (bukan admin), kunci ke NOID miliknya sendiri —
+        // sembunyikan dropdown supaya tidak bisa lihat data anggota lain.
+        if (window.KGP_SESI && window.KGP_SESI.role === 'anggota') {
+          const selEl = document.getElementById('pilihAnggota');
+          selEl.value = window.KGP_SESI.noid;
+          selEl.disabled = true;
+          selEl.style.background = '#f0f0f0';
+          tampilkanKartu(window.KGP_SESI.noid);
+          return;
+        }
 
         // Kalau dibuka dengan ?noid=xxx (misal dari tap nama di Riwayat Transaksi), langsung tampilkan kartunya
         const noidUrl = new URLSearchParams(window.location.search).get('noid');
