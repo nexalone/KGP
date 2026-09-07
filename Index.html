@@ -234,9 +234,9 @@
 
   <script>
     const sesi = window.KGP_SESI;
-    document.getElementById('userGreeting').textContent = sesi.role === 'admin'
-      ? '👋 Halo, Admin/Bendahara'
-      : `👋 Halo, ${sesi.nama} (${sesi.noid})`;
+    document.getElementById('userGreeting').textContent = sesi.noid
+      ? `👋 Halo, ${sesi.nama} (${sesi.noid})${sesi.role === 'admin' ? ' — Bendahara' : ''}`
+      : `👋 Halo, ${sesi.nama}`;
 
     function logout() {
       sessionStorage.removeItem('kgpSesi');
