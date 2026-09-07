@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <script>
+    (function() {
+      const sesiStr = sessionStorage.getItem("kgpSesi");
+      if (!sesiStr) { window.location.href = "login.html"; return; }
+      window.KGP_SESI = JSON.parse(sesiStr);
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pembukuan Bulanan - KGP SMPN 1 Kaliwedi</title>
@@ -66,6 +73,7 @@
         <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       </a>
       <h1>PEMBUKUAN BULANAN KGP</h1>
+      <button onclick="sessionStorage.removeItem('kgpSesi'); window.location.href='login.html';" style="margin-left:auto; border:none; background:#ffebee; color:#c62828; padding:6px 12px; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer;">Keluar</button>
     </div>
 
     <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
