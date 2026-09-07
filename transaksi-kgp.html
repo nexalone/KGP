@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <script>
+    (function() {
+      const sesiStr = sessionStorage.getItem("kgpSesi");
+      if (!sesiStr) { window.location.href = "login.html"; return; }
+      const sesi = JSON.parse(sesiStr);
+      if (sesi.role !== "admin") { alert("Halaman ini khusus Admin/Bendahara."); window.location.href = "Index.html"; return; }
+      window.KGP_SESI = sesi;
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transaksi Keuangan - KGP SMPN 1 Kaliwedi</title>
@@ -171,6 +180,7 @@
 <body>
   <div class="container">
     <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
+    <button onclick="sessionStorage.removeItem('kgpSesi'); window.location.href='login.html';" style="margin-left:10px; margin-bottom:20px; border:none; background:#ffebee; color:#c62828; padding:10px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer;">Keluar</button>
     <header>
       <h1>TRANSAKSI KEUANGAN KGP</h1>
       <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
