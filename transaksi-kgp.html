@@ -49,6 +49,11 @@
       font-weight: 600;
     }
     .nav-back:hover { background: #2a5298; }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); flex-shrink: 0; }
+    .home-btn:hover { transform: scale(1.08); }
+    .home-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .top-header h1 { font-size: 1.15rem; color: #333; font-weight: 700; }
     .status-bar {
       background: #e3f2fd;
       padding: 12px 15px;
@@ -179,12 +184,12 @@
 </head>
 <body>
   <div class="container">
-    <a href="Index.html" class="nav-back">⬅ Kembali ke Beranda</a>
-    <button onclick="sessionStorage.removeItem('kgpSesi'); window.location.href='login.html';" style="margin-left:10px; margin-bottom:20px; border:none; background:#ffebee; color:#c62828; padding:10px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer;">Keluar</button>
-    <header>
+    <div class="top-header">
+      <a href="Index.html" class="home-btn" title="Beranda">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </a>
       <h1>TRANSAKSI KEUANGAN KGP</h1>
-      <h2>Kesejahteraan Guru dan Karyawan - SMP Negeri 1 Kaliwedi</h2>
-    </header>
+    </div>
     <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
 
     <div class="stats">
