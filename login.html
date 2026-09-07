@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - KGP SMPN 1 Kaliwedi</title>
+  <link rel="icon" href="icon-192.png" type="image/png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .box {
+      background: #fff;
+      border-radius: 18px;
+      padding: 35px 30px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+      text-align: center;
+    }
+    .logo-container {
+      width: 80px; height: 80px; margin: 0 auto 18px;
+      background: rgba(102,126,234,0.1); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+    }
+    h1 { color: #1e3c72; font-size: 1.15rem; margin-bottom: 4px; }
+    h2 { color: #888; font-size: 0.82rem; font-weight: 400; margin-bottom: 24px; }
+    .form-group { text-align: left; margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #1e3c72; margin-bottom: 6px; }
+    .form-group input {
+      width: 100%; padding: 12px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 0.95rem;
+    }
+    .form-group input:focus { outline: none; border-color: #667eea; }
+    .btn-login {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;
+      font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 6px;
+    }
+    .btn-login:hover { opacity: 0.92; }
+    .error-msg {
+      background: #ffebee; color: #c62828; padding: 10px 12px; border-radius: 8px;
+      font-size: 0.82rem; margin-bottom: 14px; display: none;
+    }
+    .hint { margin-top: 18px; font-size: 0.72rem; color: #aaa; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo-container">🔐</div>
+    <h1>KGP SMP NEGERI 1 KALIWEDI</h1>
+    <h2>Silakan login untuk melanjutkan</h2>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <form id="formLogin">
+      <div class="form-group">
+        <label for="userId">NOID (Anggota) atau Username</label>
+        <input type="text" id="userId" placeholder="Contoh: 260901 atau admin" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn-login" id="btnLogin">Masuk</button>
+    </form>
+
+    <div class="hint">
+      Anggota: gunakan NOID Anda, password default <b>123456</b>.<br />
+      Admin/Bendahara: hubungi pengurus untuk akses penuh.
+    </div>
+  </div>
+
+  <script>
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const ANGGOTA_URL = GITHUB_BASE + 'anggota.csv';
+
+    const ADMIN_USER = 'admin';
+    const ADMIN_PASS = 'admin123456';
+    const DEFAULT_PASS = '123456';
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes; }
+        else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+        else current += c;
+      }
+      result.push(current);
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
+    }
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
+      const result = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    // Kalau sudah login, langsung lempar ke Index
+    if (sessionStorage.getItem('kgpSesi')) {
+      window.location.href = 'Index.html';
+    }
+
+    document.getElementById('formLogin').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const errorMsg = document.getElementById('errorMsg');
+      const btnLogin = document.getElementById('btnLogin');
+      errorMsg.style.display = 'none';
+
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Login sebagai admin
+      if (userId.toLowerCase() === ADMIN_USER && password === ADMIN_PASS) {
+        sessionStorage.setItem('kgpSesi', JSON.stringify({ role: 'admin', noid: null, nama: 'Admin/Bendahara' }));
+        window.location.href = 'Index.html';
+        return;
+      }
+
+      // Login sebagai anggota (NOID + password default)
+      if (password !== DEFAULT_PASS) {
+        errorMsg.textContent = '❌ NOID/Username atau password salah.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btnLogin.textContent = 'Memeriksa...';
+      btnLogin.disabled = true;
+      try {
+        const resp = await fetch(ANGGOTA_URL + '?t=' + Date.now());
+        if (!resp.ok) throw new Error('Gagal mengambil data anggota');
+        const dataAnggota = parseCSV(await resp.text()).filter(a => a.NOID && a.NOID.toUpperCase() !== 'NOID');
+
+        const anggota = dataAnggota.find(a => a.NOID === userId);
+        if (!anggota) {
+          errorMsg.textContent = '❌ NOID/Username atau password salah.';
+          errorMsg.style.display = 'block';
+          btnLogin.textContent = 'Masuk';
+          btnLogin.disabled = false;
+          return;
+        }
+        if ((anggota.STATUS || '').toUpperCase() !== 'AKTIF') {
+          errorMsg.textContent = '❌ Anggota ini sudah tidak aktif, tidak bisa login.';
+          errorMsg.style.display = 'block';
+          btnLogin.textContent = 'Masuk';
+          btnLogin.disabled = false;
+          return;
+        }
+
+        sessionStorage.setItem('kgpSesi', JSON.stringify({ role: 'anggota', noid: anggota.NOID, nama: anggota.NAMA }));
+        window.location.href = 'Index.html';
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = '❌ Gagal memeriksa data. Cek koneksi internet.';
+        errorMsg.style.display = 'block';
+        btnLogin.textContent = 'Masuk';
+        btnLogin.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
