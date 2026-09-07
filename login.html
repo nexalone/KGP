@@ -164,7 +164,10 @@
           return;
         }
 
-        sessionStorage.setItem('kgpSesi', JSON.stringify({ role: 'anggota', noid: anggota.NOID, nama: anggota.NAMA }));
+        // Kalau jabatannya Bendahara, otomatis dapat akses penuh setara admin
+        const jabatan = (anggota.JABATAN || '').trim().toLowerCase();
+        const role = jabatan === 'bendahara' ? 'admin' : 'anggota';
+        sessionStorage.setItem('kgpSesi', JSON.stringify({ role: role, noid: anggota.NOID, nama: anggota.NAMA }));
         window.location.href = 'Index.html';
       } catch (err) {
         console.error(err);
