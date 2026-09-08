@@ -69,6 +69,11 @@
     }
     .status-dot.paid { background: #2e7d32; color: #fff; }
     .status-dot.unpaid { border: 2px solid #bbb; background: transparent; }
+    .btn-bayar-kecil {
+      border: none; background: #1e3c72; color: #fff; border-radius: 6px;
+      padding: 3px 12px; font-size: 0.72rem; font-weight: 700; cursor: pointer; margin-left: 8px;
+    }
+    .btn-bayar-kecil:hover { background: #2a5298; }
     .struk-pinjaman-item { background: #fff8e1; border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
     .struk-pinjaman-item.struk-pinjaman-kosong { background: transparent; visibility: hidden; }
     .struk-pinjaman-item .judul { font-size: 0.8rem; font-weight: 700; color: #7a4a00; margin-bottom: 4px; }
@@ -174,8 +179,8 @@
 
       <div class="struk-section">
         <div class="struk-section-title">🧾 TAGIHAN BULAN <span id="sBulanTagihan"></span></div>
-        <div class="struk-row"><span id="tandaSW">Simpanan Wajib (SW)</span><span class="nilai" id="tSW">Rp 0</span></div>
-        <div class="struk-row"><span id="tandaSHR">Simpanan Hari Raya (SHR)</span><span class="nilai" id="tSHR">Rp 0</span></div>
+        <div class="struk-row"><span id="tandaSW">Simpanan Wajib (SW)</span><span class="nilai" id="tSW">Rp 0</span><span id="btnBayarSW"></span></div>
+        <div class="struk-row"><span id="tandaSHR">Simpanan Hari Raya (SHR)</span><span class="nilai" id="tSHR">Rp 0</span><span id="btnBayarSHR"></span></div>
         <div id="tRincianPinjaman"></div>
         <div class="struk-row total"><span>TOTAL TAGIHAN BULAN INI</span><span id="tTotal">Rp 0</span></div>
       </div>
@@ -189,6 +194,26 @@
   </div>
 
   <div id="strukSemuaContainer"></div>
+
+  <div id="modalBayar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; border-radius:14px; padding:22px; max-width:340px; width:100%;">
+      <h3 style="color:#1e3c72; margin-bottom:10px; font-size:1.05rem;">Ajukan Pembayaran</h3>
+      <p style="font-size:0.85rem; color:#666; margin-bottom:16px;" id="modalBayarInfo"></p>
+      <label style="display:block; font-size:0.85rem; font-weight:600; color:#1e3c72; margin-bottom:6px;">Cara Bayar</label>
+      <select id="modalCaraBayar" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:8px; margin-bottom:18px; font-size:0.9rem;">
+        <option value="GAJI">GAJI</option>
+        <option value="SERTI">SERTI</option>
+        <option value="HONOR">HONOR</option>
+        <option value="TRANSFER">TRANSFER</option>
+        <option value="SAKU">SAKU</option>
+        <option value="LAINNYA">LAINNYA</option>
+      </select>
+      <div style="display:flex; gap:8px;">
+        <button type="button" onclick="batalkanBayar()" style="flex:1; padding:11px; border:none; border-radius:8px; background:#eee; color:#555; font-weight:600; cursor:pointer;">Batal</button>
+        <button type="button" onclick="konfirmasiBayar()" style="flex:1; padding:11px; border:none; border-radius:8px; background:#1e3c72; color:#fff; font-weight:700; cursor:pointer;">Ajukan</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
@@ -388,7 +413,7 @@
       if (semuaPinjamanAktif.length === 0) return '';
       return semuaPinjamanAktif.map(p => `
         <div class="struk-pinjaman-item">
-          <div class="judul">${tandaBayar(p.sudahBayar)} ${p.label} ${p.slot} — Cicilan ke-${p.angsuranKe} dari ${p.jmlCicilan || '-'}</div>
+          <div class="judul">${tandaBayar(p.sudahBayar)} ${p.label} ${p.slot} — Cicilan ke-${p.angsuranKe} dari ${p.jmlCicilan || '-'} <span class="pinjaman-tombol-bayar" data-slot="${p.jenisPrefix}-${p.slot}"></span></div>
           <div class="sub-row"><span>Cicilan Pokok</span><span>${formatRp(p.cicilan)}</span></div>
           <div class="sub-row"><span>Jasa</span><span>${formatRp(p.jasa)}</span></div>
         </div>
@@ -450,9 +475,88 @@
       document.getElementById('tRincianPinjaman').innerHTML = rincianPinjamanHTML(d.semuaPinjamanAktif);
       document.getElementById('tTotal').textContent = formatRp(d.totalTagihan);
 
+      // Tombol "Bayar" — cuma untuk anggota (bukan admin) yang lihat struk miliknya sendiri
+      const bisaAjukan = window.KGP_SESI && window.KGP_SESI.role === 'anggota';
+      const btnSWEl = document.getElementById('btnBayarSW');
+      const btnSHREl = document.getElementById('btnBayarSHR');
+      btnSWEl.innerHTML = '';
+      btnSHREl.innerHTML = '';
+
+      if (bisaAjukan && !d.sudahBayarSW) {
+        btnSWEl.appendChild(buatTombolBayar(`Simpanan Wajib (SW) — ${d.labelBulan}`, d.nominalSW,
+          { kode: 'SW', noid: d.anggota.NOID, nominal: d.nominalSW }));
+      }
+      if (bisaAjukan && !d.sudahBayarSHR) {
+        btnSHREl.appendChild(buatTombolBayar(`Simpanan Hari Raya (SHR) — ${d.labelBulan}`, d.nominalSHR,
+          { kode: 'SHR-S', noid: d.anggota.NOID, nominal: d.nominalSHR }));
+      }
+      if (bisaAjukan) {
+        d.semuaPinjamanAktif.forEach(p => {
+          if (p.sudahBayar) return;
+          const el = document.querySelector(`.pinjaman-tombol-bayar[data-slot="${p.jenisPrefix}-${p.slot}"]`);
+          if (!el) return;
+          const payloadBase = p.jenisPrefix === 'K'
+            ? { kode: 'CCL', noid: d.anggota.NOID, x: p.slot, kaliBayar: 1 }
+            : { kode: 'CCS', noid: d.anggota.NOID, x: p.slot, nominal: p.cicilan };
+          el.appendChild(buatTombolBayar(`${p.label} ${p.slot} Cicilan ke-${p.angsuranKe} — ${d.labelBulan}`, p.cicilan + p.jasa, payloadBase));
+        });
+      }
+
       document.getElementById('sTanggalCetak').textContent = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
       document.getElementById('struk').style.display = 'block';
       document.getElementById('btnCetak').style.display = 'inline-block';
+    }
+
+    function buatTombolBayar(jenisLabel, nominal, payloadBase) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-bayar-kecil';
+      btn.textContent = 'Bayar';
+      btn.addEventListener('click', () => bukaModalBayar(jenisLabel, nominal, payloadBase));
+      return btn;
+    }
+
+    // ===== MODAL PENGAJUAN PEMBAYARAN =====
+    let payloadBayarSaatIni = null;
+
+    function bukaModalBayar(jenisLabel, nominal, payloadBase) {
+      payloadBayarSaatIni = { jenisLabel, nominal, payloadBase };
+      document.getElementById('modalBayarInfo').textContent = `${jenisLabel} — ${formatRp(nominal)}`;
+      document.getElementById('modalBayar').style.display = 'flex';
+    }
+
+    function batalkanBayar() {
+      document.getElementById('modalBayar').style.display = 'none';
+      payloadBayarSaatIni = null;
+    }
+
+    async function konfirmasiBayar() {
+      if (!payloadBayarSaatIni) return;
+      const caraBayar = document.getElementById('modalCaraBayar').value;
+      const { jenisLabel, nominal, payloadBase } = payloadBayarSaatIni;
+      const payload = { ...payloadBase, caraBayar };
+      const sesi = window.KGP_SESI;
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'ajukanPembayaran',
+            noid: sesi.noid,
+            nama: sesi.nama,
+            jenisLabel: jenisLabel,
+            nominal: nominal,
+            payload: payload
+          })
+        });
+        alert('✅ Pengajuan pembayaran terkirim. Menunggu persetujuan Bendahara.');
+      } catch (err) {
+        console.error(err);
+        alert('❌ Gagal mengirim pengajuan. Coba lagi.');
+      }
+      batalkanBayar();
     }
 
     document.getElementById('pilihAnggota').addEventListener('change', tampilkanStruk);
