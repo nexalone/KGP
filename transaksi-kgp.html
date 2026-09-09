@@ -162,6 +162,11 @@
       border: none; background: #ffebee; color: #c62828; border-radius: 6px;
       padding: 5px 9px; cursor: pointer; font-size: 0.85rem;
     }
+    .btn-koreksi-baris {
+      border: none; background: #fff3e0; color: #e65100; border-radius: 6px;
+      padding: 5px 9px; cursor: pointer; font-size: 0.85rem; margin-right: 4px;
+    }
+    .btn-koreksi-baris:hover { background: #ffe0b2; }
     .btn-hapus-baris:hover { background: #ffcdd2; }
     .loading {
       display: inline-block;
@@ -273,6 +278,44 @@
           <tr><td colspan="7" style="text-align:center;padding:20px;">Memuat...</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div id="modalKoreksi" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; border-radius:14px; padding:22px; max-width:380px; width:100%;">
+      <h3 style="color:#1e3c72; margin-bottom:4px; font-size:1.05rem;">✏️ Koreksi Transaksi</h3>
+      <p style="font-size:0.78rem; color:#999; margin-bottom:16px;" id="koreksiInfo"></p>
+
+      <div class="form-group">
+        <label for="koreksiNoid">Anggota</label>
+        <select id="koreksiNoid"><option value="">-- Tanpa NOID --</option></select>
+      </div>
+      <div class="form-group" id="koreksiGrupMasuk" hidden>
+        <label for="koreksiMasuk">Nominal Masuk (Rp)</label>
+        <input type="text" inputmode="numeric" id="koreksiMasuk" />
+      </div>
+      <div class="form-group" id="koreksiGrupKeluar" hidden>
+        <label for="koreksiKeluar">Nominal Keluar (Rp)</label>
+        <input type="text" inputmode="numeric" id="koreksiKeluar" />
+      </div>
+      <div class="form-group">
+        <label for="koreksiCaraBayar">Cara Bayar</label>
+        <select id="koreksiCaraBayar">
+          <option value="GAJI">GAJI</option>
+          <option value="SERTI">SERTI</option>
+          <option value="HONOR">HONOR</option>
+          <option value="TRANSFER">TRANSFER</option>
+          <option value="SAKU">SAKU</option>
+          <option value="LAINNYA">LAINNYA</option>
+        </select>
+      </div>
+      <p style="font-size:0.72rem; color:#e65100; background:#fff3e0; padding:8px 10px; border-radius:8px; margin-bottom:16px;">
+        ⚠️ REF & jenis transaksi tidak bisa diubah di sini. Kalau jenis transaksinya sendiri salah, hapus baris ini lalu input ulang dari awal.
+      </p>
+      <div style="display:flex; gap:8px;">
+        <button type="button" onclick="batalkanKoreksi()" style="flex:1; padding:11px; border:none; border-radius:8px; background:#eee; color:#555; font-weight:600; cursor:pointer;">Batal</button>
+        <button type="button" onclick="simpanKoreksi()" style="flex:1; padding:11px; border:none; border-radius:8px; background:#e65100; color:#fff; font-weight:700; cursor:pointer;">Simpan Koreksi</button>
+      </div>
     </div>
   </div>
 
@@ -440,7 +483,10 @@
           <td class="masuk">${t.MASUK ? formatRp(t.MASUK) : ''}</td>
           <td class="keluar">${t.KELUAR ? formatRp(t.KELUAR) : ''}</td>
           <td>${t['CARA BAYAR'] || '-'}</td>
-          <td><button type="button" class="btn-hapus-baris" onclick="hapusTransaksiBaris(${i})" title="Hapus transaksi ini">🗑️</button></td>
+          <td>
+            <button type="button" class="btn-koreksi-baris" onclick="bukaKoreksiTransaksi(${i})" title="Koreksi transaksi ini">✏️</button>
+            <button type="button" class="btn-hapus-baris" onclick="hapusTransaksiBaris(${i})" title="Hapus transaksi ini">🗑️</button>
+          </td>
         </tr>
       `).join('');
     }
@@ -719,6 +765,97 @@
       } catch (err) {
         console.error(err);
         statusBar.textContent = '❌ Gagal menghapus transaksi.';
+        statusBar.className = 'status-bar error';
+      }
+    }
+
+    // ===== KOREKSI TRANSAKSI =====
+    let koreksiTarget = null;
+
+    function bukaKoreksiTransaksi(index) {
+      const t = window.__urutTransaksiSaatIni[index];
+      if (!t) return;
+      koreksiTarget = t;
+
+      document.getElementById('koreksiInfo').textContent = `${t['TIME STAMP']} — REF: ${t.REF}`;
+
+      const selNoid = document.getElementById('koreksiNoid');
+      selNoid.innerHTML = '<option value="">-- Tanpa NOID --</option>' +
+        dataAnggota
+          .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+          .map(a => `<option value="${a.NOID}">${a.NOID} - ${a.NAMA}</option>`).join('');
+      selNoid.value = t.NOID || '';
+
+      const grupMasuk = document.getElementById('koreksiGrupMasuk');
+      const grupKeluar = document.getElementById('koreksiGrupKeluar');
+      const inputMasuk = document.getElementById('koreksiMasuk');
+      const inputKeluar = document.getElementById('koreksiKeluar');
+
+      if (t.MASUK) {
+        grupMasuk.hidden = false;
+        grupKeluar.hidden = true;
+        inputMasuk.value = Number(t.MASUK).toLocaleString('id-ID');
+        inputKeluar.value = '';
+      } else {
+        grupMasuk.hidden = true;
+        grupKeluar.hidden = false;
+        inputKeluar.value = Number(t.KELUAR || 0).toLocaleString('id-ID');
+        inputMasuk.value = '';
+      }
+
+      document.getElementById('koreksiCaraBayar').value = t['CARA BAYAR'] || 'GAJI';
+      document.getElementById('modalKoreksi').style.display = 'flex';
+    }
+
+    function batalkanKoreksi() {
+      document.getElementById('modalKoreksi').style.display = 'none';
+      koreksiTarget = null;
+    }
+
+    document.getElementById('koreksiMasuk').addEventListener('input', function() {
+      const angka = angkaMurni(this.value);
+      this.value = angka ? Number(angka).toLocaleString('id-ID') : '';
+    });
+    document.getElementById('koreksiKeluar').addEventListener('input', function() {
+      const angka = angkaMurni(this.value);
+      this.value = angka ? Number(angka).toLocaleString('id-ID') : '';
+    });
+
+    async function simpanKoreksi() {
+      if (!koreksiTarget) return;
+      const t = koreksiTarget;
+      const statusBar = document.getElementById('statusBar');
+
+      const payload = {
+        action: 'koreksiTransaksi',
+        timeStamp: t['TIME STAMP'],
+        noidLama: t.NOID || '',
+        ref: t.REF,
+        noidBaru: document.getElementById('koreksiNoid').value,
+        caraBayarBaru: document.getElementById('koreksiCaraBayar').value
+      };
+      if (!document.getElementById('koreksiGrupMasuk').hidden) {
+        payload.masukBaru = angkaMurni(document.getElementById('koreksiMasuk').value);
+      }
+      if (!document.getElementById('koreksiGrupKeluar').hidden) {
+        payload.keluarBaru = angkaMurni(document.getElementById('koreksiKeluar').value);
+      }
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        statusBar.textContent = '✅ Koreksi tersimpan.';
+        statusBar.className = 'status-bar success';
+        batalkanKoreksi();
+        setTimeout(() => loadAllData(), 4000);
+      } catch (err) {
+        console.error(err);
+        statusBar.textContent = '❌ Gagal menyimpan koreksi.';
         statusBar.className = 'status-bar error';
       }
     }
