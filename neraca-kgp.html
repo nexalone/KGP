@@ -159,6 +159,17 @@
       return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID');
     }
 
+    // Semua pola REF yang dianggap Biaya Operasional (Keluar, tidak terkait anggota tertentu)
+    function isRefBiayaOperasional(ref) {
+      if (/^ADM-\d{4}$/.test(ref)) return true;  // Biaya Administrasi/Operasional umum
+      if (ref === 'THR') return true;             // Bingkisan THR
+      if (/^RAP-\d{6}$/.test(ref)) return true;    // Rapat Pengurus (per tanggal)
+      if (ref === 'RAT') return true;              // RAT
+      if (ref === 'ZKT') return true;              // Zakat
+      if (ref === 'DPRZ') return true;             // Doorprize
+      return false;
+    }
+
     async function loadAllData() {
       const statusBar = document.getElementById('statusBar');
       try {
@@ -257,8 +268,8 @@
         else if (ref === 'SWT') sw -= keluar;
         else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;
         else if (ref === 'SHRT') shrTarik += keluar;
-        else if (/^JP-/.test(ref)) jasa += masuk;
-        else if (/^ADM-\d{4}$/.test(ref)) adm += keluar;
+        else if (/^JPS?-/.test(ref)) jasa += masuk;
+        else if (isRefBiayaOperasional(ref)) adm += keluar;
         else if (/^SHU-\d{4}$/.test(ref)) shuDibagikan += keluar;
       });
 
@@ -298,8 +309,8 @@
       let jasaTahun = 0, admTahun = 0;
       hanyaTahunIni.forEach(t => {
         const ref = t.REF || '';
-        if (/^JP-/.test(ref)) jasaTahun += Number(t.MASUK) || 0;
-        else if (/^ADM-\d{4}$/.test(ref)) admTahun += Number(t.KELUAR) || 0;
+        if (/^JPS?-/.test(ref)) jasaTahun += Number(t.MASUK) || 0;
+        else if (isRefBiayaOperasional(ref)) admTahun += Number(t.KELUAR) || 0;
       });
       document.getElementById('nJasaTahun').textContent = formatRp(jasaTahun);
       document.getElementById('nAdmTahun').textContent = formatRp(admTahun);
