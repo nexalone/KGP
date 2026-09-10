@@ -217,7 +217,7 @@
         else if (/^KS-\d{4}-\d+$/.test(ref)) pinjaman += keluar;       // Pencairan Sementara
         else if (/^CP-/.test(ref)) cicilan += masuk;                   // Cicilan Pinjaman
         else if (/^CS-/.test(ref)) cicilan += masuk;                   // Cicilan Sementara
-        else if (/^JP-/.test(ref)) jasa += masuk;                      // Jasa
+        else if (/^JPS?-/.test(ref)) jasa += masuk;                    // Jasa (Kredit=JP-, Sementara=JPS-)
       });
 
       return { spSw, shr: shrSetor - shrTarik, pinjaman, cicilan, jasa };
