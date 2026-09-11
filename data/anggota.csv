@@ -1,13 +1,13 @@
 NOID,NAMA,TANGGAL DAFTAR,JABATAN,STATUS,TANGGAL KELUAR,ALASAN,NOMINAL SHR
 NOID,NAMA,TANGGAL DAFTAR,JABATAN,STATUS,TANGGAL KELUAR,ALASAN,SHR
-260101,Dra. UMI HANI,Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Wed Jul 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),PENSIUN,
+260101,Dra. UMI HANI,Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Wed Jul 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Pensiun,
 260102,"MOCH IRIN SOBIRIN, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,100000
 260103,Hj. SUTARMI,Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,100000
 260104,"KAMI, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,
-260105,"NURSISWO SANTOSO, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Wed Jul 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),PENSIUN,
+260105,"NURSISWO SANTOSO, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Wed Jul 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Pensiun,
 260106,"ALI HAMZAH, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,200000
 260107,"TASUMA, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,100000
-260108,HIDAYAH RAHMAWATI,Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Wed Jul 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),PENSIUN,
+260108,HIDAYAH RAHMAWATI,Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Wed Jul 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Pensiun,
 260109,"Hj. HAJAR, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),BP,Aktif,,,1100000
 260110,"H. TURADI, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,200000
 260111,"JUHAERIYAH, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,700000
@@ -16,11 +16,11 @@ NOID,NAMA,TANGGAL DAFTAR,JABATAN,STATUS,TANGGAL KELUAR,ALASAN,SHR
 260114,"AULATUL WALADI, S.Pd.I.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,100000
 260115,ARIS,Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,100000
 260116,"AYIP HADIANTO, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,100000
-260117,"ERNAWATY, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Sun Mar 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Mutasi,
+260117,"ERNAWATY, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Sun Mar 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Pindah Tugas,
 260118,Drs. DANURI,Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,500000
 260119,"EKA NUR ASIH, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,200000
-260120,"NURUDIN, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Sun Mar 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Mutasi,
-260121,"IBROHIM AZIS, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Sun Mar 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Mutasi,
+260120,"NURUDIN, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Sun Mar 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Pindah Tugas,
+260121,"IBROHIM AZIS, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Tidak Aktif,Sun Mar 01 2026 00:00:00 GMT+0700 (Western Indonesia Time),Pindah Tugas,
 260122,"IMAM MIFTAHUL JANNAH, S.Pd.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,200000
 260123,"PATONI, S.Si.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Anggota,Aktif,,,200000
 260124,"BASIR, S.Pd., M.A.",Wed Jan 01 2025 00:00:00 GMT+0700 (Western Indonesia Time),Pembina,Aktif,,,300000
