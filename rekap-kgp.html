@@ -272,7 +272,12 @@
       const tbody = document.getElementById('tabelRekap');
 
       const baris = dataAnggota
-        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+        .filter(a => {
+          const aktif = (a.STATUS || '').toUpperCase() === 'AKTIF';
+          if (aktif) return true;
+          // Tidak aktif, tapi tetap tampilkan kalau masih ada transaksi di tahun yang dipilih
+          return dataTransaksi.some(t => t.NOID === a.NOID && new Date(t['TIME STAMP']).getFullYear() === tahun);
+        })
         .map(a => {
           const r = hitungRekapAnggota(a.NOID, tahun);
           const sisaPinjaman = hitungSisaPinjaman(a.NOID);
