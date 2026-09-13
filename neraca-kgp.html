@@ -114,9 +114,22 @@
     <div id="cekSeimbang" class="cek-seimbang ok">✅ Neraca Seimbang</div>
 
     <div class="shu-box">
+      <div class="shu-box-header">💳 Pinjaman Tahun <span id="tahunLabelPinjaman"></span> (dicairkan tahun ini, dibayar sampai sekarang)</div>
+      <div class="neraca-row"><span>Total Pinjaman Dicairkan</span><span class="nilai" id="nPinjamanTahunIni">Rp 0</span></div>
+      <div class="neraca-row"><span>Total Sudah Dibayar</span><span class="nilai" id="nTerbayarTahunIni">Rp 0</span></div>
+      <div class="neraca-total"><span>SISA PINJAMAN (dari pencairan tahun ini)</span><span id="nSisaTahunIni">Rp 0</span></div>
+    </div>
+
+    <div class="shu-box">
       <div class="shu-box-header">📈 Rincian Laba/Rugi Tahun <span id="tahunLabel"></span> (bukan kumulatif)</div>
       <div class="neraca-row"><span>Pendapatan Jasa Pinjaman</span><span class="nilai" id="nJasaTahun">Rp 0</span></div>
-      <div class="neraca-row"><span>Biaya Administrasi/Operasional</span><span class="nilai" id="nAdmTahun">Rp 0</span></div>
+      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Biaya Administrasi/Operasional</span><span class="nilai" id="bAdm">Rp 0</span></div>
+      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Bingkisan THR</span><span class="nilai" id="bThr">Rp 0</span></div>
+      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Rapat Pengurus</span><span class="nilai" id="bRap">Rp 0</span></div>
+      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— RAT</span><span class="nilai" id="bRat">Rp 0</span></div>
+      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Zakat</span><span class="nilai" id="bZkt">Rp 0</span></div>
+      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Doorprize</span><span class="nilai" id="bDprz">Rp 0</span></div>
+      <div class="neraca-row"><span>Total Biaya</span><span class="nilai" id="nAdmTahun">Rp 0</span></div>
       <div class="neraca-total"><span>SHU TAHUN INI</span><span id="nShuTahun">Rp 0</span></div>
     </div>
   </div>
@@ -244,6 +257,52 @@
       return totalPiutang;
     }
 
+    // Khusus pinjaman yang CAIR di tahun tertentu: total dicairkan, total sudah dibayar (sampai cutoff), dan sisanya
+    function hitungPinjamanTahunIni(rowsSampaiCutoff, tahun) {
+      const perNoid = {};
+      rowsSampaiCutoff.forEach(t => {
+        if (!t.NOID) return;
+        (perNoid[t.NOID] = perNoid[t.NOID] || []).push(t);
+      });
+
+      let totalPinjaman = 0, totalTerbayar = 0;
+      Object.keys(perNoid).forEach(noid => {
+        const rows = perNoid[noid];
+        const pencairan = rows
+          .map(t => ({ t, parts: (t.REF || '').split('-') }))
+          .filter(x => x.parts.length === 3 && (x.parts[0] === 'K' || x.parts[0] === 'KS'))
+          .map(x => ({
+            jenisPrefix: x.parts[0],
+            slot: x.parts[2],
+            tanggal: new Date(x.t['TIME STAMP']),
+            pokokAwal: Number(x.t.KELUAR) || 0
+          }))
+          .sort((a, b) => a.tanggal - b.tanggal);
+
+        pencairan.forEach((p, idx) => {
+          if (p.tanggal.getFullYear() !== tahun) return; // hanya yang CAIR di tahun ini
+
+          const berikutnyaSlotSama = pencairan.find((q, i) => i > idx && q.jenisPrefix === p.jenisPrefix && q.slot === p.slot);
+          const batasAkhir = berikutnyaSlotSama ? berikutnyaSlotSama.tanggal : null;
+          const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
+
+          let pokokTerbayar = 0;
+          rows.forEach(t => {
+            const parts = (t.REF || '').split('-');
+            if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === p.slot) {
+              const tgl = new Date(t['TIME STAMP']);
+              if (tgl >= p.tanggal && (!batasAkhir || tgl < batasAkhir)) pokokTerbayar += Number(t.MASUK) || 0;
+            }
+          });
+
+          totalPinjaman += p.pokokAwal;
+          totalTerbayar += Math.min(pokokTerbayar, p.pokokAwal);
+        });
+      });
+
+      return { totalPinjaman, totalTerbayar, sisa: totalPinjaman - totalTerbayar };
+    }
+
     function renderNeraca() {
       const tahun = Number(document.getElementById('pilihTahun').value) || new Date().getFullYear();
       document.getElementById('periodeLabel').textContent = 'Per 31 Desember ' + tahun;
@@ -306,18 +365,40 @@
 
       // Laba/rugi HANYA tahun ini (bukan kumulatif) — dasar perhitungan SHU tahun berjalan
       const hanyaTahunIni = dataTransaksi.filter(t => new Date(t['TIME STAMP']).getFullYear() === tahun);
-      let jasaTahun = 0, admTahun = 0;
+      let jasaTahun = 0;
+      const biaya = { adm: 0, thr: 0, rap: 0, rat: 0, zkt: 0, dprz: 0 };
       hanyaTahunIni.forEach(t => {
         const ref = t.REF || '';
+        const keluar = Number(t.KELUAR) || 0;
         if (/^JPS?-/.test(ref)) jasaTahun += Number(t.MASUK) || 0;
-        else if (isRefBiayaOperasional(ref)) admTahun += Number(t.KELUAR) || 0;
+        else if (/^ADM-\d{4}$/.test(ref)) biaya.adm += keluar;
+        else if (ref === 'THR') biaya.thr += keluar;
+        else if (/^RAP-\d{6}$/.test(ref)) biaya.rap += keluar;
+        else if (ref === 'RAT') biaya.rat += keluar;
+        else if (ref === 'ZKT') biaya.zkt += keluar;
+        else if (ref === 'DPRZ') biaya.dprz += keluar;
       });
+      const admTahun = biaya.adm + biaya.thr + biaya.rap + biaya.rat + biaya.zkt + biaya.dprz;
+
+      document.getElementById('bAdm').textContent = formatRp(biaya.adm);
+      document.getElementById('bThr').textContent = formatRp(biaya.thr);
+      document.getElementById('bRap').textContent = formatRp(biaya.rap);
+      document.getElementById('bRat').textContent = formatRp(biaya.rat);
+      document.getElementById('bZkt').textContent = formatRp(biaya.zkt);
+      document.getElementById('bDprz').textContent = formatRp(biaya.dprz);
       document.getElementById('nJasaTahun').textContent = formatRp(jasaTahun);
       document.getElementById('nAdmTahun').textContent = formatRp(admTahun);
       document.getElementById('nShuTahun').textContent = formatRp(jasaTahun - admTahun);
 
+      // Pinjaman yang CAIR di tahun ini: total, sudah dibayar (sampai sekarang/cutoff), dan sisanya
+      document.getElementById('tahunLabelPinjaman').textContent = tahun;
+      const pinjamanTahunIni = hitungPinjamanTahunIni(sampaiCutoff, tahun);
+      document.getElementById('nPinjamanTahunIni').textContent = formatRp(pinjamanTahunIni.totalPinjaman);
+      document.getElementById('nTerbayarTahunIni').textContent = formatRp(pinjamanTahunIni.totalTerbayar);
+      document.getElementById('nSisaTahunIni').textContent = formatRp(pinjamanTahunIni.sisa);
+
       tahunTerkini = tahun;
-      neracaTerkini = { kas, piutang, totalAset, shrBersih, totalKewajiban, sp, sw, labaDitahan, totalEkuitas, jasaTahun, admTahun };
+      neracaTerkini = { kas, piutang, totalAset, shrBersih, totalKewajiban, sp, sw, labaDitahan, totalEkuitas, jasaTahun, admTahun, biaya, pinjamanTahunIni };
     }
 
     // ===== EKSPOR EXCEL =====
@@ -347,9 +428,20 @@
         ['Laba Ditahan', n.labaDitahan],
         ['TOTAL EKUITAS', n.totalEkuitas],
         ['', ''],
+        ['PINJAMAN TAHUN ' + tahunTerkini, ''],
+        ['Total Dicairkan', n.pinjamanTahunIni.totalPinjaman],
+        ['Total Sudah Dibayar', n.pinjamanTahunIni.totalTerbayar],
+        ['Sisa Pinjaman', n.pinjamanTahunIni.sisa],
+        ['', ''],
         ['LABA/RUGI TAHUN ' + tahunTerkini, ''],
         ['Pendapatan Jasa', n.jasaTahun],
-        ['Biaya Operasional', n.admTahun],
+        ['Biaya - Administrasi/Operasional', n.biaya.adm],
+        ['Biaya - Bingkisan THR', n.biaya.thr],
+        ['Biaya - Rapat Pengurus', n.biaya.rap],
+        ['Biaya - RAT', n.biaya.rat],
+        ['Biaya - Zakat', n.biaya.zkt],
+        ['Biaya - Doorprize', n.biaya.dprz],
+        ['Total Biaya', n.admTahun],
         ['SHU Tahun Ini', n.jasaTahun - n.admTahun]
       ];
       downloadExcel(`neraca_${tahunTerkini}.xls`, ['Pos', 'Nilai (Rp)'], rows);
