@@ -115,20 +115,22 @@
 
     <div class="shu-box">
       <div class="shu-box-header">💳 Pinjaman Tahun <span id="tahunLabelPinjaman"></span> (dicairkan tahun ini, dibayar sampai sekarang)</div>
-      <div class="neraca-row"><span>Total Pinjaman Dicairkan</span><span class="nilai" id="nPinjamanTahunIni">Rp 0</span></div>
-      <div class="neraca-row"><span>Total Sudah Dibayar</span><span class="nilai" id="nTerbayarTahunIni">Rp 0</span></div>
+      <div class="neraca-row" id="rowJmlKredit"><span>Jumlah Kredit</span><span class="nilai" id="nJmlKredit">Rp 0</span></div>
+      <div class="neraca-row" id="rowCicilanKredit"><span>Cicilan Pinjaman (Kredit)</span><span class="nilai" id="nCicilanKredit">Rp 0</span></div>
+      <div class="neraca-row" id="rowJmlSementara"><span>Jumlah Kredit Sementara</span><span class="nilai" id="nJmlSementara">Rp 0</span></div>
+      <div class="neraca-row" id="rowCicilanSementara"><span>Cicilan Pinjaman Sementara</span><span class="nilai" id="nCicilanSementara">Rp 0</span></div>
       <div class="neraca-total"><span>SISA PINJAMAN (dari pencairan tahun ini)</span><span id="nSisaTahunIni">Rp 0</span></div>
     </div>
 
     <div class="shu-box">
       <div class="shu-box-header">📈 Rincian Laba/Rugi Tahun <span id="tahunLabel"></span> (bukan kumulatif)</div>
       <div class="neraca-row"><span>Pendapatan Jasa Pinjaman</span><span class="nilai" id="nJasaTahun">Rp 0</span></div>
-      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Biaya Administrasi/Operasional</span><span class="nilai" id="bAdm">Rp 0</span></div>
-      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Bingkisan THR</span><span class="nilai" id="bThr">Rp 0</span></div>
-      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Rapat Pengurus</span><span class="nilai" id="bRap">Rp 0</span></div>
-      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— RAT</span><span class="nilai" id="bRat">Rp 0</span></div>
-      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Zakat</span><span class="nilai" id="bZkt">Rp 0</span></div>
-      <div class="neraca-row" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Doorprize</span><span class="nilai" id="bDprz">Rp 0</span></div>
+      <div class="neraca-row" id="rowBAdm" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Biaya Administrasi/Operasional</span><span class="nilai" id="bAdm">Rp 0</span></div>
+      <div class="neraca-row" id="rowBThr" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Bingkisan THR</span><span class="nilai" id="bThr">Rp 0</span></div>
+      <div class="neraca-row" id="rowBRap" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Rapat Pengurus</span><span class="nilai" id="bRap">Rp 0</span></div>
+      <div class="neraca-row" id="rowBRat" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— RAT</span><span class="nilai" id="bRat">Rp 0</span></div>
+      <div class="neraca-row" id="rowBZkt" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Zakat</span><span class="nilai" id="bZkt">Rp 0</span></div>
+      <div class="neraca-row" id="rowBDprz" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Doorprize</span><span class="nilai" id="bDprz">Rp 0</span></div>
       <div class="neraca-row"><span>Total Biaya</span><span class="nilai" id="nAdmTahun">Rp 0</span></div>
       <div class="neraca-total"><span>SHU TAHUN INI</span><span id="nShuTahun">Rp 0</span></div>
     </div>
@@ -257,7 +259,7 @@
       return totalPiutang;
     }
 
-    // Khusus pinjaman yang CAIR di tahun tertentu: total dicairkan, total sudah dibayar (sampai cutoff), dan sisanya
+    // Khusus pinjaman yang CAIR di tahun tertentu: dipisah Kredit (K) vs Sementara (KS)
     function hitungPinjamanTahunIni(rowsSampaiCutoff, tahun) {
       const perNoid = {};
       rowsSampaiCutoff.forEach(t => {
@@ -265,7 +267,11 @@
         (perNoid[t.NOID] = perNoid[t.NOID] || []).push(t);
       });
 
-      let totalPinjaman = 0, totalTerbayar = 0;
+      const hasil = {
+        kredit: { total: 0, terbayar: 0 },
+        sementara: { total: 0, terbayar: 0 }
+      };
+
       Object.keys(perNoid).forEach(noid => {
         const rows = perNoid[noid];
         const pencairan = rows
@@ -295,12 +301,14 @@
             }
           });
 
-          totalPinjaman += p.pokokAwal;
-          totalTerbayar += Math.min(pokokTerbayar, p.pokokAwal);
+          const bucket = p.jenisPrefix === 'K' ? hasil.kredit : hasil.sementara;
+          bucket.total += p.pokokAwal;
+          bucket.terbayar += Math.min(pokokTerbayar, p.pokokAwal);
         });
       });
 
-      return { totalPinjaman, totalTerbayar, sisa: totalPinjaman - totalTerbayar };
+      const sisa = (hasil.kredit.total - hasil.kredit.terbayar) + (hasil.sementara.total - hasil.sementara.terbayar);
+      return { ...hasil, sisa };
     }
 
     function renderNeraca() {
@@ -380,25 +388,38 @@
       });
       const admTahun = biaya.adm + biaya.thr + biaya.rap + biaya.rat + biaya.zkt + biaya.dprz;
 
-      document.getElementById('bAdm').textContent = formatRp(biaya.adm);
-      document.getElementById('bThr').textContent = formatRp(biaya.thr);
-      document.getElementById('bRap').textContent = formatRp(biaya.rap);
-      document.getElementById('bRat').textContent = formatRp(biaya.rat);
-      document.getElementById('bZkt').textContent = formatRp(biaya.zkt);
-      document.getElementById('bDprz').textContent = formatRp(biaya.dprz);
+      tampilkanBaris('rowBAdm', 'bAdm', biaya.adm);
+      tampilkanBaris('rowBThr', 'bThr', biaya.thr);
+      tampilkanBaris('rowBRap', 'bRap', biaya.rap);
+      tampilkanBaris('rowBRat', 'bRat', biaya.rat);
+      tampilkanBaris('rowBZkt', 'bZkt', biaya.zkt);
+      tampilkanBaris('rowBDprz', 'bDprz', biaya.dprz);
       document.getElementById('nJasaTahun').textContent = formatRp(jasaTahun);
       document.getElementById('nAdmTahun').textContent = formatRp(admTahun);
       document.getElementById('nShuTahun').textContent = formatRp(jasaTahun - admTahun);
 
-      // Pinjaman yang CAIR di tahun ini: total, sudah dibayar (sampai sekarang/cutoff), dan sisanya
+      // Pinjaman yang CAIR di tahun ini, dipisah Kredit vs Sementara
       document.getElementById('tahunLabelPinjaman').textContent = tahun;
       const pinjamanTahunIni = hitungPinjamanTahunIni(sampaiCutoff, tahun);
-      document.getElementById('nPinjamanTahunIni').textContent = formatRp(pinjamanTahunIni.totalPinjaman);
-      document.getElementById('nTerbayarTahunIni').textContent = formatRp(pinjamanTahunIni.totalTerbayar);
+      tampilkanBaris('rowJmlKredit', 'nJmlKredit', pinjamanTahunIni.kredit.total);
+      tampilkanBaris('rowCicilanKredit', 'nCicilanKredit', pinjamanTahunIni.kredit.terbayar);
+      tampilkanBaris('rowJmlSementara', 'nJmlSementara', pinjamanTahunIni.sementara.total);
+      tampilkanBaris('rowCicilanSementara', 'nCicilanSementara', pinjamanTahunIni.sementara.terbayar);
       document.getElementById('nSisaTahunIni').textContent = formatRp(pinjamanTahunIni.sisa);
 
       tahunTerkini = tahun;
       neracaTerkini = { kas, piutang, totalAset, shrBersih, totalKewajiban, sp, sw, labaDitahan, totalEkuitas, jasaTahun, admTahun, biaya, pinjamanTahunIni };
+    }
+
+    // Tampilkan nilai di sebuah baris, atau sembunyikan barisnya sama sekali kalau nilainya 0
+    function tampilkanBaris(idBaris, idNilai, nilai) {
+      const baris = document.getElementById(idBaris);
+      if (nilai === 0) {
+        baris.style.display = 'none';
+      } else {
+        baris.style.display = 'flex';
+        document.getElementById(idNilai).textContent = formatRp(nilai);
+      }
     }
 
     // ===== EKSPOR EXCEL =====
@@ -429,8 +450,10 @@
         ['TOTAL EKUITAS', n.totalEkuitas],
         ['', ''],
         ['PINJAMAN TAHUN ' + tahunTerkini, ''],
-        ['Total Dicairkan', n.pinjamanTahunIni.totalPinjaman],
-        ['Total Sudah Dibayar', n.pinjamanTahunIni.totalTerbayar],
+        ['Jumlah Kredit', n.pinjamanTahunIni.kredit.total],
+        ['Cicilan Pinjaman (Kredit)', n.pinjamanTahunIni.kredit.terbayar],
+        ['Jumlah Kredit Sementara', n.pinjamanTahunIni.sementara.total],
+        ['Cicilan Pinjaman Sementara', n.pinjamanTahunIni.sementara.terbayar],
         ['Sisa Pinjaman', n.pinjamanTahunIni.sisa],
         ['', ''],
         ['LABA/RUGI TAHUN ' + tahunTerkini, ''],
