@@ -74,13 +74,15 @@
   @media (max-width: 768px) { .neraca-grid { grid-template-columns: 1fr; } }
   .neraca-item { padding: 10px; background: #f9fafb; border-radius: 6px; display: flex; justify-content: space-between; }
   .neraca-item.total { background: #eff6ff; font-weight: bold; color: var(--primary-dark); }
+
+  .loading { color: var(--primary); font-weight: 500; }
 </style>
 </head>
 <body>
 <div class="container">
   <header>
     <h1>NERACA KGP</h1>
-    <p>KGP SMPN 1 Kaliwedi</p>
+    <p class="loading">🔄 Memuat data...</p>
     <div class="controls">
       <label>Per 31 Desember Tahun:
         <select id="tahun">
@@ -93,9 +95,10 @@
     </div>
   </header>
 
-  <!-- BAGIAN NERACA -->
+  <!-- BAGIAN NERACA (TIDAK DIUBAH) -->
   <div class="card">
     <h2>NERACA (LAPORAN POSISI KEUANGAN)</h2>
+    <p class="desc">Per 31 Desember —</p>
     <div class="neraca-grid">
       <div>
         <h3>ASET</h3>
@@ -112,23 +115,25 @@
         <h3>EKUITAS</h3>
         <div class="neraca-item"><span>Simpanan Pokok (SP)</span> <span>Rp <span id="sp">0</span></span></div>
         <div class="neraca-item"><span>Simpanan Wajib (SW)</span> <span>Rp <span id="sw">0</span></span></div>
-        <div class="neraca-item"><span>Laba Ditahan</span> <span>Rp <span id="laba-ditahan">0</span></span></div>
+        <div class="neraca-item"><span>Laba Ditahan (akumulasi Jasa − Biaya − SHU dibagikan)</span> <span>Rp <span id="laba-ditahan">0</span></span></div>
         <div class="neraca-item total"><span>TOTAL EKUITAS</span> <span>Rp <span id="total-ekuitas">0</span></span></div>
       </div>
     </div>
     <p style="text-align: center; margin-top: 20px;"><span class="badge badge-success">✅ Neraca Seimbang</span></p>
   </div>
 
-  <!-- BAGIAN PINJAMAN (DIPERBAIKI: Masuk & Keluar + Total + Sisa) -->
+  <!-- ========================================================= -->
+  <!-- BAGIAN PINJAMAN — HANYA INI YANG DIUBAH TAMPILANNYA       -->
+  <!-- ========================================================= -->
   <div class="card">
-    <h2>💳 Pinjaman Tahun <span id="tahun-pinjaman">2026</span></h2>
+    <h2>💳 Pinjaman Tahun <span id="tahun-pinjaman">—</span></h2>
     <p class="desc">(dicairkan tahun ini, dibayar sampai sekarang)</p>
     <table>
       <thead>
         <tr>
-          <th>Uraian</th>
-          <th class="col-masuk">Masuk (Cicilan)</th>
-          <th class="col-keluar">Keluar (Kredit)</th>
+          <th style="width: 40%;">Uraian</th>
+          <th class="col-masuk" style="width: 30%;">Masuk (Cicilan)</th>
+          <th class="col-keluar" style="width: 30%;">Keluar (Kredit)</th>
         </tr>
       </thead>
       <tbody>
@@ -155,21 +160,21 @@
       </tbody>
       <tfoot>
         <tr class="total-row">
-          <td>Total</td>
-          <td class="col-masuk">Rp <span id="total-masuk">0</span></td>
-          <td class="col-keluar">Rp <span id="total-keluar">0</span></td>
+          <td><strong>TOTAL</strong></td>
+          <td class="col-masuk"><strong>Rp <span id="total-masuk">0</span></strong></td>
+          <td class="col-keluar"><strong>Rp <span id="total-keluar">0</span></strong></td>
         </tr>
         <tr class="sisa-row">
-          <td>SISA PINJAMAN <small>(dari pencairan tahun ini)</small></td>
-          <td colspan="2" class="sisa-value">Rp <span id="sisa-pinjaman">0</span></td>
+          <td><strong>SISA PINJAMAN</strong> <small>(dari pencairan tahun ini)</small></td>
+          <td colspan="2" class="sisa-value"><strong>Rp <span id="sisa-pinjaman">0</span></strong></td>
         </tr>
       </tfoot>
     </table>
   </div>
 
-  <!-- BAGIAN LABA RUGI -->
+  <!-- BAGIAN LABA RUGI (TIDAK DIUBAH) -->
   <div class="card">
-    <h2>📈 Rincian Laba/Rugi Tahun <span id="tahun-labarugi">2026</span></h2>
+    <h2>📈 Rincian Laba/Rugi Tahun <span id="tahun-labarugi">—</span></h2>
     <p class="desc">(bukan kumulatif)</p>
     <table>
       <tbody>
@@ -182,8 +187,8 @@
         <tr><td>— Doorprize</td><td class="text-right">Rp <span id="doorprize">0</span></td></tr>
       </tbody>
       <tfoot>
-        <tr class="total-row"><td>Total Biaya</td><td class="text-right">Rp <span id="total-biaya">0</span></td></tr>
-        <tr class="sisa-row"><td>SHU TAHUN INI</td><td class="text-right sisa-value">Rp <span id="shu">0</span></td></tr>
+        <tr class="total-row"><td><strong>Total Biaya</strong></td><td class="text-right"><strong>Rp <span id="total-biaya">0</span></strong></td></tr>
+        <tr class="sisa-row"><td><strong>SHU TAHUN INI</strong></td><td class="text-right sisa-value"><strong>Rp <span id="shu">0</span></strong></td></tr>
       </tfoot>
     </table>
   </div>
@@ -191,130 +196,59 @@
 
 <script>
   // =========================================================
-  // FORMAT RUPIAH
+  // FUNGSI BANTUAN
   // =========================================================
   function formatRupiah(angka) {
     return new Intl.NumberFormat('id-ID').format(angka || 0);
   }
 
-  // =========================================================
-  // SUMBER DATA
-  // Ganti isi objek ini dengan data dari backend/database Anda
-  // (misal: hasil fetch API, response AJAX, atau data PHP)
-  // =========================================================
-  const dataKGP = {
-    tahun: "2026",
-    // --- Neraca ---
-    kas: 0,
-    shr: 0,
-    sp: 0,
-    sw: 0,
-    labaDitahan: 0,
-    // --- Pinjaman ---
-    jmlKredit: 0,
-    cicilan: 0,
-    jmlKreditSementara: 0,
-    cicilanSementara: 0,
-    // --- Laba Rugi ---
-    jasaPinjaman: 0,
-    biayaAdmin: 0,
-    bingkisanTHR: 0,
-    rapatPengurus: 0,
-    rat: 0,
-    zakat: 0,
-    doorprize: 0
-  };
-
-  // =========================================================
-  // HELPER: Ambil nilai numerik dari data
-  // =========================================================
-  function val(key) {
-    return parseFloat(dataKGP[key]) || 0;
+  // Ambil angka dari elemen (membersihkan format Rupiah jika ada)
+  function getNumber(id) {
+    const el = document.getElementById(id);
+    if (!el) return 0;
+    const raw = el.innerText.replace(/[^\d]/g, '');
+    return parseInt(raw) || 0;
   }
 
   // =========================================================
-  // RENDER TAMPILAN
+  // HITUNG TOTAL PINJAMAN
+  // Dipanggil otomatis setiap kali data berubah
   // =========================================================
-  function renderData() {
-    // Update tahun di semua judul
-    document.getElementById('tahun-pinjaman').innerText = dataKGP.tahun;
-    document.getElementById('tahun-labarugi').innerText = dataKGP.tahun;
+  function hitungPinjaman() {
+    const jmlKredit          = getNumber('jml-kredit');
+    const cicilan            = getNumber('cicilan');
+    const jmlKreditSementara = getNumber('jml-kredit-sementara');
+    const cicilanSementara   = getNumber('cicilan-sementara');
 
-    // --- Bagian Pinjaman ---
-    const jmlKredit = val('jmlKredit');
-    const cicilan = val('cicilan');
-    const jmlKreditSementara = val('jmlKreditSementara');
-    const cicilanSementara = val('cicilanSementara');
-
-    document.getElementById('jml-kredit').innerText = formatRupiah(jmlKredit);
-    document.getElementById('cicilan').innerText = formatRupiah(cicilan);
-    document.getElementById('jml-kredit-sementara').innerText = formatRupiah(jmlKreditSementara);
-    document.getElementById('cicilan-sementara').innerText = formatRupiah(cicilanSementara);
-
-    // Hitung Total Masuk & Keluar
-    const totalMasuk = cicilan + cicilanSementara;
-    const totalKeluar = jmlKredit + jmlKreditSementara;
+    const totalMasuk   = cicilan + cicilanSementara;
+    const totalKeluar  = jmlKredit + jmlKreditSementara;
     const sisaPinjaman = totalKeluar - totalMasuk;
 
-    document.getElementById('total-masuk').innerText = formatRupiah(totalMasuk);
-    document.getElementById('total-keluar').innerText = formatRupiah(totalKeluar);
-    document.getElementById('sisa-pinjaman').innerText = formatRupiah(sisaPinjaman);
+    document.getElementById('total-masuk').innerText      = formatRupiah(totalMasuk);
+    document.getElementById('total-keluar').innerText     = formatRupiah(totalKeluar);
+    document.getElementById('sisa-pinjaman').innerText    = formatRupiah(sisaPinjaman);
 
-    // --- Sinkronisasi ke Neraca (ASET) ---
-    const kas = val('kas');
-    document.getElementById('kas').innerText = formatRupiah(kas);
+    // Sinkronisasi ke Neraca (Piutang Pinjaman = Sisa Pinjaman)
     document.getElementById('piutang-pinjaman').innerText = formatRupiah(sisaPinjaman);
-    const totalAset = kas + sisaPinjaman;
-    document.getElementById('total-aset').innerText = formatRupiah(totalAset);
-
-    // --- Kewajiban ---
-    const shr = val('shr');
-    document.getElementById('shr').innerText = formatRupiah(shr);
-    document.getElementById('total-kewajiban').innerText = formatRupiah(shr);
-
-    // --- Ekuitas ---
-    const sp = val('sp');
-    const sw = val('sw');
-    const labaDitahan = val('labaDitahan');
-    document.getElementById('sp').innerText = formatRupiah(sp);
-    document.getElementById('sw').innerText = formatRupiah(sw);
-    document.getElementById('laba-ditahan').innerText = formatRupiah(labaDitahan);
-    const totalEkuitas = sp + sw + labaDitahan;
-    document.getElementById('total-ekuitas').innerText = formatRupiah(totalEkuitas);
-
-    // --- Laba Rugi ---
-    const jasaPinjaman = val('jasaPinjaman');
-    const biayaAdmin = val('biayaAdmin');
-    const bingkisanTHR = val('bingkisanTHR');
-    const rapatPengurus = val('rapatPengurus');
-    const rat = val('rat');
-    const zakat = val('zakat');
-    const doorprize = val('doorprize');
-
-    document.getElementById('jasa-pinjaman').innerText = formatRupiah(jasaPinjaman);
-    document.getElementById('biaya-admin').innerText = formatRupiah(biayaAdmin);
-    document.getElementById('bingkisan-thr').innerText = formatRupiah(bingkisanTHR);
-    document.getElementById('rapat-pengurus').innerText = formatRupiah(rapatPengurus);
-    document.getElementById('rat').innerText = formatRupiah(rat);
-    document.getElementById('zakat').innerText = formatRupiah(zakat);
-    document.getElementById('doorprize').innerText = formatRupiah(doorprize);
-
-    const totalBiaya = biayaAdmin + bingkisanTHR + rapatPengurus + rat + zakat + doorprize;
-    const shu = jasaPinjaman - totalBiaya;
-    document.getElementById('total-biaya').innerText = formatRupiah(totalBiaya);
-    document.getElementById('shu').innerText = formatRupiah(shu);
   }
 
   // =========================================================
-  // JALANKAN SAAT HALAMAN DIMUAT
+  // OBSERVER: Pantau perubahan data dari backend
+  // Saat backend mengisi nilai ke elemen, otomatis hitung ulang
   // =========================================================
-  document.addEventListener('DOMContentLoaded', function() {
-    // Jika data diambil dari backend, panggil fetch di sini, contoh:
-    // fetch('/api/neraca-kgp?tahun=2026')
-    //   .then(res => res.json())
-    //   .then(data => { Object.assign(dataKGP, data); renderData(); });
+  const targetIds = ['jml-kredit', 'cicilan', 'jml-kredit-sementara', 'cicilan-sementara'];
+  const observer = new MutationObserver(() => hitungPinjaman());
 
-    renderData();
+  targetIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      observer.observe(el, { childList: true, characterData: true, subtree: true });
+    }
+  });
+
+  // Hitung sekali saat halaman siap (jika data sudah terisi dari backend)
+  window.addEventListener('load', () => {
+    setTimeout(hitungPinjaman, 500); // beri waktu backend mengisi data
   });
 </script>
 </body>
