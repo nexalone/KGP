@@ -28,7 +28,7 @@
   header { text-align: center; margin-bottom: 30px; }
   header h1 { color: var(--primary); margin: 0; }
   .controls { display: flex; justify-content: center; gap: 15px; margin-top: 15px; flex-wrap: wrap; align-items: center; }
-  
+
   .card {
     background: var(--card-bg);
     border-radius: 8px;
@@ -42,26 +42,26 @@
     padding-bottom: 10px;
     color: var(--primary);
   }
-  
+
   table { width: 100%; border-collapse: collapse; margin-top: 15px; }
   th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
   th { background: #f9fafb; font-weight: 600; }
   .text-right { text-align: right; }
   .text-center { text-align: center; }
-  
-  /* Styling Khusus Kolom Masuk & Keluar */
+
+  /* Styling Kolom Masuk & Keluar */
   .col-masuk { color: var(--success); font-weight: 500; text-align: right; }
   .col-keluar { color: var(--danger); font-weight: 500; text-align: right; }
-  
+
   .total-row { background: #f3f4f6; font-weight: bold; }
   .sisa-row { background: #eff6ff; font-weight: bold; color: var(--primary-dark); }
   .sisa-value { text-align: right; font-size: 1.1em; }
-  
+
   .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
   .badge-success { background: #dcfce7; color: var(--success); }
   .desc { color: var(--text-light); font-size: 0.9em; margin: 5px 0 15px 0; }
-  
-  button, select, input {
+
+  button, select {
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid var(--border);
@@ -69,19 +69,6 @@
   }
   button { background: var(--primary); color: white; border: none; cursor: pointer; }
   button:hover { background: var(--primary-dark); }
-  
-  /* Input Angka di Tabel */
-  input[type="number"] {
-    width: 100%;
-    max-width: 180px;
-    padding: 6px;
-    text-align: right;
-    font-size: 1em;
-    box-sizing: border-box;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-  }
-  input[type="number"]:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
 
   .neraca-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
   @media (max-width: 768px) { .neraca-grid { grid-template-columns: 1fr; } }
@@ -95,7 +82,7 @@
     <h1>NERACA KGP</h1>
     <p>KGP SMPN 1 Kaliwedi</p>
     <div class="controls">
-      <label>Per 31 Desember Tahun: 
+      <label>Per 31 Desember Tahun:
         <select id="tahun">
           <option>2026</option>
           <option>2025</option>
@@ -113,26 +100,26 @@
       <div>
         <h3>ASET</h3>
         <div class="neraca-item"><span>Kas</span> <span>Rp <span id="kas">0</span></span></div>
-        <div class="neraca-item"><span>Piutang Pinjaman</span> <span>Rp <span id="piutang-pinjaman">0</span></span></div>
+        <div class="neraca-item"><span>Piutang Pinjaman (Sisa Pinjaman Anggota)</span> <span>Rp <span id="piutang-pinjaman">0</span></span></div>
         <div class="neraca-item total"><span>TOTAL ASET</span> <span>Rp <span id="total-aset">0</span></span></div>
       </div>
       <div>
         <h3>KEWAJIBAN</h3>
-        <div class="neraca-item"><span>Simpanan Hari Raya</span> <span>Rp 0</span></div>
-        <div class="neraca-item total"><span>TOTAL KEWAJIBAN</span> <span>Rp 0</span></div>
+        <div class="neraca-item"><span>Simpanan Hari Raya (belum ditarik)</span> <span>Rp <span id="shr">0</span></span></div>
+        <div class="neraca-item total"><span>TOTAL KEWAJIBAN</span> <span>Rp <span id="total-kewajiban">0</span></span></div>
       </div>
       <div>
         <h3>EKUITAS</h3>
-        <div class="neraca-item"><span>Simpanan Pokok (SP)</span> <span>Rp 0</span></div>
-        <div class="neraca-item"><span>Simpanan Wajib (SW)</span> <span>Rp 0</span></div>
-        <div class="neraca-item"><span>Laba Ditahan</span> <span>Rp 0</span></div>
-        <div class="neraca-item total"><span>TOTAL EKUITAS</span> <span>Rp 0</span></div>
+        <div class="neraca-item"><span>Simpanan Pokok (SP)</span> <span>Rp <span id="sp">0</span></span></div>
+        <div class="neraca-item"><span>Simpanan Wajib (SW)</span> <span>Rp <span id="sw">0</span></span></div>
+        <div class="neraca-item"><span>Laba Ditahan</span> <span>Rp <span id="laba-ditahan">0</span></span></div>
+        <div class="neraca-item total"><span>TOTAL EKUITAS</span> <span>Rp <span id="total-ekuitas">0</span></span></div>
       </div>
     </div>
     <p style="text-align: center; margin-top: 20px;"><span class="badge badge-success">✅ Neraca Seimbang</span></p>
   </div>
 
-  <!-- BAGIAN PINJAMAN (SUDAH DIPERBAIKI) -->
+  <!-- BAGIAN PINJAMAN (DIPERBAIKI: Masuk & Keluar + Total + Sisa) -->
   <div class="card">
     <h2>💳 Pinjaman Tahun <span id="tahun-pinjaman">2026</span></h2>
     <p class="desc">(dicairkan tahun ini, dibayar sampai sekarang)</p>
@@ -140,30 +127,30 @@
       <thead>
         <tr>
           <th>Uraian</th>
-          <th class="col-masuk">Masuk (Penerimaan Cicilan)</th>
-          <th class="col-keluar">Keluar (Pencairan Kredit)</th>
+          <th class="col-masuk">Masuk (Cicilan)</th>
+          <th class="col-keluar">Keluar (Kredit)</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>Jumlah Kredit</td>
-          <td class="col-masuk text-center">-</td>
-          <td class="col-keluar"><input type="number" id="jml-kredit" value="0" min="0"></td>
+          <td class="col-masuk text-center">—</td>
+          <td class="col-keluar">Rp <span id="jml-kredit">0</span></td>
         </tr>
         <tr>
           <td>Cicilan Pinjaman</td>
-          <td class="col-masuk"><input type="number" id="cicilan" value="0" min="0"></td>
-          <td class="col-keluar text-center">-</td>
+          <td class="col-masuk">Rp <span id="cicilan">0</span></td>
+          <td class="col-keluar text-center">—</td>
         </tr>
         <tr>
           <td>Jumlah Kredit Sementara</td>
-          <td class="col-masuk text-center">-</td>
-          <td class="col-keluar"><input type="number" id="jml-kredit-sementara" value="0" min="0"></td>
+          <td class="col-masuk text-center">—</td>
+          <td class="col-keluar">Rp <span id="jml-kredit-sementara">0</span></td>
         </tr>
         <tr>
           <td>Cicilan Pinjaman Sementara</td>
-          <td class="col-masuk"><input type="number" id="cicilan-sementara" value="0" min="0"></td>
-          <td class="col-keluar text-center">-</td>
+          <td class="col-masuk">Rp <span id="cicilan-sementara">0</span></td>
+          <td class="col-keluar text-center">—</td>
         </tr>
       </tbody>
       <tfoot>
@@ -173,7 +160,7 @@
           <td class="col-keluar">Rp <span id="total-keluar">0</span></td>
         </tr>
         <tr class="sisa-row">
-          <td>SISA PINJAMAN <small>(Total Keluar - Total Masuk)</small></td>
+          <td>SISA PINJAMAN <small>(dari pencairan tahun ini)</small></td>
           <td colspan="2" class="sisa-value">Rp <span id="sisa-pinjaman">0</span></td>
         </tr>
       </tfoot>
@@ -186,58 +173,149 @@
     <p class="desc">(bukan kumulatif)</p>
     <table>
       <tbody>
-        <tr><td>Pendapatan Jasa Pinjaman</td><td class="text-right">Rp 0</td></tr>
-        <tr><td>— Biaya Administrasi/Operasional</td><td class="text-right">Rp 0</td></tr>
-        <tr><td>— Bingkisan THR</td><td class="text-right">Rp 0</td></tr>
-        <tr><td>— Rapat Pengurus</td><td class="text-right">Rp 0</td></tr>
-        <tr><td>— RAT</td><td class="text-right">Rp 0</td></tr>
-        <tr><td>— Zakat</td><td class="text-right">Rp 0</td></tr>
-        <tr><td>— Doorprize</td><td class="text-right">Rp 0</td></tr>
+        <tr><td>Pendapatan Jasa Pinjaman</td><td class="text-right">Rp <span id="jasa-pinjaman">0</span></td></tr>
+        <tr><td>— Biaya Administrasi/Operasional</td><td class="text-right">Rp <span id="biaya-admin">0</span></td></tr>
+        <tr><td>— Bingkisan THR</td><td class="text-right">Rp <span id="bingkisan-thr">0</span></td></tr>
+        <tr><td>— Rapat Pengurus</td><td class="text-right">Rp <span id="rapat-pengurus">0</span></td></tr>
+        <tr><td>— RAT</td><td class="text-right">Rp <span id="rat">0</span></td></tr>
+        <tr><td>— Zakat</td><td class="text-right">Rp <span id="zakat">0</span></td></tr>
+        <tr><td>— Doorprize</td><td class="text-right">Rp <span id="doorprize">0</span></td></tr>
       </tbody>
       <tfoot>
-        <tr class="total-row"><td>Total Biaya</td><td class="text-right">Rp 0</td></tr>
-        <tr class="sisa-row"><td>SHU TAHUN INI</td><td class="text-right sisa-value">Rp 0</td></tr>
+        <tr class="total-row"><td>Total Biaya</td><td class="text-right">Rp <span id="total-biaya">0</span></td></tr>
+        <tr class="sisa-row"><td>SHU TAHUN INI</td><td class="text-right sisa-value">Rp <span id="shu">0</span></td></tr>
       </tfoot>
     </table>
   </div>
 </div>
 
 <script>
-  // Fungsi format Rupiah
+  // =========================================================
+  // FORMAT RUPIAH
+  // =========================================================
   function formatRupiah(angka) {
-    return new Intl.NumberFormat('id-ID').format(angka);
+    return new Intl.NumberFormat('id-ID').format(angka || 0);
   }
 
-  // Fungsi Hitung Pinjaman & Sinkronisasi Neraca
-  function hitungPinjaman() {
-    const jmlKredit = parseFloat(document.getElementById('jml-kredit').value) || 0;
-    const cicilan = parseFloat(document.getElementById('cicilan').value) || 0;
-    const jmlKreditSementara = parseFloat(document.getElementById('jml-kredit-sementara').value) || 0;
-    const cicilanSementara = parseFloat(document.getElementById('cicilan-sementara').value) || 0;
+  // =========================================================
+  // SUMBER DATA
+  // Ganti isi objek ini dengan data dari backend/database Anda
+  // (misal: hasil fetch API, response AJAX, atau data PHP)
+  // =========================================================
+  const dataKGP = {
+    tahun: "2026",
+    // --- Neraca ---
+    kas: 0,
+    shr: 0,
+    sp: 0,
+    sw: 0,
+    labaDitahan: 0,
+    // --- Pinjaman ---
+    jmlKredit: 0,
+    cicilan: 0,
+    jmlKreditSementara: 0,
+    cicilanSementara: 0,
+    // --- Laba Rugi ---
+    jasaPinjaman: 0,
+    biayaAdmin: 0,
+    bingkisanTHR: 0,
+    rapatPengurus: 0,
+    rat: 0,
+    zakat: 0,
+    doorprize: 0
+  };
 
-    // Hitung Total
+  // =========================================================
+  // HELPER: Ambil nilai numerik dari data
+  // =========================================================
+  function val(key) {
+    return parseFloat(dataKGP[key]) || 0;
+  }
+
+  // =========================================================
+  // RENDER TAMPILAN
+  // =========================================================
+  function renderData() {
+    // Update tahun di semua judul
+    document.getElementById('tahun-pinjaman').innerText = dataKGP.tahun;
+    document.getElementById('tahun-labarugi').innerText = dataKGP.tahun;
+
+    // --- Bagian Pinjaman ---
+    const jmlKredit = val('jmlKredit');
+    const cicilan = val('cicilan');
+    const jmlKreditSementara = val('jmlKreditSementara');
+    const cicilanSementara = val('cicilanSementara');
+
+    document.getElementById('jml-kredit').innerText = formatRupiah(jmlKredit);
+    document.getElementById('cicilan').innerText = formatRupiah(cicilan);
+    document.getElementById('jml-kredit-sementara').innerText = formatRupiah(jmlKreditSementara);
+    document.getElementById('cicilan-sementara').innerText = formatRupiah(cicilanSementara);
+
+    // Hitung Total Masuk & Keluar
     const totalMasuk = cicilan + cicilanSementara;
     const totalKeluar = jmlKredit + jmlKreditSementara;
     const sisaPinjaman = totalKeluar - totalMasuk;
 
-    // Update Tampilan Total & Sisa
     document.getElementById('total-masuk').innerText = formatRupiah(totalMasuk);
     document.getElementById('total-keluar').innerText = formatRupiah(totalKeluar);
     document.getElementById('sisa-pinjaman').innerText = formatRupiah(sisaPinjaman);
-    
-    // Sinkronisasi ke bagian NERACA (Aset)
+
+    // --- Sinkronisasi ke Neraca (ASET) ---
+    const kas = val('kas');
+    document.getElementById('kas').innerText = formatRupiah(kas);
     document.getElementById('piutang-pinjaman').innerText = formatRupiah(sisaPinjaman);
-    // Asumsi Kas = 0 untuk demo, total aset = sisa pinjaman
-    document.getElementById('total-aset').innerText = formatRupiah(sisaPinjaman); 
+    const totalAset = kas + sisaPinjaman;
+    document.getElementById('total-aset').innerText = formatRupiah(totalAset);
+
+    // --- Kewajiban ---
+    const shr = val('shr');
+    document.getElementById('shr').innerText = formatRupiah(shr);
+    document.getElementById('total-kewajiban').innerText = formatRupiah(shr);
+
+    // --- Ekuitas ---
+    const sp = val('sp');
+    const sw = val('sw');
+    const labaDitahan = val('labaDitahan');
+    document.getElementById('sp').innerText = formatRupiah(sp);
+    document.getElementById('sw').innerText = formatRupiah(sw);
+    document.getElementById('laba-ditahan').innerText = formatRupiah(labaDitahan);
+    const totalEkuitas = sp + sw + labaDitahan;
+    document.getElementById('total-ekuitas').innerText = formatRupiah(totalEkuitas);
+
+    // --- Laba Rugi ---
+    const jasaPinjaman = val('jasaPinjaman');
+    const biayaAdmin = val('biayaAdmin');
+    const bingkisanTHR = val('bingkisanTHR');
+    const rapatPengurus = val('rapatPengurus');
+    const rat = val('rat');
+    const zakat = val('zakat');
+    const doorprize = val('doorprize');
+
+    document.getElementById('jasa-pinjaman').innerText = formatRupiah(jasaPinjaman);
+    document.getElementById('biaya-admin').innerText = formatRupiah(biayaAdmin);
+    document.getElementById('bingkisan-thr').innerText = formatRupiah(bingkisanTHR);
+    document.getElementById('rapat-pengurus').innerText = formatRupiah(rapatPengurus);
+    document.getElementById('rat').innerText = formatRupiah(rat);
+    document.getElementById('zakat').innerText = formatRupiah(zakat);
+    document.getElementById('doorprize').innerText = formatRupiah(doorprize);
+
+    const totalBiaya = biayaAdmin + bingkisanTHR + rapatPengurus + rat + zakat + doorprize;
+    const shu = jasaPinjaman - totalBiaya;
+    document.getElementById('total-biaya').innerText = formatRupiah(totalBiaya);
+    document.getElementById('shu').innerText = formatRupiah(shu);
   }
 
-  // Pasang event listener ke semua input angka agar otomatis menghitung saat diketik
-  document.querySelectorAll('input[type="number"]').forEach(input => {
-    input.addEventListener('input', hitungPinjaman);
-  });
+  // =========================================================
+  // JALANKAN SAAT HALAMAN DIMUAT
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', function() {
+    // Jika data diambil dari backend, panggil fetch di sini, contoh:
+    // fetch('/api/neraca-kgp?tahun=2026')
+    //   .then(res => res.json())
+    //   .then(data => { Object.assign(dataKGP, data); renderData(); });
 
-  // Jalankan sekali saat halaman dimuat
-  hitungPinjaman();
+    renderData();
+  });
 </script>
 </body>
 </html>
