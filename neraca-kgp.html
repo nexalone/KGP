@@ -1,61 +1,497 @@
-<!-- BAGIAN PINJAMAN (ARUS KAS) -->
-<div class="card shadow-sm mb-4 border-0">
-  <div class="card-header bg-primary text-white fw-bold">
-    💳 Arus Kas Pinjaman Tahun <span id="tahunPinjaman">2026</span>
-  </div>
-  <div class="card-body">
-    <div class="row">
-      
-      <!-- KOLOM KIRI: ARUS KELUAR (PENCAIRAN) -->
-      <div class="col-md-6 mb-3">
-        <h6 class="text-danger fw-bold border-bottom border-danger pb-2">
-          📉 Arus Kas Keluar (Pencairan Pinjaman)
-        </h6>
-        <table class="table table-sm table-borderless mb-0">
-          <tr>
-            <td>Pencairan Pinjaman Reguler</td>
-            <td class="text-end fw-bold" id="outReguler">Rp 0</td>
-          </tr>
-          <tr>
-            <td>Pencairan Pinjaman Sementara</td>
-            <td class="text-end fw-bold" id="outSementara">Rp 0</td>
-          </tr>
-          <tr class="border-top border-danger">
-            <td class="fw-bold text-danger">Total Keluar</td>
-            <td class="text-end fw-bold text-danger" id="totalOut">Rp 0</td>
-          </tr>
-        </table>
-      </div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <script>
+    (function() {
+      const sesiStr = sessionStorage.getItem("kgpSesi");
+      if (!sesiStr) { window.location.href = "login.html"; return; }
+      window.KGP_SESI = JSON.parse(sesiStr);
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neraca - KGP SMPN 1 Kaliwedi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 950px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); flex-shrink: 0; }
+    .home-btn:hover { transform: scale(1.08); }
+    .home-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .top-header h1 { font-size: 1.1rem; color: #333; font-weight: 700; }
 
-      <!-- KOLOM KANAN: ARUS MASUK (CICILAN) -->
-      <div class="col-md-6 mb-3">
-        <h6 class="text-success fw-bold border-bottom border-success pb-2">
-          📈 Arus Kas Masuk (Penerimaan Cicilan)
-        </h6>
-        <table class="table table-sm table-borderless mb-0">
-          <tr>
-            <td>Penerimaan Cicilan Reguler</td>
-            <td class="text-end fw-bold" id="inReguler">Rp 0</td>
-          </tr>
-          <tr>
-            <td>Penerimaan Cicilan Sementara</td>
-            <td class="text-end fw-bold" id="inSementara">Rp 0</td>
-          </tr>
-          <tr class="border-top border-success">
-            <td class="fw-bold text-success">Total Masuk</td>
-            <td class="text-end fw-bold text-success" id="totalIn">Rp 0</td>
-          </tr>
-        </table>
-      </div>
+    .status-bar { background: #f0f4ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #555; border-left: 4px solid #667eea; }
+    .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
+    .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
 
+    .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-row label { font-weight: 600; font-size: 0.85rem; color: #555; }
+    .filter-row select { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+
+    .neraca-title { text-align: center; margin-bottom: 20px; }
+    .neraca-title h2 { color: #1e3c72; font-size: 1.05rem; }
+    .neraca-title p { color: #888; font-size: 0.8rem; margin-top: 3px; }
+
+    .neraca-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 640px) { .neraca-grid { grid-template-columns: 1fr; } }
+
+    .neraca-col { border: 1px solid #eee; border-radius: 12px; overflow: hidden; }
+    .neraca-col-header { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 10px 14px; font-weight: 700; font-size: 0.9rem; }
+    .neraca-col.kewajiban .neraca-col-header, .neraca-col.ekuitas .neraca-col-header { background: linear-gradient(135deg, #fa709a, #fee140); color: #7a4a00; }
+
+    .neraca-row { display: flex; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid #f5f5f5; font-size: 0.85rem; }
+    .neraca-row .nilai { font-weight: 600; }
+    .neraca-subgroup-title { padding: 8px 14px 4px; font-size: 0.72rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+    .neraca-total { display: flex; justify-content: space-between; padding: 12px 14px; background: #f5f7fb; font-weight: 800; font-size: 0.95rem; color: #1e3c72; border-top: 2px solid #667eea; }
+
+    .cek-seimbang { margin-top: 18px; text-align: center; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; }
+    .cek-seimbang.ok { background: #e8f5e9; color: #2e7d32; }
+    .cek-seimbang.tidak { background: #ffebee; color: #c62828; }
+
+    .shu-box { margin-top: 22px; border: 1px solid #eee; border-radius: 12px; overflow: hidden; }
+    .shu-box-header { background: #1e3c72; color: #fff; padding: 10px 14px; font-weight: 700; font-size: 0.9rem; }
+
+    .arus-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 8px 14px; font-size: 0.72rem; color: #777; background: #fafafa; border-bottom: 1px solid #f0f0f0; }
+    .arus-legend span { display: flex; align-items: center; gap: 5px; }
+    .arus-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .arus-legend .dot.keluar { background: #e53935; }
+    .arus-legend .dot.masuk { background: #43a047; }
+
+    .neraca-row.arus-keluar { background: #fff6f6; border-left: 3px solid #e53935; }
+    .neraca-row.arus-masuk { background: #f4fbf5; border-left: 3px solid #43a047; }
+    .neraca-row.arus-keluar .label-teks, .neraca-row.arus-masuk .label-teks { display: flex; align-items: center; gap: 6px; }
+    .neraca-row.arus-keluar .panah { color: #e53935; font-weight: 800; }
+    .neraca-row.arus-masuk .panah { color: #43a047; font-weight: 800; }
+    .neraca-row.arus-keluar .nilai { color: #c62828; }
+    .neraca-row.arus-keluar .nilai::before { content: "− "; }
+    .neraca-row.arus-masuk .nilai { color: #2e7d32; }
+    .neraca-row.arus-masuk .nilai::before { content: "+ "; }
+    .neraca-row.arus-total-pinjaman { background: #f0f4fb; }
+
+    @media (max-width: 600px) { .container { padding: 14px; } }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="top-header">
+      <a href="Index.html" class="home-btn" title="Beranda">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </a>
+      <h1>NERACA KGP</h1>
     </div>
 
-    <hr class="my-3">
+    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
 
-    <!-- SALDO / SISA PINJAMAN -->
-    <div class="alert alert-warning text-center mb-0 fw-bold shadow-sm">
-      💰 Sisa Pinjaman <small>(Outstanding Balance)</small>: <span id="sisaPinjaman" class="fs-5">Rp 0</span>
-      <br><small class="text-muted fw-normal">(Total Pencairan - Total Penerimaan Cicilan)</small>
+    <div class="filter-row">
+      <label for="pilihTahun">Per 31 Desember Tahun:</label>
+      <select id="pilihTahun"></select>
+      <button type="button" style="border:none; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:9px 14px; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer;" onclick="unduhExcelNeraca()">⬇️ Unduh Excel</button>
+    </div>
+
+    <div class="neraca-title">
+      <h2>NERACA (LAPORAN POSISI KEUANGAN)</h2>
+      <p id="periodeLabel">Per 31 Desember —</p>
+    </div>
+
+    <div class="neraca-grid">
+      <div class="neraca-col aset">
+        <div class="neraca-col-header">ASET</div>
+        <div class="neraca-row"><span>Kas</span><span class="nilai" id="nKas">Rp 0</span></div>
+        <div class="neraca-row"><span>Piutang Pinjaman (Sisa Pinjaman Anggota)</span><span class="nilai" id="nPiutang">Rp 0</span></div>
+        <div class="neraca-total"><span>TOTAL ASET</span><span id="nTotalAset">Rp 0</span></div>
+      </div>
+
+      <div>
+        <div class="neraca-col kewajiban" style="margin-bottom:16px;">
+          <div class="neraca-col-header">KEWAJIBAN</div>
+          <div class="neraca-row"><span>Simpanan Hari Raya (belum ditarik)</span><span class="nilai" id="nShr">Rp 0</span></div>
+          <div class="neraca-total"><span>TOTAL KEWAJIBAN</span><span id="nTotalKewajiban">Rp 0</span></div>
+        </div>
+
+        <div class="neraca-col ekuitas">
+          <div class="neraca-col-header">EKUITAS</div>
+          <div class="neraca-row"><span>Simpanan Pokok (SP)</span><span class="nilai" id="nSp">Rp 0</span></div>
+          <div class="neraca-row"><span>Simpanan Wajib (SW)</span><span class="nilai" id="nSw">Rp 0</span></div>
+          <div class="neraca-row"><span>Laba Ditahan (akumulasi Jasa − Biaya − SHU dibagikan)</span><span class="nilai" id="nLaba">Rp 0</span></div>
+          <div class="neraca-total"><span>TOTAL EKUITAS</span><span id="nTotalEkuitas">Rp 0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="cekSeimbang" class="cek-seimbang ok">✅ Neraca Seimbang</div>
+
+    <div class="shu-box">
+      <div class="shu-box-header">💳 Pinjaman Tahun <span id="tahunLabelPinjaman"></span> (dicairkan tahun ini, dibayar sampai sekarang)</div>
+      <div class="arus-legend">
+        <span><i class="dot keluar"></i> Arus Keluar (dana dicairkan)</span>
+        <span><i class="dot masuk"></i> Arus Masuk (cicilan diterima)</span>
+      </div>
+      <div class="neraca-row arus-keluar" id="rowJmlKredit"><span class="label-teks"><span class="panah">↑</span> Jumlah Kredit (dicairkan)</span><span class="nilai" id="nJmlKredit">Rp 0</span></div>
+      <div class="neraca-row arus-masuk" id="rowCicilanKredit"><span class="label-teks"><span class="panah">↓</span> Cicilan Pinjaman (Kredit)</span><span class="nilai" id="nCicilanKredit">Rp 0</span></div>
+      <div class="neraca-row arus-keluar" id="rowJmlSementara"><span class="label-teks"><span class="panah">↑</span> Jumlah Kredit Sementara (dicairkan)</span><span class="nilai" id="nJmlSementara">Rp 0</span></div>
+      <div class="neraca-row arus-masuk" id="rowCicilanSementara"><span class="label-teks"><span class="panah">↓</span> Cicilan Pinjaman Sementara</span><span class="nilai" id="nCicilanSementara">Rp 0</span></div>
+      <div class="neraca-total"><span>SISA PINJAMAN (dari pencairan tahun ini)</span><span id="nSisaTahunIni">Rp 0</span></div>
+    </div>
+
+    <div class="shu-box">
+      <div class="shu-box-header">📈 Rincian Laba/Rugi Tahun <span id="tahunLabel"></span> (bukan kumulatif)</div>
+      <div class="neraca-row"><span>Pendapatan Jasa Pinjaman</span><span class="nilai" id="nJasaTahun">Rp 0</span></div>
+      <div class="neraca-row" id="rowBAdm" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Biaya Administrasi/Operasional</span><span class="nilai" id="bAdm">Rp 0</span></div>
+      <div class="neraca-row" id="rowBThr" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Bingkisan THR</span><span class="nilai" id="bThr">Rp 0</span></div>
+      <div class="neraca-row" id="rowBRap" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Rapat Pengurus</span><span class="nilai" id="bRap">Rp 0</span></div>
+      <div class="neraca-row" id="rowBRat" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— RAT</span><span class="nilai" id="bRat">Rp 0</span></div>
+      <div class="neraca-row" id="rowBZkt" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Zakat</span><span class="nilai" id="bZkt">Rp 0</span></div>
+      <div class="neraca-row" id="rowBDprz" style="padding-left:20px; font-size:0.8rem; color:#888;"><span>— Doorprize</span><span class="nilai" id="bDprz">Rp 0</span></div>
+      <div class="neraca-row"><span>Total Biaya</span><span class="nilai" id="nAdmTahun">Rp 0</span></div>
+      <div class="neraca-total"><span>SHU TAHUN INI</span><span id="nShuTahun">Rp 0</span></div>
     </div>
   </div>
-</div>
+
+  <script>
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
+
+    let dataTransaksi = [], neracaTerkini = {}, tahunTerkini = null;
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes; }
+        else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+        else current += c;
+      }
+      result.push(current);
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
+      const result = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    function formatRp(n) {
+      return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID');
+    }
+
+    // Semua pola REF yang dianggap Biaya Operasional (Keluar, tidak terkait anggota tertentu)
+    function isRefBiayaOperasional(ref) {
+      if (/^ADM-\d{4}$/.test(ref)) return true;  // Biaya Administrasi/Operasional umum
+      if (ref === 'THR') return true;             // Bingkisan THR
+      if (/^RAP-\d{6}$/.test(ref)) return true;    // Rapat Pengurus (per tanggal)
+      if (ref === 'RAT') return true;              // RAT
+      if (ref === 'ZKT') return true;              // Zakat
+      if (ref === 'DPRZ') return true;             // Doorprize
+      return false;
+    }
+
+    async function loadAllData() {
+      const statusBar = document.getElementById('statusBar');
+      try {
+        const rT = await fetch(TRANSAKSI_URL + '?t=' + Date.now());
+        if (!rT.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const txtT = await rT.text();
+        dataTransaksi = parseCSV(txtT).filter(t => t['TIME STAMP'] && !isNaN(new Date(t['TIME STAMP']).getTime()));
+
+        populateTahunDropdown();
+        renderNeraca();
+        statusBar.textContent = `✅ ${dataTransaksi.length} transaksi dimuat dari GitHub`;
+        statusBar.className = 'status-bar success';
+      } catch (e) {
+        console.error(e);
+        statusBar.textContent = '❌ Gagal memuat data dari GitHub.';
+        statusBar.className = 'status-bar error';
+      }
+    }
+
+    function populateTahunDropdown() {
+      const sel = document.getElementById('pilihTahun');
+      const tahunSekarang = new Date().getFullYear();
+      const tahunSet = new Set([tahunSekarang]);
+      dataTransaksi.forEach(t => tahunSet.add(new Date(t['TIME STAMP']).getFullYear()));
+      const tahunList = [...tahunSet].sort((a, b) => b - a);
+      sel.innerHTML = tahunList.map(y => `<option value="${y}">${y}</option>`).join('');
+      sel.value = tahunSekarang;
+      sel.addEventListener('change', renderNeraca);
+    }
+
+    // Total sisa pinjaman (piutang) SELURUH anggota, dihitung sampai batas waktu tertentu
+    function hitungTotalPiutang(rowsSampaiCutoff) {
+      const perNoid = {};
+      rowsSampaiCutoff.forEach(t => {
+        if (!t.NOID) return;
+        (perNoid[t.NOID] = perNoid[t.NOID] || []).push(t);
+      });
+
+      let totalPiutang = 0;
+      Object.keys(perNoid).forEach(noid => {
+        const rows = perNoid[noid];
+        const pencairan = rows
+          .map(t => ({ t, parts: (t.REF || '').split('-') }))
+          .filter(x => x.parts.length === 3 && (x.parts[0] === 'K' || x.parts[0] === 'KS'))
+          .map(x => ({
+            jenisPrefix: x.parts[0],
+            slot: x.parts[2],
+            tanggal: new Date(x.t['TIME STAMP']),
+            pokokAwal: Number(x.t.KELUAR) || 0
+          }))
+          .sort((a, b) => a.tanggal - b.tanggal);
+
+        pencairan.forEach((p, idx) => {
+          const berikutnyaSlotSama = pencairan.find((q, i) => i > idx && q.jenisPrefix === p.jenisPrefix && q.slot === p.slot);
+          const batasAkhir = berikutnyaSlotSama ? berikutnyaSlotSama.tanggal : null;
+          const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
+
+          let pokokTerbayar = 0;
+          rows.forEach(t => {
+            const parts = (t.REF || '').split('-');
+            if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === p.slot) {
+              const tgl = new Date(t['TIME STAMP']);
+              if (tgl >= p.tanggal && (!batasAkhir || tgl < batasAkhir)) pokokTerbayar += Number(t.MASUK) || 0;
+            }
+          });
+
+          const sisa = p.pokokAwal - pokokTerbayar;
+          if (sisa > 0) totalPiutang += sisa;
+        });
+      });
+
+      return totalPiutang;
+    }
+
+    // Khusus pinjaman yang CAIR di tahun tertentu: dipisah Kredit (K) vs Sementara (KS)
+    function hitungPinjamanTahunIni(rowsSampaiCutoff, tahun) {
+      const perNoid = {};
+      rowsSampaiCutoff.forEach(t => {
+        if (!t.NOID) return;
+        (perNoid[t.NOID] = perNoid[t.NOID] || []).push(t);
+      });
+
+      const hasil = {
+        kredit: { total: 0, terbayar: 0 },
+        sementara: { total: 0, terbayar: 0 }
+      };
+
+      Object.keys(perNoid).forEach(noid => {
+        const rows = perNoid[noid];
+        const pencairan = rows
+          .map(t => ({ t, parts: (t.REF || '').split('-') }))
+          .filter(x => x.parts.length === 3 && (x.parts[0] === 'K' || x.parts[0] === 'KS'))
+          .map(x => ({
+            jenisPrefix: x.parts[0],
+            slot: x.parts[2],
+            tanggal: new Date(x.t['TIME STAMP']),
+            pokokAwal: Number(x.t.KELUAR) || 0
+          }))
+          .sort((a, b) => a.tanggal - b.tanggal);
+
+        pencairan.forEach((p, idx) => {
+          if (p.tanggal.getFullYear() !== tahun) return; // hanya yang CAIR di tahun ini
+
+          const berikutnyaSlotSama = pencairan.find((q, i) => i > idx && q.jenisPrefix === p.jenisPrefix && q.slot === p.slot);
+          const batasAkhir = berikutnyaSlotSama ? berikutnyaSlotSama.tanggal : null;
+          const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
+
+          let pokokTerbayar = 0;
+          rows.forEach(t => {
+            const parts = (t.REF || '').split('-');
+            if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === p.slot) {
+              const tgl = new Date(t['TIME STAMP']);
+              if (tgl >= p.tanggal && (!batasAkhir || tgl < batasAkhir)) pokokTerbayar += Number(t.MASUK) || 0;
+            }
+          });
+
+          const bucket = p.jenisPrefix === 'K' ? hasil.kredit : hasil.sementara;
+          bucket.total += p.pokokAwal;
+          bucket.terbayar += Math.min(pokokTerbayar, p.pokokAwal);
+        });
+      });
+
+      const sisa = (hasil.kredit.total - hasil.kredit.terbayar) + (hasil.sementara.total - hasil.sementara.terbayar);
+      return { ...hasil, sisa };
+    }
+
+    function renderNeraca() {
+      const tahun = Number(document.getElementById('pilihTahun').value) || new Date().getFullYear();
+      document.getElementById('periodeLabel').textContent = 'Per 31 Desember ' + tahun;
+      document.getElementById('tahunLabel').textContent = tahun;
+
+      const cutoff = new Date(tahun, 11, 31, 23, 59, 59);
+      const sampaiCutoff = dataTransaksi.filter(t => new Date(t['TIME STAMP']) <= cutoff);
+
+      let totalMasuk = 0, totalKeluar = 0;
+      let sp = 0, sw = 0, shrSetor = 0, shrTarik = 0, jasa = 0, adm = 0, shuDibagikan = 0;
+
+      sampaiCutoff.forEach(t => {
+        const ref = t.REF || '';
+        const masuk = Number(t.MASUK) || 0;
+        const keluar = Number(t.KELUAR) || 0;
+        totalMasuk += masuk;
+        totalKeluar += keluar;
+
+        if (ref === 'SP') sp += masuk;
+        else if (ref === 'SPT') sp -= keluar;
+        else if (/^SW-\d{4}$/.test(ref)) sw += masuk;
+        else if (ref === 'SWT') sw -= keluar;
+        else if (/^SHR-\d{4}$/.test(ref)) shrSetor += masuk;
+        else if (ref === 'SHRT') shrTarik += keluar;
+        else if (/^JPS?-/.test(ref)) jasa += masuk;
+        else if (isRefBiayaOperasional(ref)) adm += keluar;
+        else if (/^SHU-\d{4}$/.test(ref)) shuDibagikan += keluar;
+      });
+
+      const kas = totalMasuk - totalKeluar;
+      const piutang = hitungTotalPiutang(sampaiCutoff);
+      const shrBersih = shrSetor - shrTarik;
+      const labaDitahan = jasa - adm - shuDibagikan;
+
+      const totalAset = kas + piutang;
+      const totalKewajiban = shrBersih;
+      const totalEkuitas = sp + sw + labaDitahan;
+
+      document.getElementById('nKas').textContent = formatRp(kas);
+      document.getElementById('nPiutang').textContent = formatRp(piutang);
+      document.getElementById('nTotalAset').textContent = formatRp(totalAset);
+
+      document.getElementById('nShr').textContent = formatRp(shrBersih);
+      document.getElementById('nTotalKewajiban').textContent = formatRp(totalKewajiban);
+
+      document.getElementById('nSp').textContent = formatRp(sp);
+      document.getElementById('nSw').textContent = formatRp(sw);
+      document.getElementById('nLaba').textContent = formatRp(labaDitahan);
+      document.getElementById('nTotalEkuitas').textContent = formatRp(totalEkuitas);
+
+      const selisih = totalAset - (totalKewajiban + totalEkuitas);
+      const cekEl = document.getElementById('cekSeimbang');
+      if (Math.abs(selisih) < 1) {
+        cekEl.className = 'cek-seimbang ok';
+        cekEl.textContent = '✅ Neraca Seimbang (Aset = Kewajiban + Ekuitas)';
+      } else {
+        cekEl.className = 'cek-seimbang tidak';
+        cekEl.textContent = '⚠️ Neraca TIDAK seimbang, selisih ' + formatRp(selisih) + ' — kemungkinan ada data transaksi yang tidak sesuai pola REF.';
+      }
+
+      // Laba/rugi HANYA tahun ini (bukan kumulatif) — dasar perhitungan SHU tahun berjalan
+      const hanyaTahunIni = dataTransaksi.filter(t => new Date(t['TIME STAMP']).getFullYear() === tahun);
+      let jasaTahun = 0;
+      const biaya = { adm: 0, thr: 0, rap: 0, rat: 0, zkt: 0, dprz: 0 };
+      hanyaTahunIni.forEach(t => {
+        const ref = t.REF || '';
+        const keluar = Number(t.KELUAR) || 0;
+        if (/^JPS?-/.test(ref)) jasaTahun += Number(t.MASUK) || 0;
+        else if (/^ADM-\d{4}$/.test(ref)) biaya.adm += keluar;
+        else if (ref === 'THR') biaya.thr += keluar;
+        else if (/^RAP-\d{6}$/.test(ref)) biaya.rap += keluar;
+        else if (ref === 'RAT') biaya.rat += keluar;
+        else if (ref === 'ZKT') biaya.zkt += keluar;
+        else if (ref === 'DPRZ') biaya.dprz += keluar;
+      });
+      const admTahun = biaya.adm + biaya.thr + biaya.rap + biaya.rat + biaya.zkt + biaya.dprz;
+
+      tampilkanBaris('rowBAdm', 'bAdm', biaya.adm);
+      tampilkanBaris('rowBThr', 'bThr', biaya.thr);
+      tampilkanBaris('rowBRap', 'bRap', biaya.rap);
+      tampilkanBaris('rowBRat', 'bRat', biaya.rat);
+      tampilkanBaris('rowBZkt', 'bZkt', biaya.zkt);
+      tampilkanBaris('rowBDprz', 'bDprz', biaya.dprz);
+      document.getElementById('nJasaTahun').textContent = formatRp(jasaTahun);
+      document.getElementById('nAdmTahun').textContent = formatRp(admTahun);
+      document.getElementById('nShuTahun').textContent = formatRp(jasaTahun - admTahun);
+
+      // Pinjaman yang CAIR di tahun ini, dipisah Kredit vs Sementara
+      document.getElementById('tahunLabelPinjaman').textContent = tahun;
+      const pinjamanTahunIni = hitungPinjamanTahunIni(sampaiCutoff, tahun);
+      tampilkanBaris('rowJmlKredit', 'nJmlKredit', pinjamanTahunIni.kredit.total);
+      tampilkanBaris('rowCicilanKredit', 'nCicilanKredit', pinjamanTahunIni.kredit.terbayar);
+      tampilkanBaris('rowJmlSementara', 'nJmlSementara', pinjamanTahunIni.sementara.total);
+      tampilkanBaris('rowCicilanSementara', 'nCicilanSementara', pinjamanTahunIni.sementara.terbayar);
+      document.getElementById('nSisaTahunIni').textContent = formatRp(pinjamanTahunIni.sisa);
+
+      tahunTerkini = tahun;
+      neracaTerkini = { kas, piutang, totalAset, shrBersih, totalKewajiban, sp, sw, labaDitahan, totalEkuitas, jasaTahun, admTahun, biaya, pinjamanTahunIni };
+    }
+
+    // Tampilkan nilai di sebuah baris, atau sembunyikan barisnya sama sekali kalau nilainya 0
+    function tampilkanBaris(idBaris, idNilai, nilai) {
+      const baris = document.getElementById(idBaris);
+      if (nilai === 0) {
+        baris.style.display = 'none';
+      } else {
+        baris.style.display = 'flex';
+        document.getElementById(idNilai).textContent = formatRp(nilai);
+      }
+    }
+
+    // ===== EKSPOR EXCEL =====
+    function downloadExcel(filename, headers, rows) {
+      const data = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data');
+      XLSX.writeFile(wb, filename.replace(/\.xls$/, '.xlsx'));
+    }
+
+    function unduhExcelNeraca() {
+      const n = neracaTerkini;
+      const rows = [
+        ['ASET', ''],
+        ['Kas', n.kas],
+        ['Piutang Pinjaman', n.piutang],
+        ['TOTAL ASET', n.totalAset],
+        ['', ''],
+        ['KEWAJIBAN', ''],
+        ['Simpanan Hari Raya (belum ditarik)', n.shrBersih],
+        ['TOTAL KEWAJIBAN', n.totalKewajiban],
+        ['', ''],
+        ['EKUITAS', ''],
+        ['Simpanan Pokok (SP)', n.sp],
+        ['Simpanan Wajib (SW)', n.sw],
+        ['Laba Ditahan', n.labaDitahan],
+        ['TOTAL EKUITAS', n.totalEkuitas],
+        ['', ''],
+        ['PINJAMAN TAHUN ' + tahunTerkini, ''],
+        ['Jumlah Kredit', n.pinjamanTahunIni.kredit.total],
+        ['Cicilan Pinjaman (Kredit)', n.pinjamanTahunIni.kredit.terbayar],
+        ['Jumlah Kredit Sementara', n.pinjamanTahunIni.sementara.total],
+        ['Cicilan Pinjaman Sementara', n.pinjamanTahunIni.sementara.terbayar],
+        ['Sisa Pinjaman', n.pinjamanTahunIni.sisa],
+        ['', ''],
+        ['LABA/RUGI TAHUN ' + tahunTerkini, ''],
+        ['Pendapatan Jasa', n.jasaTahun],
+        ['Biaya - Administrasi/Operasional', n.biaya.adm],
+        ['Biaya - Bingkisan THR', n.biaya.thr],
+        ['Biaya - Rapat Pengurus', n.biaya.rap],
+        ['Biaya - RAT', n.biaya.rat],
+        ['Biaya - Zakat', n.biaya.zkt],
+        ['Biaya - Doorprize', n.biaya.dprz],
+        ['Total Biaya', n.admTahun],
+        ['SHU Tahun Ini', n.jasaTahun - n.admTahun]
+      ];
+      downloadExcel(`neraca_${tahunTerkini}.xls`, ['Pos', 'Nilai (Rp)'], rows);
+    }
+
+    loadAllData();
+  </script>
+</body>
+</html>
