@@ -541,11 +541,11 @@
         muatPinjamanAktif(info.butuhSlot);
         infoBox.hidden = false;
         if (info.butuhSlot === 'K') {
-          infoBox.textContent = 'Nominal otomatis dihitung dari cicilan per bulan × jumlah kali bayar. Jasa 10% dari nominal cicilan otomatis ditambahkan tiap kali bayar.';
+          infoBox.textContent = 'Nominal otomatis dihitung dari cicilan per bulan × jumlah kali bayar. Jasa Pinjaman = 1% dari modal (pokok pinjaman awal) per cicilan, otomatis ditambahkan tiap kali bayar.';
         } else if (kode === 'JSMT') {
           infoBox.textContent = 'Hanya mencatat pembayaran JASA — cicilan pokok TIDAK ikut terbayar/berkurang. Nominal jasa isi manual sesuai kesepakatan.';
         } else {
-          infoBox.textContent = 'Jasa 1% per bulan dari sisa pokok otomatis ditambahkan sebagai baris terpisah setiap kali cicilan ini disimpan.';
+          infoBox.textContent = 'Jasa Pinjaman Sementara = 1% × jumlah bulan (dihitung dari setiap pergantian bulan sejak pembayaran/pencairan terakhir, bukan dari jumlah hari) × sisa pinjaman. Otomatis ditambahkan sebagai baris terpisah setiap kali cicilan ini disimpan.';
         }
       }
 
@@ -560,18 +560,69 @@
       }
     }
 
+    // Hitung jumlah bulan berdasarkan PERGANTIAN BULAN KALENDER (bukan selisih hari).
+    // Contoh: 31 Jan -> 1 Feb dihitung 1 bulan, meski cuma beda 1 hari.
+    function hitungBulanBerubah(dariTanggal, sampaiTanggal) {
+      const idxDari = dariTanggal.getFullYear() * 12 + dariTanggal.getMonth();
+      const idxSampai = sampaiTanggal.getFullYear() * 12 + sampaiTanggal.getMonth();
+      return Math.max(0, idxSampai - idxDari);
+    }
+
+    // Cari tanggal pencairan & tanggal cicilan/pembayaran terakhir untuk slot KS tertentu,
+    // berdasarkan riwayat transaksi yang sudah dimuat (mengikuti pola REF yang sama seperti di neraca-kgp.html).
+    function cariTanggalTerakhirKS(noid, slot) {
+      const punya = dataTransaksi.filter(t => t.NOID === noid);
+      let tglCair = null;
+      punya.forEach(t => {
+        const parts = (t.REF || '').split('-');
+        if (parts.length === 3 && parts[0] === 'KS' && parts[2] === String(slot)) {
+          const tgl = new Date(t['TIME STAMP']);
+          if (!isNaN(tgl.getTime()) && (!tglCair || tgl > tglCair)) tglCair = tgl;
+        }
+      });
+      let tglTerakhir = tglCair;
+      punya.forEach(t => {
+        const parts = (t.REF || '').split('-');
+        if (parts.length === 4 && parts[0] === 'CS' && parts[2] === String(slot)) {
+          const tgl = new Date(t['TIME STAMP']);
+          if (!isNaN(tgl.getTime()) && tglCair && tgl >= tglCair) {
+            if (!tglTerakhir || tgl > tglTerakhir) tglTerakhir = tgl;
+          }
+        }
+      });
+      return tglTerakhir;
+    }
+
     function updatePreviewCicilan() {
       const kode = document.getElementById('jenis').value;
-      if (kode !== 'CCL') return;
-      const slot = document.getElementById('slot').value;
-      const kaliBayar = Number(document.getElementById('kaliBayar').value) || 1;
-      const pinjaman = pinjamanAktifCache.find(p => String(p.slot) === String(slot));
       const previewEl = document.getElementById('previewCicilan');
-      if (!pinjaman || !pinjaman.jmlCicilan) { previewEl.textContent = ''; return; }
-      const cicilanPerBulan = Math.round(pinjaman.pokokAwal / pinjaman.jmlCicilan);
-      const jasaPerBulan = Math.round(cicilanPerBulan * 0.10);
-      const totalNominal = (cicilanPerBulan + jasaPerBulan) * kaliBayar;
-      previewEl.textContent = `Cicilan/bulan: ${formatRp(cicilanPerBulan)} + Jasa: ${formatRp(jasaPerBulan)} → Total ${kaliBayar}x bayar: ${formatRp(totalNominal)}`;
+
+      if (kode === 'CCL') {
+        const slot = document.getElementById('slot').value;
+        const kaliBayar = Number(document.getElementById('kaliBayar').value) || 1;
+        const pinjaman = pinjamanAktifCache.find(p => String(p.slot) === String(slot));
+        if (!pinjaman || !pinjaman.jmlCicilan) { previewEl.textContent = ''; return; }
+        const cicilanPerBulan = Math.round(pinjaman.pokokAwal / pinjaman.jmlCicilan);
+        const jasaPerBulan = Math.round(pinjaman.pokokAwal * 0.01); // Jasa = 1% dari MODAL (pokok awal), bukan dari nominal cicilan
+        const totalNominal = (cicilanPerBulan + jasaPerBulan) * kaliBayar;
+        previewEl.textContent = `Cicilan/bulan: ${formatRp(cicilanPerBulan)} + Jasa (1% modal): ${formatRp(jasaPerBulan)} → Total ${kaliBayar}x bayar: ${formatRp(totalNominal)}`;
+        return;
+      }
+
+      if (kode === 'CCS') {
+        const slot = document.getElementById('slot').value;
+        const noid = document.getElementById('noid').value;
+        const pinjaman = pinjamanAktifCache.find(p => String(p.slot) === String(slot));
+        if (!pinjaman || !noid || !slot) { previewEl.textContent = ''; return; }
+        const tglTerakhir = cariTanggalTerakhirKS(noid, slot);
+        const sekarang = new Date();
+        const bulan = tglTerakhir ? hitungBulanBerubah(tglTerakhir, sekarang) : 0;
+        const jasaEstimasi = Math.round(bulan * 0.01 * pinjaman.sisaPokok);
+        previewEl.textContent = `Estimasi Jasa: 1% × ${bulan} bulan × sisa ${formatRp(pinjaman.sisaPokok)} = ${formatRp(jasaEstimasi)} (perkiraan dari riwayat transaksi, nominal final tetap dihitung sistem)`;
+        return;
+      }
+
+      previewEl.textContent = '';
     }
 
     document.getElementById('kaliBayar').addEventListener('input', updatePreviewCicilan);
@@ -598,6 +649,10 @@
         selSlot.innerHTML = '<option value="">-- Pilih --</option>' + pinjamanAktifCache.map(p =>
           `<option value="${p.slot}">Slot ${p.slot} — Sisa ${formatRp(p.sisaPokok)} — Angsuran ke-${p.angsuranKeBerikutnya} dari ${p.jmlCicilan}</option>`
         ).join('');
+        if (pinjamanAktifCache.length === 1) {
+          selSlot.value = pinjamanAktifCache[0].slot;
+          updatePreviewCicilan();
+        }
       } catch (e) {
         console.error(e);
         selSlot.innerHTML = '<option value="">Gagal memuat pinjaman aktif</option>';
