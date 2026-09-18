@@ -266,7 +266,10 @@
       { href: 'pembukuan-kgp.html', cls: 'pembukuan', icon: '📒', label: 'Pembukuan Bulanan' }
     ];
 
-    const menu = sesi.role === 'admin' ? MENU_ADMIN : MENU_ANGGOTA;
+    let menu = sesi.role === 'admin' ? MENU_ADMIN : MENU_ANGGOTA;
+    if (sesi.role !== 'admin' && sesi.bisaBagikan) {
+      menu = menu.concat([{ href: 'bagikan-akses.html', cls: 'bagikan', icon: '🔗', label: 'Bagikan Akses' }]);
+    }
     document.getElementById('menuGrid').innerHTML = menu.map(m => `
       <a href="${m.href}" class="menu-card ${m.cls}">
         <div class="icon">${m.icon}</div>
