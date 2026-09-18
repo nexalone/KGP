@@ -96,7 +96,7 @@
       const password = document.getElementById('password').value;
 
       if (userId.toLowerCase() === ADMIN_USER && password === ADMIN_PASS) {
-        sessionStorage.setItem('kgpSesi', JSON.stringify({ role: 'admin', noid: null, nama: 'Admin/Bendahara' }));
+        sessionStorage.setItem('kgpSesi', JSON.stringify({ role: 'admin', noid: null, nama: 'Admin/Bendahara', bisaBagikan: true }));
         window.location.href = 'Index.html';
         return;
       }
