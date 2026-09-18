@@ -34,10 +34,6 @@
     .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
     .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
 
-    .info-box { background: #fff8e1; border-left: 4px solid #ffb300; padding: 12px 14px; border-radius: 8px; font-size: 0.78rem; color: #7a5c00; margin-bottom: 18px; line-height: 1.6; }
-    .info-box b { color: #5c4300; }
-    .info-box .sisa { display: block; margin-top: 6px; font-style: italic; opacity: 0.85; }
-
     .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
     .filter-row label { font-weight: 600; font-size: 0.85rem; color: #555; }
     .filter-row select, .filter-row input { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
@@ -85,14 +81,6 @@
     </div>
 
     <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
-
-    <div class="info-box">
-      📌 <b>Total SHU</b> dihitung otomatis = seluruh <b>Jasa Pinjaman (JP + JPS)</b> tahun berjalan − <b>Biaya-biaya</b> (Administrasi, THR, Rapat Pengurus, RAT, Zakat, Doorprize) — sama seperti perhitungan di Neraca. Bisa diedit manual bila ada angka final hasil RAT.<br /><br />
-      📌 <b>Ketentuan Pembagian SHU:</b><br />
-      • Simpanan 35% — dibagi proporsional dari total SP + SW + SHR tiap anggota<br />
-      • Jasa Pinjaman 45% — dibagi proporsional dari total Jasa Pinjaman (JP + JPS) tiap anggota<br />
-      • Pengurus 20% (dari jabatan): Pembina 3,80% · Ketua 3,60% · Bendahara 3,40% · Sekretaris 3,20% · BP-1 2,00% · BP-2 2,00% · BP-3 2,00%
-    </div>
 
     <div class="filter-row">
       <label for="pilihTahun">Tahun:</label>
@@ -361,7 +349,7 @@
         const pengurus = totalShu * (b.persenPengurus / 100);
         const shuDiterima = shuSimpanan + shuJasa + pengurus;
         return { ...b, shuSimpanan, shuJasa, pengurus, shuDiterima };
-      }).sort((a, b) => b.shuDiterima - a.shuDiterima);
+      }).sort((a, b) => (a.anggota.NOID || '').localeCompare(b.anggota.NOID || '', 'id', { numeric: true }));
 
       barisShuTerkini = baris;
       document.getElementById('jumlahAnggota').textContent = baris.length;
