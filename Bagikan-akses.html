@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <script>
+    (function() {
+      const sesiStr = sessionStorage.getItem("kgpSesi");
+      if (!sesiStr) { window.location.href = "login.html"; return; }
+      const sesi = JSON.parse(sesiStr);
+      if (sesi.role !== "admin") { alert("Halaman ini khusus Admin/Bendahara."); window.location.href = "Index.html"; return; }
+      window.KGP_SESI = sesi;
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bagikan Akses - KGP SMPN 1 Kaliwedi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); flex-shrink: 0; }
+    .home-btn:hover { transform: scale(1.08); }
+    .home-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .top-header h1 { font-size: 1.1rem; color: #333; font-weight: 700; }
+
+    .status-bar { background: #f0f4ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #555; border-left: 4px solid #667eea; }
+    .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
+    .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
+
+    .info-box { background: #fff8e1; border-left: 4px solid #ffb300; padding: 10px 14px; border-radius: 8px; font-size: 0.8rem; color: #7a5c00; margin-bottom: 18px; line-height: 1.5; }
+
+    .pilih-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .pilih-row select { flex: 1; min-width: 200px; padding: 11px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 0.9rem; }
+    .pilih-row select:focus { outline: none; border-color: #667eea; }
+    .btn { padding: 11px 18px; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; color: #fff; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap; transition: all 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-buat { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .btn-copy { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .btn-wa { background: linear-gradient(135deg, #25d366, #128c7e); }
+    .btn-share { background: linear-gradient(135deg, #fa709a, #fee140); color: #7a4a00; }
+    .btn-kecil { padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; }
+
+    .link-box { display: none; background: #f5f7ff; border: 1.5px solid #dfe3ff; border-radius: 12px; padding: 16px; margin-bottom: 22px; }
+    .link-box.show { display: block; }
+    .link-box-nama { font-weight: 700; color: #1e3c72; font-size: 0.9rem; margin-bottom: 10px; }
+    .link-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .link-row input { flex: 1; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.8rem; color: #555; background: #fff; }
+    .link-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .section-title { color: #333; margin: 22px 0 12px 0; font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .section-title .count { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem; }
+    .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px 10px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tr:hover { background: #f8f9ff; }
+    .member-name { font-weight: 700; color: #333; }
+    .member-sub { font-size: 0.76rem; color: #888; margin-top: 2px; }
+    .badge-bendahara { display: inline-block; background: #fff3e0; color: #e65100; font-size: 0.68rem; font-weight: 700; padding: 1px 7px; border-radius: 8px; margin-left: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-header">
+      <a href="Index.html" class="home-btn" title="Beranda">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </a>
+      <h1>🔗 BAGIKAN AKSES ANGGOTA</h1>
+    </div>
+
+    <div id="statusBar" class="status-bar">🔄 Memuat data anggota...</div>
+
+    <div class="info-box">
+      💡 Pilih anggota, lalu buat link akses. Anggota yang membuka link tersebut akan langsung masuk sebagai dirinya sendiri, tanpa perlu login manual.
+    </div>
+
+    <div class="pilih-row">
+      <select id="pilihAnggota">
+        <option value="">-- Pilih Nama Anggota --</option>
+      </select>
+      <button type="button" class="btn btn-buat" onclick="buatLink()">🔗 Buat Link</button>
+    </div>
+
+    <div class="link-box" id="linkBox">
+      <div class="link-box-nama" id="linkNama"></div>
+      <div class="link-row">
+        <input type="text" id="linkOutput" readonly onclick="this.select()" />
+        <button type="button" class="btn btn-copy" onclick="salinLink()">📋 Salin</button>
+      </div>
+      <div class="link-actions">
+        <a class="btn btn-wa" id="btnWa" target="_blank" rel="noopener">💬 Bagikan via WhatsApp</a>
+        <button type="button" class="btn btn-share" id="btnShareNative" style="display:none;">📤 Bagikan</button>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <span>👥 Anggota Aktif</span>
+      <span class="count" id="jumlahAnggota">0</span>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead><tr><th>Anggota</th><th style="width:100px;">Aksi</th></tr></thead>
+        <tbody id="tabelAnggota">
+          <tr><td colspan="2" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const ANGGOTA_URL = GITHUB_BASE + 'anggota.csv';
+
+    let dataAnggota = [];
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes; }
+        else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+        else current += c;
+      }
+      result.push(current);
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
+    }
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
+      const result = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    async function loadAnggota() {
+      const statusBar = document.getElementById('statusBar');
+      try {
+        const resp = await fetch(ANGGOTA_URL + '?t=' + Date.now());
+        if (!resp.ok) throw new Error('Gagal mengambil data');
+        dataAnggota = parseCSV(await resp.text()).filter(a => a.NOID && a.NOID.toUpperCase() !== 'NOID');
+
+        const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
+        statusBar.textContent = `✅ ${aktif.length} anggota aktif dimuat dari GitHub`;
+        statusBar.className = 'status-bar success';
+
+        populateDropdown();
+        renderTabel();
+      } catch (e) {
+        console.error(e);
+        statusBar.textContent = '❌ Gagal mengambil data anggota dari GitHub';
+        statusBar.className = 'status-bar error';
+      }
+    }
+
+    function daftarAktifUrut() {
+      return dataAnggota
+        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+        .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
+    }
+
+    function populateDropdown() {
+      const sel = document.getElementById('pilihAnggota');
+      const aktif = daftarAktifUrut();
+      sel.innerHTML = '<option value="">-- Pilih Nama Anggota --</option>' +
+        aktif.map(a => `<option value="${a.NOID}">${a.NAMA} (${a.NOID})</option>`).join('');
+    }
+
+    function renderTabel() {
+      const tbody = document.getElementById('tabelAnggota');
+      const aktif = daftarAktifUrut();
+      document.getElementById('jumlahAnggota').textContent = aktif.length;
+      if (aktif.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
+        return;
+      }
+      tbody.innerHTML = aktif.map(a => {
+        const jabatan = (a.JABATAN || '').trim();
+        const isBendahara = jabatan.toLowerCase() === 'bendahara';
+        return `
+        <tr>
+          <td>
+            <div class="member-name">${a.NAMA}${isBendahara ? '<span class="badge-bendahara">Bendahara</span>' : ''}</div>
+            <div class="member-sub">NOID: ${a.NOID}${jabatan && !isBendahara ? ' · ' + jabatan : ''}</div>
+          </td>
+          <td><button type="button" class="btn btn-buat btn-kecil" onclick="buatLinkUntuk('${a.NOID}')">🔗 Buat</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function buatLinkUntuk(noid) {
+      const anggota = dataAnggota.find(a => a.NOID === noid);
+      if (!anggota) return;
+
+      const url = new URL('akses.html', window.location.href);
+      url.searchParams.set('noid', anggota.NOID);
+      const link = url.href;
+
+      const jabatan = (anggota.JABATAN || '').trim();
+      const isBendahara = jabatan.toLowerCase() === 'bendahara';
+
+      document.getElementById('pilihAnggota').value = anggota.NOID;
+      document.getElementById('linkNama').textContent =
+        `Link akses untuk: ${anggota.NAMA} (${anggota.NOID})` + (isBendahara ? ' — akan masuk sebagai Bendahara/Admin' : '');
+      document.getElementById('linkOutput').value = link;
+      document.getElementById('linkBox').classList.add('show');
+
+      const pesanWa = encodeURIComponent(
+        `Halo ${anggota.NAMA}, berikut link akses Anda ke aplikasi KGP SMP Negeri 1 Kaliwedi:\n${link}\n\nCukup buka link ini untuk langsung masuk sebagai diri Anda sendiri, tanpa perlu login.`
+      );
+      document.getElementById('btnWa').href = `https://wa.me/?text=${pesanWa}`;
+
+      const btnShare = document.getElementById('btnShareNative');
+      if (navigator.share) {
+        btnShare.style.display = 'inline-flex';
+        btnShare.onclick = () => {
+          navigator.share({ title: 'Akses KGP SMPN 1 Kaliwedi', text: `Link akses untuk ${anggota.NAMA}`, url: link }).catch(() => {});
+        };
+      } else {
+        btnShare.style.display = 'none';
+      }
+
+      document.getElementById('linkBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function buatLink() {
+      const noid = document.getElementById('pilihAnggota').value;
+      if (!noid) { alert('Pilih anggota terlebih dahulu!'); return; }
+      buatLinkUntuk(noid);
+    }
+
+    function salinLink() {
+      const inp = document.getElementById('linkOutput');
+      inp.select();
+      inp.setSelectionRange(0, 99999);
+      const statusBar = document.getElementById('statusBar');
+      navigator.clipboard.writeText(inp.value).then(() => {
+        statusBar.textContent = '✅ Link berhasil disalin ke clipboard!';
+        statusBar.className = 'status-bar success';
+      }).catch(() => {
+        document.execCommand('copy');
+        statusBar.textContent = '✅ Link disalin.';
+        statusBar.className = 'status-bar success';
+      });
+    }
+
+    loadAnggota();
+  </script>
+</body>
+</html>
