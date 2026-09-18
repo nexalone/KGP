@@ -6,7 +6,7 @@
       const sesiStr = sessionStorage.getItem("kgpSesi");
       if (!sesiStr) { window.location.href = "login.html"; return; }
       const sesi = JSON.parse(sesiStr);
-      if (sesi.role !== "admin") { alert("Halaman ini khusus Admin/Bendahara."); window.location.href = "Index.html"; return; }
+      if (sesi.role !== "admin" && !sesi.bisaBagikan) { alert("Halaman ini khusus Admin, Ketua, Sekretaris, dan Bendahara."); window.location.href = "Index.html"; return; }
       window.KGP_SESI = sesi;
     })();
   </script>
@@ -65,6 +65,7 @@
     .member-name { font-weight: 700; color: #333; }
     .member-sub { font-size: 0.76rem; color: #888; margin-top: 2px; }
     .badge-bendahara { display: inline-block; background: #fff3e0; color: #e65100; font-size: 0.68rem; font-weight: 700; padding: 1px 7px; border-radius: 8px; margin-left: 6px; }
+    .badge-pengurus { display: inline-block; background: #e3f2fd; color: #1565c0; font-size: 0.68rem; font-weight: 700; padding: 1px 7px; border-radius: 8px; margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -79,7 +80,8 @@
     <div id="statusBar" class="status-bar">🔄 Memuat data anggota...</div>
 
     <div class="info-box">
-      💡 Pilih anggota, lalu buat link akses. Anggota yang membuka link tersebut akan langsung masuk sebagai dirinya sendiri, tanpa perlu login manual.
+      💡 Pilih anggota, lalu buat link akses. Anggota yang membuka link tersebut akan langsung masuk sebagai dirinya sendiri, tanpa perlu login manual.<br />
+      🔑 Yang bisa membagikan link: <b>Admin, Ketua, Sekretaris, dan Bendahara</b>. Bendahara mendapat akses penuh setara Admin; Ketua &amp; Sekretaris hanya mendapat izin membagikan link.
     </div>
 
     <div class="pilih-row">
@@ -191,12 +193,17 @@
       }
       tbody.innerHTML = aktif.map(a => {
         const jabatan = (a.JABATAN || '').trim();
-        const isBendahara = jabatan.toLowerCase() === 'bendahara';
+        const jabatanLower = jabatan.toLowerCase();
+        const isBendahara = jabatanLower === 'bendahara';
+        const isPengurusBagikan = ['ketua', 'sekretaris'].includes(jabatanLower);
+        let badge = '';
+        if (isBendahara) badge = '<span class="badge-bendahara">Bendahara · Admin</span>';
+        else if (isPengurusBagikan) badge = `<span class="badge-pengurus">${jabatan} · Bisa Bagikan</span>`;
         return `
         <tr>
           <td>
-            <div class="member-name">${a.NAMA}${isBendahara ? '<span class="badge-bendahara">Bendahara</span>' : ''}</div>
-            <div class="member-sub">NOID: ${a.NOID}${jabatan && !isBendahara ? ' · ' + jabatan : ''}</div>
+            <div class="member-name">${a.NAMA}${badge}</div>
+            <div class="member-sub">NOID: ${a.NOID}${jabatan && !isBendahara && !isPengurusBagikan ? ' · ' + jabatan : ''}</div>
           </td>
           <td><button type="button" class="btn btn-buat btn-kecil" onclick="buatLinkUntuk('${a.NOID}')">🔗 Buat</button></td>
         </tr>`;
@@ -212,11 +219,16 @@
       const link = url.href;
 
       const jabatan = (anggota.JABATAN || '').trim();
-      const isBendahara = jabatan.toLowerCase() === 'bendahara';
+      const jabatanLower = jabatan.toLowerCase();
+      const isBendahara = jabatanLower === 'bendahara';
+      const isPengurusBagikan = ['ketua', 'sekretaris'].includes(jabatanLower);
+      let ket = '';
+      if (isBendahara) ket = ' — akan masuk sebagai Bendahara, akses penuh setara Admin';
+      else if (isPengurusBagikan) ket = ` — akan masuk sebagai ${jabatan}, bisa membagikan link`;
 
       document.getElementById('pilihAnggota').value = anggota.NOID;
       document.getElementById('linkNama').textContent =
-        `Link akses untuk: ${anggota.NAMA} (${anggota.NOID})` + (isBendahara ? ' — akan masuk sebagai Bendahara/Admin' : '');
+        `Link akses untuk: ${anggota.NAMA} (${anggota.NOID})` + ket;
       document.getElementById('linkOutput').value = link;
       document.getElementById('linkBox').classList.add('show');
 
