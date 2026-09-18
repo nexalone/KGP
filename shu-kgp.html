@@ -47,11 +47,12 @@
       padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
     }
 
-    .pool-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-    @media (max-width: 700px) { .pool-grid { grid-template-columns: repeat(2, 1fr); } }
+    .pool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .pool-card { border-radius: 10px; padding: 14px; text-align: center; }
     .pool-card .label { font-size: 0.68rem; font-weight: 700; opacity: 0.85; margin-bottom: 4px; text-transform: uppercase; }
     .pool-card .nilai { font-size: 1rem; font-weight: 800; }
+    .pool-card.sumberJasa { background: #e8f5e9; color: #2e7d32; }
+    .pool-card.sumberBiaya { background: #ffebee; color: #c62828; }
     .pool-card.total { background: #1e3c72; color: #fff; }
     .pool-card.simpanan { background: #eef2fb; color: #2a5298; }
     .pool-card.jasa { background: #e8f5e9; color: #2e7d32; }
@@ -86,6 +87,7 @@
     <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
 
     <div class="info-box">
+      📌 <b>Total SHU</b> dihitung otomatis = seluruh <b>Jasa Pinjaman (JP + JPS)</b> tahun berjalan − <b>Biaya-biaya</b> (Administrasi, THR, Rapat Pengurus, RAT, Zakat, Doorprize) — sama seperti perhitungan di Neraca. Bisa diedit manual bila ada angka final hasil RAT.<br /><br />
       📌 <b>Ketentuan Pembagian SHU:</b><br />
       • Simpanan 35% — dibagi proporsional dari total SP + SW + SHR tiap anggota<br />
       • Jasa Pinjaman 45% — dibagi proporsional dari total Jasa Pinjaman (JP + JPS) tiap anggota<br />
@@ -97,10 +99,13 @@
       <select id="pilihTahun"></select>
       <label for="totalShu">Total SHU (Rp):</label>
       <input type="text" id="totalShu" inputmode="numeric" placeholder="0" />
+      <button type="button" onclick="isiTotalShuOtomatis()">🔄 Hitung Otomatis</button>
       <button type="button" onclick="unduhExcelShu()">⬇️ Excel</button>
     </div>
 
     <div class="pool-grid">
+      <div class="pool-card sumberJasa"><div class="label">Jasa Pinjaman (JP+JPS)</div><div class="nilai" id="pJasaMasuk">Rp 0</div></div>
+      <div class="pool-card sumberBiaya"><div class="label">Biaya-biaya</div><div class="nilai" id="pBiaya">Rp 0</div></div>
       <div class="pool-card total"><div class="label">Total SHU</div><div class="nilai" id="pTotal">Rp 0</div></div>
       <div class="pool-card simpanan"><div class="label">Pool Simpanan 35%</div><div class="nilai" id="pSimpanan">Rp 0</div></div>
       <div class="pool-card jasa"><div class="label">Pool Jasa Pinjaman 45%</div><div class="nilai" id="pJasa">Rp 0</div></div>
@@ -203,6 +208,42 @@
       return Number((str || '').replace(/\D/g, '')) || 0;
     }
 
+    // Semua pola REF yang dianggap Biaya Operasional (Keluar, tidak terkait anggota tertentu)
+    // Sama persis dengan neraca-kgp.html supaya hasil SHU konsisten.
+    function isRefBiayaOperasional(ref) {
+      if (/^ADM-\d{4}$/.test(ref)) return true;   // Biaya Administrasi/Operasional umum
+      if (ref === 'THR') return true;              // Bingkisan THR
+      if (/^RAP-\d{6}$/.test(ref)) return true;     // Rapat Pengurus (per tanggal)
+      if (ref === 'RAT') return true;               // RAT
+      if (ref === 'ZKT') return true;               // Zakat
+      if (ref === 'DPRZ') return true;               // Doorprize
+      return false;
+    }
+
+    // Total SHU otomatis = seluruh Jasa Pinjaman (JP+JPS) tahun berjalan - Biaya-biaya tahun berjalan
+    function hitungSumberShu(tahun) {
+      let jasaTahun = 0, biayaTahun = 0;
+      dataTransaksi.forEach(t => {
+        const d = new Date(t['TIME STAMP']);
+        if (isNaN(d.getTime()) || d.getFullYear() !== tahun) return;
+        const ref = t.REF || '';
+        const masuk = Number(t.MASUK) || 0;
+        const keluar = Number(t.KELUAR) || 0;
+        if (/^JPS?-/.test(ref)) jasaTahun += masuk;
+        else if (isRefBiayaOperasional(ref)) biayaTahun += keluar;
+      });
+      return { jasaTahun, biayaTahun, totalShu: jasaTahun - biayaTahun };
+    }
+
+    function isiTotalShuOtomatis() {
+      const tahun = Number(document.getElementById('pilihTahun').value) || new Date().getFullYear();
+      const sumber = hitungSumberShu(tahun);
+      document.getElementById('pJasaMasuk').textContent = formatRp(sumber.jasaTahun);
+      document.getElementById('pBiaya').textContent = formatRp(sumber.biayaTahun);
+      document.getElementById('totalShu').value = formatAngka(String(sumber.totalShu));
+      renderShu();
+    }
+
     async function loadAllData() {
       const statusBar = document.getElementById('statusBar');
       try {
@@ -242,23 +283,13 @@
       sel.value = tahunSekarang;
 
       sel.addEventListener('change', () => {
-        muatTotalShuTersimpan();
-        renderShu();
+        isiTotalShuOtomatis();
       });
-      muatTotalShuTersimpan();
-    }
-
-    // Ingat nilai Total SHU per tahun di browser (localStorage), supaya tidak perlu ketik ulang
-    function muatTotalShuTersimpan() {
-      const tahun = document.getElementById('pilihTahun').value;
-      const tersimpan = localStorage.getItem('kgpShuTotal_' + tahun);
-      document.getElementById('totalShu').value = tersimpan ? formatAngka(tersimpan) : '';
+      isiTotalShuOtomatis();
     }
 
     document.getElementById('totalShu').addEventListener('input', function() {
       this.value = formatAngka(this.value);
-      const tahun = document.getElementById('pilihTahun').value;
-      localStorage.setItem('kgpShuTotal_' + tahun, angkaBersih(this.value));
       renderShu();
     });
 
