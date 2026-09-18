@@ -89,8 +89,7 @@
       📌 <b>Ketentuan Pembagian SHU:</b><br />
       • Simpanan 35% — dibagi proporsional dari total SP + SW + SHR tiap anggota<br />
       • Jasa Pinjaman 45% — dibagi proporsional dari total Jasa Pinjaman (JP + JPS) tiap anggota<br />
-      • Pengurus 16% (dari jabatan): Pembina 3,80% · Ketua 3,60% · Bendahara 3,40% · Sekretaris 3,20% · BP 2,00%
-      <span class="sisa">*Sisa 4% dialokasikan untuk dana lain/cadangan, tidak dibagikan di halaman ini.</span>
+      • Pengurus 20% (dari jabatan): Pembina 3,80% · Ketua 3,60% · Bendahara 3,40% · Sekretaris 3,20% · BP-1 2,00% · BP-2 2,00% · BP-3 2,00%
     </div>
 
     <div class="filter-row">
@@ -105,7 +104,7 @@
       <div class="pool-card total"><div class="label">Total SHU</div><div class="nilai" id="pTotal">Rp 0</div></div>
       <div class="pool-card simpanan"><div class="label">Pool Simpanan 35%</div><div class="nilai" id="pSimpanan">Rp 0</div></div>
       <div class="pool-card jasa"><div class="label">Pool Jasa Pinjaman 45%</div><div class="nilai" id="pJasa">Rp 0</div></div>
-      <div class="pool-card pengurus"><div class="label">Pool Pengurus 16%</div><div class="nilai" id="pPengurus">Rp 0</div></div>
+      <div class="pool-card pengurus"><div class="label">Pool Pengurus 20%</div><div class="nilai" id="pPengurus">Rp 0</div></div>
     </div>
 
     <div class="section-title">
@@ -117,9 +116,9 @@
       <table>
         <thead>
           <tr>
-            <th>Anggota</th>
-            <th class="num">SP/SW</th>
-            <th class="num">SHR</th>
+            <th>NoId</th>
+            <th>Nama</th>
+            <th class="num">SP/SW/SHR</th>
             <th class="num">Jasa Pinjaman</th>
             <th class="num">SHU Simpanan</th>
             <th class="num">SHU Jasa</th>
@@ -132,9 +131,8 @@
         </tbody>
         <tfoot>
           <tr>
-            <td>TOTAL</td>
-            <td class="num" id="totSpSw">Rp 0</td>
-            <td class="num" id="totShr">Rp 0</td>
+            <td colspan="2">TOTAL</td>
+            <td class="num" id="totSimpanan">Rp 0</td>
             <td class="num" id="totJasa">Rp 0</td>
             <td class="num" id="totShuSimpanan">Rp 0</td>
             <td class="num" id="totShuJasa">Rp 0</td>
@@ -159,7 +157,9 @@
       'ketua': 3.60,
       'bendahara': 3.40,
       'sekretaris': 3.20,
-      'bp': 2.00
+      'bp-1': 2.00,
+      'bp-2': 2.00,
+      'bp-3': 2.00
     };
 
     let dataAnggota = [], dataTransaksi = [], barisShuTerkini = [];
@@ -340,13 +340,12 @@
       } else {
         tbody.innerHTML = baris.map(b => `
           <tr>
+            <td>${b.anggota.NOID}</td>
             <td>
               <div>${b.anggota.NAMA}</div>
-              <div class="sub-noid">${b.anggota.NOID}</div>
               ${b.persenPengurus > 0 ? `<div class="badge-jabatan">${b.jabatan} · ${b.persenPengurus.toFixed(2)}%</div>` : ''}
             </td>
-            <td class="num">${formatRp(b.spSw)}</td>
-            <td class="num">${formatRp(b.shr)}</td>
+            <td class="num">${formatRp(b.simpanan)}</td>
             <td class="num">${formatRp(b.jasa)}</td>
             <td class="num">${formatRp(b.shuSimpanan)}</td>
             <td class="num">${formatRp(b.shuJasa)}</td>
@@ -357,17 +356,15 @@
       }
 
       const total = baris.reduce((acc, b) => ({
-        spSw: acc.spSw + b.spSw,
-        shr: acc.shr + b.shr,
+        simpanan: acc.simpanan + b.simpanan,
         jasa: acc.jasa + b.jasa,
         shuSimpanan: acc.shuSimpanan + b.shuSimpanan,
         shuJasa: acc.shuJasa + b.shuJasa,
         pengurus: acc.pengurus + b.pengurus,
         shuDiterima: acc.shuDiterima + b.shuDiterima
-      }), { spSw: 0, shr: 0, jasa: 0, shuSimpanan: 0, shuJasa: 0, pengurus: 0, shuDiterima: 0 });
+      }), { simpanan: 0, jasa: 0, shuSimpanan: 0, shuJasa: 0, pengurus: 0, shuDiterima: 0 });
 
-      document.getElementById('totSpSw').textContent = formatRp(total.spSw);
-      document.getElementById('totShr').textContent = formatRp(total.shr);
+      document.getElementById('totSimpanan').textContent = formatRp(total.simpanan);
       document.getElementById('totJasa').textContent = formatRp(total.jasa);
       document.getElementById('totShuSimpanan').textContent = formatRp(total.shuSimpanan);
       document.getElementById('totShuJasa').textContent = formatRp(total.shuJasa);
@@ -387,17 +384,17 @@
     function unduhExcelShu() {
       const tahun = document.getElementById('pilihTahun').value;
       const rows = barisShuTerkini.map(b => [
-        b.anggota.NOID, b.anggota.NAMA, b.jabatan || '', b.spSw, b.shr, b.jasa, b.shuSimpanan, b.shuJasa, b.pengurus, b.shuDiterima
+        b.anggota.NOID, b.anggota.NAMA, b.jabatan || '', b.simpanan, b.jasa, b.shuSimpanan, b.shuJasa, b.pengurus, b.shuDiterima
       ]);
       const total = barisShuTerkini.reduce((acc, b) => ({
-        spSw: acc.spSw + b.spSw, shr: acc.shr + b.shr, jasa: acc.jasa + b.jasa,
+        simpanan: acc.simpanan + b.simpanan, jasa: acc.jasa + b.jasa,
         shuSimpanan: acc.shuSimpanan + b.shuSimpanan, shuJasa: acc.shuJasa + b.shuJasa,
         pengurus: acc.pengurus + b.pengurus, shuDiterima: acc.shuDiterima + b.shuDiterima
-      }), { spSw: 0, shr: 0, jasa: 0, shuSimpanan: 0, shuJasa: 0, pengurus: 0, shuDiterima: 0 });
-      rows.push(['', 'TOTAL', '', total.spSw, total.shr, total.jasa, total.shuSimpanan, total.shuJasa, total.pengurus, total.shuDiterima]);
+      }), { simpanan: 0, jasa: 0, shuSimpanan: 0, shuJasa: 0, pengurus: 0, shuDiterima: 0 });
+      rows.push(['', 'TOTAL', '', total.simpanan, total.jasa, total.shuSimpanan, total.shuJasa, total.pengurus, total.shuDiterima]);
 
       downloadExcel(`shu_${tahun}.xls`,
-        ['NOID', 'Nama', 'Jabatan', 'SP/SW', 'SHR', 'Jasa Pinjaman', 'SHU Simpanan', 'SHU Jasa', 'Pengurus', 'SHU Diterima'],
+        ['NOID', 'Nama', 'Jabatan', 'SP/SW/SHR', 'Jasa Pinjaman', 'SHU Simpanan', 'SHU Jasa', 'Pengurus', 'SHU Diterima'],
         rows);
     }
 
