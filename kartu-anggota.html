@@ -420,6 +420,13 @@
       return d.getDate() + '/' + bulan[d.getMonth()] + '/' + d.getFullYear();
     }
 
+    // Hitung jumlah bulan berdasarkan PERGANTIAN BULAN KALENDER (bukan selisih hari).
+    function hitungBulanBerubah(dariTanggal, sampaiTanggal) {
+      const idxDari = dariTanggal.getFullYear() * 12 + dariTanggal.getMonth();
+      const idxSampai = sampaiTanggal.getFullYear() * 12 + sampaiTanggal.getMonth();
+      return Math.max(0, idxSampai - idxDari);
+    }
+
     // Cari SEMUA pinjaman (K & KS) sepanjang riwayat — termasuk yang sudah lunas,
     // dan tetap benar walau nomor slot-nya sudah dipakai ulang untuk pinjaman lain.
     function cariSemuaPinjaman(noid) {
@@ -448,19 +455,32 @@
         const batasAkhir = berikutnyaSlotSama ? berikutnyaSlotSama.tanggal : null;
 
         const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
-        let pokokTerbayar = 0, angsuranKe = 0;
+        const jasaPrefix = p.jenisPrefix === 'K' ? 'JP' : 'JPS';
+        let pokokTerbayar = 0, angsuranKe = 0, tglTerakhirBayar = p.tanggal;
         rows.forEach(t => {
           const parts = (t.REF || '').split('-');
+          const tgl = new Date(t['TIME STAMP']);
+          if (isNaN(tgl.getTime()) || tgl < p.tanggal || (batasAkhir && tgl >= batasAkhir)) return;
           if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === p.slot) {
-            const tgl = new Date(t['TIME STAMP']);
-            if (tgl >= p.tanggal && (!batasAkhir || tgl < batasAkhir)) {
-              pokokTerbayar += Number(t.MASUK) || 0;
-              angsuranKe++;
-            }
+            pokokTerbayar += Number(t.MASUK) || 0;
+            angsuranKe++;
+            if (tgl > tglTerakhirBayar) tglTerakhirBayar = tgl;
+          } else if (p.jenisPrefix === 'KS' && parts.length === 4 && parts[0] === jasaPrefix && parts[2] === p.slot) {
+            // Bayar jasa sementara saja (tanpa cicilan pokok) tetap mereset masa hitung bulan tertunggak
+            if (tgl > tglTerakhirBayar) tglTerakhirBayar = tgl;
           }
         });
 
+        const sisaPokok = p.pokokAwal - pokokTerbayar;
+        let bulanTertunggak = null, jasaBerjalan = null;
+        if (p.jenisPrefix === 'KS' && sisaPokok > 0) {
+          const acuan = batasAkhir || new Date(); // kalau masih pinjaman terakhir di slot ini, acuannya hari ini
+          bulanTertunggak = hitungBulanBerubah(tglTerakhirBayar, acuan);
+          jasaBerjalan = Math.round(sisaPokok * 0.01 * bulanTertunggak);
+        }
+
         hasil.push({
+          jenisPrefix: p.jenisPrefix,
           jenisLabel: p.jenisPrefix === 'K' ? 'Kredit' : 'Sementara',
           slot: p.slot,
           tanggalCair: p.tanggal,
@@ -469,7 +489,9 @@
           angsuranKe,
           angsuranPerBulan: p.jmlCicilan ? Math.round(p.pokokAwal / p.jmlCicilan) : null,
           pokokTerbayar,
-          sisaPokok: p.pokokAwal - pokokTerbayar,
+          sisaPokok,
+          bulanTertunggak,
+          jasaBerjalan,
           lunas: pokokTerbayar >= p.pokokAwal
         });
       });
@@ -502,10 +524,15 @@
             <span class="status-badge ${p.lunas ? 'lunas' : 'aktif'}">${p.lunas ? 'LUNAS' : 'AKTIF'}</span>
           </div>
           <div class="baris"><span>Pinjaman Awal</span><span>${formatRp(p.pokokAwal)}</span></div>
+          ${p.jenisPrefix === 'K' ? `
           <div class="baris"><span>Angsuran per Bulan</span><span>${p.angsuranPerBulan ? formatRp(p.angsuranPerBulan) : '-'}</span></div>
           <div class="baris"><span>Sampai Cicilan Ke</span><span>${p.angsuranKe} dari ${p.jmlCicilan || '-'}</span></div>
+          ` : ''}
           <div class="baris"><span>Jumlah Angsuran</span><span>${formatRp(p.pokokTerbayar)}</span></div>
           <div class="baris"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
+          ${p.jenisPrefix === 'KS' && !p.lunas ? `
+          <div class="baris"><span>Jasa Berjalan (${p.bulanTertunggak} bln)</span><span>${formatRp(p.jasaBerjalan)}</span></div>
+          ` : ''}
         </div>
       `).join('');
     }
