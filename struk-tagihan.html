@@ -110,10 +110,9 @@
       @page { size: A4 portrait; margin: 10mm; }
       .struk-a4-page {
         display: grid;
-        grid-template-columns: repeat(3, 29.7%);
-        grid-template-rows: repeat(2, 46%);
-        justify-content: space-between;
-        align-content: space-between;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 3mm;
         width: 190mm;
         height: 277mm;
         page-break-after: always;
@@ -125,23 +124,23 @@
         position: relative;
       }
       .struk-a4-cell .struk-mini-inner {
-        transform: scale(0.75);
+        transform: scale(0.72);
         transform-origin: top left;
-        width: 133%;
-        padding: 8px;
+        width: 139%;
+        padding: 6px;
       }
       /* Padatkan jarak-jarak yang tadinya lebar (dirancang untuk struk tunggal ukuran penuh) */
-      .struk-a4-cell .struk-header { margin-bottom: 4px; padding-bottom: 4px; }
-      .struk-a4-cell .struk-header .judul { font-size: 1.15rem; }
-      .struk-a4-cell .struk-nama { margin-bottom: 4px; }
-      .struk-a4-cell .struk-nama .nama { font-size: 1.25rem; }
-      .struk-a4-cell .struk-section { margin-bottom: 6px; }
-      .struk-a4-cell .struk-section-title { padding: 3px 8px; margin-bottom: 3px; font-size: 0.9rem; }
-      .struk-a4-cell .struk-row { padding: 2px 4px; font-size: 1rem; }
-      .struk-a4-cell .struk-row.total { padding-top: 4px; margin-top: 2px; }
-      .struk-a4-cell .struk-pinjaman-item { padding: 4px 6px; margin: 3px 0; }
-      .struk-a4-cell .struk-pinjaman-item .judul { font-size: 0.88rem; margin-bottom: 2px; }
-      .struk-a4-cell .struk-pinjaman-item .sub-row { padding: 1px 0; font-size: 0.9rem; }
+      .struk-a4-cell .struk-header { margin-bottom: 3px; padding-bottom: 3px; }
+      .struk-a4-cell .struk-header .judul { font-size: 1.1rem; }
+      .struk-a4-cell .struk-nama { margin-bottom: 3px; }
+      .struk-a4-cell .struk-nama .nama { font-size: 1.2rem; }
+      .struk-a4-cell .struk-section { margin-bottom: 4px; }
+      .struk-a4-cell .struk-section-title { padding: 3px 8px; margin-bottom: 2px; font-size: 0.85rem; }
+      .struk-a4-cell .struk-row { padding: 1px 4px; font-size: 0.95rem; }
+      .struk-a4-cell .struk-row.total { padding-top: 3px; margin-top: 1px; }
+      .struk-a4-cell .struk-pinjaman-item { padding: 3px 6px; margin: 2px 0; }
+      .struk-a4-cell .struk-pinjaman-item .judul { font-size: 0.84rem; margin-bottom: 1px; }
+      .struk-a4-cell .struk-pinjaman-item .sub-row { padding: 1px 0; font-size: 0.86rem; }
     }
   </style>
 </head>
@@ -425,8 +424,8 @@
         } else {
           html += `
             <div class="struk-pinjaman-item">
-              <div class="judul">${p.label} ${p.slot} — Cicilan ke-${p.angsuranKe} dari ${p.jmlCicilan || '-'}</div>
-              <div class="sub-row"><span>Cicilan Pokok</span><span>${formatRp(p.cicilan)}</span></div>
+              <div class="judul">${p.label} ${p.slot} — Ke-${p.angsuranKe}/${p.jmlCicilan || '-'}</div>
+              <div class="sub-row"><span>Cicilan</span><span>${formatRp(p.cicilan)}</span></div>
               <div class="sub-row"><span>Jasa</span><span>${formatRp(p.jasa)}</span></div>
             </div>`;
         }
@@ -517,18 +516,18 @@
               <div class="noid">${d.anggota.NOID}</div>
             </div>
             <div class="struk-section">
-              <div class="struk-section-title">💰 SIMPANAN SAMPAI BULAN ${d.labelBulan}</div>
-              <div class="struk-row"><span>Simpanan Pokok (SP)</span><span class="nilai">${formatRp(d.sp)}</span></div>
-              <div class="struk-row"><span>Simpanan Wajib (SW)</span><span class="nilai">${formatRp(d.sw)}</span></div>
-              <div class="struk-row"><span>Simpanan Hari Raya (SHR)</span><span class="nilai">${formatRp(d.shr)}</span></div>
-              <div class="struk-row total"><span>JUMLAH SIMPANAN</span><span>${formatRp(d.jumlahSimpanan)}</span></div>
+              <div class="struk-section-title">💰 SIMPANAN s.d. BULAN ${d.labelBulan}</div>
+              <div class="struk-row"><span>SP</span><span class="nilai">${formatRp(d.sp)}</span></div>
+              <div class="struk-row"><span>SW</span><span class="nilai">${formatRp(d.sw)}</span></div>
+              <div class="struk-row"><span>SHR</span><span class="nilai">${formatRp(d.shr)}</span></div>
+              <div class="struk-row total"><span>JML SIMP.</span><span>${formatRp(d.jumlahSimpanan)}</span></div>
             </div>
             <div class="struk-section">
               <div class="struk-section-title">🧾 TAGIHAN BULAN ${d.labelBulan}</div>
-              <div class="struk-row"><span>Simpanan Wajib (SW)</span><span class="nilai">${formatRp(d.nominalSW)}</span></div>
-              <div class="struk-row"><span>Simpanan Hari Raya (SHR)</span><span class="nilai">${formatRp(d.nominalSHR)}</span></div>
+              <div class="struk-row"><span>SW</span><span class="nilai">${formatRp(d.nominalSW)}</span></div>
+              <div class="struk-row"><span>SHR</span><span class="nilai">${formatRp(d.nominalSHR)}</span></div>
               ${rincianPinjamanFixedHTML(d.semuaPinjamanAktif, 4)}
-              <div class="struk-row total"><span>TOTAL TAGIHAN BULAN INI</span><span>${formatRp(d.totalTagihan)}</span></div>
+              <div class="struk-row total"><span>TOTAL TAGIHAN</span><span>${formatRp(d.totalTagihan)}</span></div>
             </div>
           </div>
         </div>
