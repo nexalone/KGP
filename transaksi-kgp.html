@@ -568,7 +568,7 @@
       return Math.max(0, idxSampai - idxDari);
     }
 
-    // Cari tanggal pencairan & tanggal cicilan/pembayaran terakhir untuk slot KS tertentu,
+    // Cari tanggal pencairan & tanggal cicilan/pembayaran (termasuk bayar jasa saja) terakhir untuk slot KS tertentu,
     // berdasarkan riwayat transaksi yang sudah dimuat (mengikuti pola REF yang sama seperti di neraca-kgp.html).
     function cariTanggalTerakhirKS(noid, slot) {
       const punya = dataTransaksi.filter(t => t.NOID === noid);
@@ -583,7 +583,7 @@
       let tglTerakhir = tglCair;
       punya.forEach(t => {
         const parts = (t.REF || '').split('-');
-        if (parts.length === 4 && parts[0] === 'CS' && parts[2] === String(slot)) {
+        if (parts.length === 4 && (parts[0] === 'CS' || parts[0] === 'JPS') && parts[2] === String(slot)) {
           const tgl = new Date(t['TIME STAMP']);
           if (!isNaN(tgl.getTime()) && tglCair && tgl >= tglCair) {
             if (!tglTerakhir || tgl > tglTerakhir) tglTerakhir = tgl;
@@ -609,7 +609,7 @@
         return;
       }
 
-      if (kode === 'CCS') {
+      if (kode === 'CCS' || kode === 'JSMT') {
         const slot = document.getElementById('slot').value;
         const noid = document.getElementById('noid').value;
         const pinjaman = pinjamanAktifCache.find(p => String(p.slot) === String(slot));
