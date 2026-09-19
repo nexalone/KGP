@@ -88,6 +88,20 @@
       body.mode-semua .container { display: none !important; }
       #strukSemuaContainer { display: none; }
       body.mode-semua #strukSemuaContainer { display: block !important; }
+
+      /* Perbesar huruf struk tunggal (satu anggota) supaya jelas dibaca saat dicetak */
+      #struk { padding: 10px 4px; }
+      #struk .struk-header .judul { font-size: 1.7rem; }
+      #struk .struk-header .sekolah { font-size: 1rem; }
+      #struk .struk-nama .nama { font-size: 1.5rem; }
+      #struk .struk-nama .noid { font-size: 1rem; }
+      #struk .struk-section-title { font-size: 1.15rem; padding: 9px 14px; }
+      #struk .struk-row { font-size: 1.2rem; padding: 9px 10px; }
+      #struk .struk-row.total { font-size: 1.3rem; }
+      #struk .struk-pinjaman-item .judul { font-size: 1.1rem; }
+      #struk .struk-pinjaman-item .sub-row { font-size: 1.15rem; }
+      #struk .struk-footer { font-size: 1rem; }
+      #struk .status-dot { width: 18px; height: 18px; font-size: 12px; }
       .struk-cetak-satu {
         border: 2px dashed #1e3c72; border-radius: 12px; padding: 20px;
         max-width: 600px; margin: 0 auto 0; page-break-after: always;
@@ -97,7 +111,7 @@
       .struk-a4-page {
         display: grid;
         grid-template-columns: repeat(3, 27%);
-        grid-template-rows: repeat(3, 27%);
+        grid-template-rows: repeat(2, 46%);
         justify-content: space-between;
         align-content: space-between;
         width: 190mm;
@@ -111,9 +125,9 @@
         position: relative;
       }
       .struk-a4-cell .struk-mini-inner {
-        transform: scale(0.42);
+        transform: scale(0.68);
         transform-origin: top left;
-        width: 238%;
+        width: 147%;
         padding: 8px;
       }
       /* Padatkan jarak-jarak yang tadinya lebar (dirancang untuk struk tunggal ukuran penuh) */
@@ -530,10 +544,10 @@
 
       const semuaData = aktif.map(a => hitungDataStruk(a, bulanInput));
 
-      // Kelompokkan jadi halaman berisi 9 struk (grid 3x3, kertas A4)
+      // Kelompokkan jadi halaman berisi 6 struk (grid 3x2, kertas A4) — dikurangi dari 9 supaya huruf lebih besar & jelas
       let halamanHTML = '';
-      for (let i = 0; i < semuaData.length; i += 9) {
-        const kelompok = semuaData.slice(i, i + 9);
+      for (let i = 0; i < semuaData.length; i += 6) {
+        const kelompok = semuaData.slice(i, i + 6);
         halamanHTML += `<div class="struk-a4-page">${kelompok.map(strukA4CellHTML).join('')}</div>`;
       }
       document.getElementById('strukSemuaContainer').innerHTML = halamanHTML;
