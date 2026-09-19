@@ -300,9 +300,17 @@
       return row ? (Number(row.NOMINAL) || 0) : 0;
     }
 
+    // Hitung jumlah bulan berdasarkan PERGANTIAN BULAN KALENDER (bukan selisih hari).
+    function hitungBulanBerubah(dariTanggal, sampaiTanggal) {
+      const idxDari = dariTanggal.getFullYear() * 12 + dariTanggal.getMonth();
+      const idxSampai = sampaiTanggal.getFullYear() * 12 + sampaiTanggal.getMonth();
+      return Math.max(0, idxSampai - idxDari);
+    }
+
     // Info pinjaman aktif (untuk hitung tagihan cicilan+jasa bulan berjalan)
     function cariPinjamanAktif(rows, jenisPrefix) {
       const cicilanPrefix = jenisPrefix === 'K' ? 'CP' : 'CS';
+      const jasaPrefix = jenisPrefix === 'K' ? 'JP' : 'JPS';
       const hasil = [];
       for (let slot = 1; slot <= 5; slot++) {
         let pokokAwal = 0, jmlCicilan = 0, tglCair = null, found = false;
@@ -317,17 +325,23 @@
         });
         if (!found) continue;
 
-        let pokokTerbayar = 0, angsuranTerbayar = 0;
+        let pokokTerbayar = 0, angsuranTerbayar = 0, tglTerakhirBayar = tglCair;
         rows.forEach(t => {
           const parts = (t.REF || '').split('-');
+          const tgl = new Date(t['TIME STAMP']);
+          if (isNaN(tgl.getTime()) || tgl < tglCair) return;
           if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === String(slot)) {
-            const tgl = new Date(t['TIME STAMP']);
-            if (tgl >= tglCair) { pokokTerbayar += Number(t.MASUK) || 0; angsuranTerbayar++; }
+            pokokTerbayar += Number(t.MASUK) || 0;
+            angsuranTerbayar++;
+            if (tgl > tglTerakhirBayar) tglTerakhirBayar = tgl;
+          } else if (jenisPrefix === 'KS' && parts.length === 4 && parts[0] === jasaPrefix && parts[2] === String(slot)) {
+            // Bayar jasa sementara saja (tanpa cicilan pokok) tetap mereset masa hitung bulan tertunggak
+            if (tgl > tglTerakhirBayar) tglTerakhirBayar = tgl;
           }
         });
 
         const sisaPokok = pokokAwal - pokokTerbayar;
-        if (sisaPokok > 0) hasil.push({ jenisPrefix, slot, pokokAwal, sisaPokok, jmlCicilan, angsuranTerbayar });
+        if (sisaPokok > 0) hasil.push({ jenisPrefix, slot, pokokAwal, sisaPokok, jmlCicilan, angsuranTerbayar, tglCair, tglTerakhirBayar });
       }
       return hasil;
     }
@@ -375,14 +389,21 @@
         ...pinjamanAktifK.map(p => ({ ...p, label: 'Kredit' })),
         ...pinjamanAktifKS.map(p => ({ ...p, label: 'Sementara' }))
       ].map(p => {
-        const cicilan = p.jmlCicilan ? Math.round(p.pokokAwal / p.jmlCicilan) : 0;
-        const jasa = p.jenisPrefix === 'K' ? Math.round(cicilan * 0.10) : Math.round(p.sisaPokok * 0.01);
+        let cicilan, jasa, bulanTertunggak = null;
+        if (p.jenisPrefix === 'K') {
+          cicilan = p.jmlCicilan ? Math.round(p.pokokAwal / p.jmlCicilan) : 0;
+          jasa = Math.round(p.pokokAwal * 0.01); // Jasa = 1% dari MODAL (pokok awal), flat setiap kali cicilan
+        } else {
+          cicilan = 0; // Pinjaman Sementara: tidak ada cicilan pokok bulanan wajib, hanya jasa yang ditagih
+          bulanTertunggak = hitungBulanBerubah(p.tglTerakhirBayar, akhirBulan);
+          jasa = Math.round(p.sisaPokok * 0.01 * bulanTertunggak); // Jasa = 1% x sisa pinjaman x jumlah bulan tertunggak
+        }
         const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
         const sudahBayar = rowsBulanIni.some(t => {
           const parts = (t.REF || '').split('-');
           return parts.length === 4 && parts[0] === cicilanPrefix && parts[1] === yymmIni && parts[2] === String(p.slot);
         });
-        return { ...p, cicilan, jasa, angsuranKe: p.angsuranTerbayar + 1, sudahBayar };
+        return { ...p, cicilan, jasa, bulanTertunggak, angsuranKe: p.angsuranTerbayar + 1, sudahBayar };
       });
 
       const tagihanPinjaman = semuaPinjamanAktif.reduce((s, p) => s + p.cicilan, 0);
@@ -400,13 +421,24 @@
 
     function rincianPinjamanHTML(semuaPinjamanAktif) {
       if (semuaPinjamanAktif.length === 0) return '';
-      return semuaPinjamanAktif.map(p => `
+      return semuaPinjamanAktif.map(p => {
+        if (p.jenisPrefix === 'K') {
+          return `
         <div class="struk-pinjaman-item">
           <div class="judul">${tandaBayar(p.sudahBayar)} ${p.label} ${p.slot} — Cicilan ke-${p.angsuranKe} dari ${p.jmlCicilan || '-'}</div>
           <div class="sub-row"><span>Cicilan Pokok</span><span>${formatRp(p.cicilan)}</span></div>
           <div class="sub-row"><span>Jasa</span><span>${formatRp(p.jasa)}</span></div>
         </div>
-      `).join('');
+      `;
+        }
+        return `
+        <div class="struk-pinjaman-item">
+          <div class="judul">${tandaBayar(p.sudahBayar)} ${p.label} ${p.slot}</div>
+          <div class="sub-row"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
+          <div class="sub-row"><span>Jasa (${p.bulanTertunggak} bln)</span><span>${formatRp(p.jasa)}</span></div>
+        </div>
+      `;
+      }).join('');
     }
 
     // Versi TETAP 4 slot (dipakai khusus di cetak semua anggota) — supaya tinggi tiap struk konsisten,
@@ -422,12 +454,19 @@
               <div class="sub-row"><span>&nbsp;</span><span>&nbsp;</span></div>
               <div class="sub-row"><span>&nbsp;</span><span>&nbsp;</span></div>
             </div>`;
-        } else {
+        } else if (p.jenisPrefix === 'K') {
           html += `
             <div class="struk-pinjaman-item">
               <div class="judul">${p.label} ${p.slot} — Ke-${p.angsuranKe}/${p.jmlCicilan || '-'}</div>
               <div class="sub-row"><span>Cicilan</span><span>${formatRp(p.cicilan)}</span></div>
               <div class="sub-row"><span>Jasa</span><span>${formatRp(p.jasa)}</span></div>
+            </div>`;
+        } else {
+          html += `
+            <div class="struk-pinjaman-item">
+              <div class="judul">${p.label} ${p.slot}</div>
+              <div class="sub-row"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
+              <div class="sub-row"><span>Jasa (${p.bulanTertunggak} bln)</span><span>${formatRp(p.jasa)}</span></div>
             </div>`;
         }
       }
