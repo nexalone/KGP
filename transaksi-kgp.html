@@ -661,7 +661,7 @@
       } else if (kode === 'CCS') {
         const slot = document.getElementById('slot').value;
         const pinjaman = pinjamanAktifCache.find(p => String(p.slot) === String(slot));
-        const nominalPokok = angkaMurni(document.getElementById('nominal').value);
+        const nominalPokok = Number(angkaMurni(document.getElementById('nominal').value)) || 0;
         if (!slot) return null;
         items.push({ label: `Cicilan Pokok Slot ${slot}`, nominal: nominalPokok });
         if (pinjaman && noid) {
@@ -671,11 +671,11 @@
           items.push({ label: `Jasa Pinjaman Sementara (${bulan} bln, estimasi)`, nominal: jasaEstimasi });
         }
       } else {
-        const nominalManual = angkaMurni(document.getElementById('nominal').value);
+        const nominalManual = Number(angkaMurni(document.getElementById('nominal').value)) || 0;
         items.push({ label: jenisLabel, nominal: nominalManual });
       }
 
-      const total = items.reduce((s, it) => s + (it.nominal || 0), 0);
+      const total = items.reduce((s, it) => s + (Number(it.nominal) || 0), 0);
       return { kode, jenisLabel, namaAnggota, noid, caraBayar, arahMasuk, items, total };
     }
 
