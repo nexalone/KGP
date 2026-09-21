@@ -80,6 +80,21 @@
     .modal-header h3 { color: #333; font-size: 1rem; }
     .close-modal { background: #dc3545; color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
 
+    .filter-toggle { display: flex; gap: 8px; }
+    .filter-btn { flex: 1; padding: 8px 10px; border: 1.5px solid #ddd; background: #fff; border-radius: 8px; font-size: 0.8rem; font-weight: 600; color: #666; cursor: pointer; transition: all 0.2s; }
+    .filter-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-color: transparent; }
+
+    .cari-wrap { position: relative; }
+    .saran-list { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1.5px solid #ddd; border-radius: 8px; max-height: 220px; overflow-y: auto; z-index: 20; display: none; box-shadow: 0 8px 20px rgba(0,0,0,0.12); margin-top: 2px; }
+    .saran-item { padding: 9px 12px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid #f2f2f2; }
+    .saran-item:last-child { border-bottom: none; }
+    .saran-item:hover { background: #f5f7ff; }
+    .saran-noid { font-size: 0.72rem; color: #999; }
+    .saran-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+    .saran-badge.aktif { background: #e8f5e9; color: #2e7d32; }
+    .saran-badge.nonaktif { background: #ffebee; color: #c62828; }
+    .saran-kosong { padding: 10px 12px; font-size: 0.8rem; color: #999; text-align: center; }
+
     .loading { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
@@ -138,6 +153,10 @@
         <button type="button" class="btn btn-tutup" style="margin:0; padding:6px 12px; font-size:0.78rem;" onclick="unduhExcelAnggota()">⬇️ Excel</button>
       </span>
     </div>
+    <div class="filter-toggle" style="margin-bottom:12px;">
+      <button type="button" class="filter-btn active" id="btnFilterTabelAktif" onclick="setFilterTabel('aktif')">✅ Aktif Saja</button>
+      <button type="button" class="filter-btn" id="btnFilterTabelSemua" onclick="setFilterTabel('semua')">👥 Semua Anggota</button>
+    </div>
     <div class="table-responsive">
       <table>
         <thead>
@@ -159,10 +178,17 @@
       </div>
       <form id="formKelola">
         <div class="form-group">
-          <label>Pilih Anggota</label>
-          <select id="editAnggota" required style="font-size:0.85rem;" onchange="loadKelolaData()">
-            <option value="">-- Pilih Nama --</option>
-          </select>
+          <label>Tampilkan</label>
+          <div class="filter-toggle">
+            <button type="button" class="filter-btn active" id="btnFilterAktif" onclick="setFilterAnggota('aktif')">✅ Aktif Saja</button>
+            <button type="button" class="filter-btn" id="btnFilterSemua" onclick="setFilterAnggota('semua')">👥 Semua Anggota</button>
+          </div>
+        </div>
+        <div class="form-group cari-wrap">
+          <label>Cari &amp; Pilih Anggota</label>
+          <input type="text" id="cariAnggota" placeholder="Ketik nama atau NOID anggota..." autocomplete="off" style="font-size:0.85rem;" />
+          <input type="hidden" id="editAnggota" />
+          <div class="saran-list" id="saranAnggota"></div>
         </div>
         <div class="form-grid">
           <div class="form-group">
@@ -334,7 +360,6 @@
         statusBar.className = 'status-bar success';
 
         renderTabelAktif();
-        populateDropdown();
       } catch (e) {
         console.error(e);
         statusBar.textContent = '❌ Gagal mengambil data dari GitHub';
@@ -342,23 +367,33 @@
       }
     }
 
+    let filterTabelUtama = 'aktif'; // 'aktif' | 'semua'
+
+    function setFilterTabel(mode) {
+      filterTabelUtama = mode;
+      document.getElementById('btnFilterTabelAktif').classList.toggle('active', mode === 'aktif');
+      document.getElementById('btnFilterTabelSemua').classList.toggle('active', mode === 'semua');
+      renderTabelAktif();
+    }
+
     function renderTabelAktif() {
       const tbody = document.getElementById('tabelAktif');
-      const aktif = dataAnggota
-        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+      const daftar = dataAnggota
+        .filter(a => filterTabelUtama === 'semua' || (a.STATUS || '').toUpperCase() === 'AKTIF')
         .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
-      document.getElementById('jumlahAnggota').textContent = aktif.length;
-      if (aktif.length === 0) {
+      document.getElementById('jumlahAnggota').textContent = daftar.length;
+      if (daftar.length === 0) {
         tbody.innerHTML = '<tr><td style="text-align:center;padding:20px;color:#999;">Belum ada data</td></tr>';
         return;
       }
-      tbody.innerHTML = aktif.map(a => {
+      tbody.innerHTML = daftar.map(a => {
         const r = hitungRingkasan(a.NOID);
+        const aktif = (a.STATUS || '').toUpperCase() === 'AKTIF';
         return `
         <tr>
           <td>
             <a class="nama-link" href="transaksi-kgp.html?noid=${encodeURIComponent(a.NOID)}">
-              <div class="member-name">${a.NAMA}</div>
+              <div class="member-name">${a.NAMA}${!aktif ? ' <span class="saran-badge nonaktif" style="margin-left:4px;">Tidak Aktif</span>' : ''}</div>
             </a>
             <div class="sub-info">
               <span><span class="label">NOID:</span> ${a.NOID}</span>
@@ -370,17 +405,72 @@
       }).join('');
     }
 
-    function populateDropdown() {
-      const select = document.getElementById('editAnggota');
-      const aktif = dataAnggota
-        .filter(a => a.STATUS.toUpperCase() === 'AKTIF')
-        .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
-      select.innerHTML = '<option value="">-- Pilih Nama --</option>';
-      aktif.forEach((a, idx) => {
-        const originalIdx = dataAnggota.indexOf(a);
-        select.innerHTML += `<option value="${originalIdx}">${a.NAMA}</option>`;
-      });
+    // ===== FILTER & PENCARIAN BERSARAN UNTUK MODAL KELOLA =====
+    let filterAnggotaModal = 'aktif'; // 'aktif' | 'semua'
+
+    function setFilterAnggota(mode) {
+      filterAnggotaModal = mode;
+      document.getElementById('btnFilterAktif').classList.toggle('active', mode === 'aktif');
+      document.getElementById('btnFilterSemua').classList.toggle('active', mode === 'semua');
+      // Reset pilihan yang sedang aktif kalau filter diganti
+      document.getElementById('cariAnggota').value = '';
+      document.getElementById('editAnggota').value = '';
+      document.getElementById('saranAnggota').innerHTML = '';
+      document.getElementById('saranAnggota').style.display = 'none';
     }
+
+    function daftarAnggotaTerfilter() {
+      return dataAnggota
+        .map((a, idx) => ({ ...a, _idx: idx }))
+        .filter(a => filterAnggotaModal === 'semua' || (a.STATUS || '').toUpperCase() === 'AKTIF')
+        .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
+    }
+
+    function tampilkanSaranAnggota(kataKunci) {
+      const kotak = document.getElementById('saranAnggota');
+      const kw = kataKunci.trim().toLowerCase();
+      if (!kw) { kotak.innerHTML = ''; kotak.style.display = 'none'; return; }
+
+      const hasil = daftarAnggotaTerfilter()
+        .filter(a => (a.NAMA || '').toLowerCase().includes(kw) || (a.NOID || '').toLowerCase().includes(kw))
+        .slice(0, 8);
+
+      if (hasil.length === 0) {
+        kotak.innerHTML = '<div class="saran-kosong">Tidak ditemukan</div>';
+        kotak.style.display = 'block';
+        return;
+      }
+      kotak.innerHTML = hasil.map(a => {
+        const aktif = (a.STATUS || '').toUpperCase() === 'AKTIF';
+        return `
+        <div class="saran-item" onclick="pilihAnggotaSaran(${a._idx})">
+          <span>${a.NAMA} <span class="saran-noid">(${a.NOID})</span></span>
+          <span class="saran-badge ${aktif ? 'aktif' : 'nonaktif'}">${aktif ? 'Aktif' : 'Tidak Aktif'}</span>
+        </div>`;
+      }).join('');
+      kotak.style.display = 'block';
+    }
+
+    function pilihAnggotaSaran(idx) {
+      const a = dataAnggota[idx];
+      if (!a) return;
+      document.getElementById('cariAnggota').value = `${a.NAMA} (${a.NOID})`;
+      document.getElementById('editAnggota').value = idx;
+      document.getElementById('saranAnggota').innerHTML = '';
+      document.getElementById('saranAnggota').style.display = 'none';
+      loadKelolaData();
+    }
+
+    document.getElementById('cariAnggota').addEventListener('input', function() {
+      document.getElementById('editAnggota').value = ''; // pilihan lama batal kalau user ketik ulang
+      tampilkanSaranAnggota(this.value);
+    });
+    document.getElementById('cariAnggota').addEventListener('focus', function() {
+      if (this.value.trim()) tampilkanSaranAnggota(this.value);
+    });
+    document.getElementById('cariAnggota').addEventListener('blur', function() {
+      setTimeout(() => { document.getElementById('saranAnggota').style.display = 'none'; }, 150);
+    });
 
     function toggleForm() {
       const form = document.getElementById('formContainer');
@@ -456,6 +546,10 @@
       document.getElementById('groupTanggalKeluar').style.display = 'none';
       document.getElementById('groupAlasan').style.display = 'none';
       document.getElementById('editAnggota').value = '';
+      document.getElementById('cariAnggota').value = '';
+      document.getElementById('saranAnggota').innerHTML = '';
+      document.getElementById('saranAnggota').style.display = 'none';
+      setFilterAnggota('aktif');
       document.getElementById('editStatus').value = 'Aktif';
       document.getElementById('editTanggalKeluar').value = '';
       document.getElementById('editAlasan').value = '';
@@ -552,12 +646,12 @@
     }
 
     function unduhExcelAnggota() {
-      const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
-      const rows = aktif.map(a => {
+      const daftar = dataAnggota.filter(a => filterTabelUtama === 'semua' || (a.STATUS || '').toUpperCase() === 'AKTIF');
+      const rows = daftar.map(a => {
         const r = hitungRingkasan(a.NOID);
-        return [a.NOID, a.NAMA, a.JABATAN || '', formatTanggal(a['TANGGAL DAFTAR']), r.jmlSimp, r.sisaPinjaman];
+        return [a.NOID, a.NAMA, a.JABATAN || '', a.STATUS || '', formatTanggal(a['TANGGAL DAFTAR']), r.jmlSimp, r.sisaPinjaman];
       });
-      downloadExcel('data_anggota.xls', ['NOID', 'Nama', 'Jabatan', 'Tanggal Daftar', 'Simpanan', 'Sisa Pinjaman'], rows);
+      downloadExcel('data_anggota.xls', ['NOID', 'Nama', 'Jabatan', 'Status', 'Tanggal Daftar', 'Simpanan', 'Sisa Pinjaman'], rows);
     }
 
     loadAnggota();
