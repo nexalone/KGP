@@ -92,6 +92,7 @@
     .saran-noid { font-size: 0.72rem; color: #999; }
     .saran-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
     .saran-badge.aktif { background: #e8f5e9; color: #2e7d32; }
+    .saran-badge.pasif { background: #fff3e0; color: #e65100; }
     .saran-badge.nonaktif { background: #ffebee; color: #c62828; }
     .saran-kosong { padding: 10px 12px; font-size: 0.8rem; color: #999; text-align: center; }
 
@@ -195,6 +196,7 @@
             <label>Status</label>
             <select id="editStatus" required onchange="toggleFieldKeluar()" style="font-size:0.85rem;">
               <option value="Aktif">Aktif</option>
+              <option value="Pasif">Pasif (keluar, masih punya sisa pinjaman)</option>
               <option value="Tidak Aktif">Tidak Aktif</option>
             </select>
           </div>
@@ -388,12 +390,15 @@
       }
       tbody.innerHTML = daftar.map(a => {
         const r = hitungRingkasan(a.NOID);
-        const aktif = (a.STATUS || '').toUpperCase() === 'AKTIF';
+        const statusA = (a.STATUS || '').toUpperCase();
+        let badge = '';
+        if (statusA === 'PASIF') badge = ' <span class="saran-badge pasif" style="margin-left:4px;">Pasif</span>';
+        else if (statusA !== 'AKTIF') badge = ' <span class="saran-badge nonaktif" style="margin-left:4px;">Tidak Aktif</span>';
         return `
         <tr>
           <td>
             <a class="nama-link" href="transaksi-kgp.html?noid=${encodeURIComponent(a.NOID)}">
-              <div class="member-name">${a.NAMA}${!aktif ? ' <span class="saran-badge nonaktif" style="margin-left:4px;">Tidak Aktif</span>' : ''}</div>
+              <div class="member-name">${a.NAMA}${badge}</div>
             </a>
             <div class="sub-info">
               <span><span class="label">NOID:</span> ${a.NOID}</span>
@@ -441,11 +446,13 @@
         return;
       }
       kotak.innerHTML = hasil.map(a => {
-        const aktif = (a.STATUS || '').toUpperCase() === 'AKTIF';
+        const statusA = (a.STATUS || '').toUpperCase();
+        const kelas = statusA === 'AKTIF' ? 'aktif' : statusA === 'PASIF' ? 'pasif' : 'nonaktif';
+        const label = statusA === 'AKTIF' ? 'Aktif' : statusA === 'PASIF' ? 'Pasif' : 'Tidak Aktif';
         return `
         <div class="saran-item" onclick="pilihAnggotaSaran(${a._idx})">
           <span>${a.NAMA} <span class="saran-noid">(${a.NOID})</span></span>
-          <span class="saran-badge ${aktif ? 'aktif' : 'nonaktif'}">${aktif ? 'Aktif' : 'Tidak Aktif'}</span>
+          <span class="saran-badge ${kelas}">${label}</span>
         </div>`;
       }).join('');
       kotak.style.display = 'block';
@@ -535,7 +542,7 @@
 
     function toggleFieldKeluar() {
       const status = document.getElementById('editStatus').value;
-      const tampilkan = status === 'Tidak Aktif';
+      const tampilkan = status === 'Tidak Aktif' || status === 'Pasif';
       document.getElementById('groupTanggalKeluar').style.display = tampilkan ? 'block' : 'none';
       document.getElementById('groupAlasan').style.display = tampilkan ? 'block' : 'none';
     }
@@ -564,7 +571,8 @@
       const anggota = dataAnggota[idx];
       if (!anggota) return;
 
-      document.getElementById('editStatus').value = anggota.STATUS.toUpperCase() === 'AKTIF' ? 'Aktif' : 'Tidak Aktif';
+      const statusData = anggota.STATUS.toUpperCase();
+      document.getElementById('editStatus').value = statusData === 'AKTIF' ? 'Aktif' : statusData === 'PASIF' ? 'Pasif' : 'Tidak Aktif';
       // Cocokkan jabatan tanpa peduli besar/kecil huruf (data lama mungkin beda kapitalisasi)
       const selJabatan = document.getElementById('editJabatan');
       const jabatanData = (anggota.JABATAN || 'Anggota').trim();
@@ -574,7 +582,7 @@
       document.getElementById('editNominalShr').value = anggota['NOMINAL SHR'] || '';
       toggleFieldKeluar();
 
-      if (anggota.STATUS.toUpperCase() === 'TIDAK AKTIF' && anggota['TANGGAL KELUAR']) {
+      if ((statusData === 'TIDAK AKTIF' || statusData === 'PASIF') && anggota['TANGGAL KELUAR']) {
         document.getElementById('editTanggalKeluar').value = anggota['TANGGAL KELUAR'];
       } else {
         document.getElementById('editTanggalKeluar').value = '';
@@ -600,7 +608,7 @@
       const alasan = document.getElementById('editAlasan').value;
       const nominalShr = document.getElementById('editNominalShr').value.replace(/\D/g, '') || '0';
 
-      if (status === 'Tidak Aktif' && !tanggalKeluar) { alert('Tanggal keluar wajib diisi!'); return; }
+      if ((status === 'Tidak Aktif' || status === 'Pasif') && !tanggalKeluar) { alert('Tanggal keluar wajib diisi!'); return; }
 
       try {
         await fetch(SCRIPT_URL, {
