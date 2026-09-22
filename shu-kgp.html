@@ -316,8 +316,8 @@
 
       // Anggota aktif, atau tidak aktif tapi masih punya transaksi di tahun ini
       const anggotaTerpakai = dataAnggota.filter(a => {
-        const aktif = (a.STATUS || '').toUpperCase() === 'AKTIF';
-        if (aktif) return true;
+        const statusA = (a.STATUS || '').toUpperCase();
+        if (statusA === 'AKTIF' || statusA === 'PASIF') return true;
         return dataTransaksi.some(t => t.NOID === a.NOID && new Date(t['TIME STAMP']).getFullYear() === tahun);
       });
 
