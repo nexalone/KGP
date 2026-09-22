@@ -415,8 +415,11 @@
       const sel = document.getElementById('noid');
       sel.innerHTML = '<option value="">-- Pilih Anggota --</option>';
       dataAnggota
-        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
-        .forEach(a => { sel.innerHTML += `<option value="${a.NOID}">${a.NOID} - ${a.NAMA}</option>`; });
+        .filter(a => ['AKTIF', 'PASIF'].includes((a.STATUS || '').toUpperCase()))
+        .forEach(a => {
+          const pasif = (a.STATUS || '').toUpperCase() === 'PASIF';
+          sel.innerHTML += `<option value="${a.NOID}">${a.NOID} - ${a.NAMA}${pasif ? ' (Pasif)' : ''}</option>`;
+        });
     }
 
     async function loadAllData() {
@@ -955,7 +958,7 @@
       const selNoid = document.getElementById('koreksiNoid');
       selNoid.innerHTML = '<option value="">-- Tanpa NOID --</option>' +
         dataAnggota
-          .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+          .filter(a => ['AKTIF', 'PASIF'].includes((a.STATUS || '').toUpperCase()))
           .map(a => `<option value="${a.NOID}">${a.NOID} - ${a.NAMA}</option>`).join('');
       selNoid.value = t.NOID || '';
 
