@@ -157,8 +157,8 @@
         if (!resp.ok) throw new Error('Gagal mengambil data');
         dataAnggota = parseCSV(await resp.text()).filter(a => a.NOID && a.NOID.toUpperCase() !== 'NOID');
 
-        const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
-        statusBar.textContent = `✅ ${aktif.length} anggota aktif dimuat dari GitHub`;
+        const aktif = daftarAktifUrut();
+        statusBar.textContent = `✅ ${aktif.length} anggota (aktif/pasif) dimuat dari GitHub`;
         statusBar.className = 'status-bar success';
 
         populateDropdown();
@@ -172,7 +172,7 @@
 
     function daftarAktifUrut() {
       return dataAnggota
-        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
+        .filter(a => ['AKTIF', 'PASIF'].includes((a.STATUS || '').toUpperCase()))
         .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
     }
 
@@ -196,9 +196,11 @@
         const jabatanLower = jabatan.toLowerCase();
         const isBendahara = jabatanLower === 'bendahara';
         const isPengurusBagikan = ['ketua', 'sekretaris'].includes(jabatanLower);
+        const pasif = (a.STATUS || '').toUpperCase() === 'PASIF';
         let badge = '';
         if (isBendahara) badge = '<span class="badge-bendahara">Bendahara · Admin</span>';
         else if (isPengurusBagikan) badge = `<span class="badge-pengurus">${jabatan} · Bisa Bagikan</span>`;
+        if (pasif) badge += ' <span class="badge-pengurus" style="background:#fff3e0; color:#e65100;">Pasif</span>';
         return `
         <tr>
           <td>
