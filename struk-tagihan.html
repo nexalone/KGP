@@ -291,8 +291,11 @@
       const sel = document.getElementById('pilihAnggota');
       sel.innerHTML = '<option value="">-- Pilih Anggota --</option>';
       dataAnggota
-        .filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF')
-        .forEach(a => { sel.innerHTML += `<option value="${a.NOID}">${a.NOID} - ${a.NAMA}</option>`; });
+        .filter(a => ['AKTIF', 'PASIF'].includes((a.STATUS || '').toUpperCase()))
+        .forEach(a => {
+          const pasif = (a.STATUS || '').toUpperCase() === 'PASIF';
+          sel.innerHTML += `<option value="${a.NOID}">${a.NOID} - ${a.NAMA}${pasif ? ' (Pasif)' : ''}</option>`;
+        });
     }
 
     function getNominalDefault(kode) {
@@ -376,7 +379,9 @@
       const shr = shrSetor - shrTarik;
       const jumlahSimpanan = sp + sw + shr;
 
-      const nominalSW = getNominalDefault('SW');
+      const statusAnggota = (anggota.STATUS || '').toUpperCase();
+      const pasif = statusAnggota === 'PASIF'; // sudah keluar, tidak wajib SW — hanya wajib bayar sisa pinjaman
+      const nominalSW = pasif ? 0 : getNominalDefault('SW');
       const nominalSHR = Number(anggota['NOMINAL SHR']) || 0;
 
       // Status sudah bayar bulan ini: cek apakah REF persis bulan ini sudah ada di riwayat transaksi
@@ -410,7 +415,7 @@
       const tagihanJasa = semuaPinjamanAktif.reduce((s, p) => s + p.jasa, 0);
       const totalTagihan = nominalSW + nominalSHR + tagihanPinjaman + tagihanJasa;
 
-      return { anggota, labelBulan, sp, sw, shr, jumlahSimpanan, nominalSW, nominalSHR, sudahBayarSW, sudahBayarSHR, semuaPinjamanAktif, totalTagihan };
+      return { anggota, labelBulan, sp, sw, shr, jumlahSimpanan, nominalSW, nominalSHR, sudahBayarSW, sudahBayarSHR, semuaPinjamanAktif, totalTagihan, pasif };
     }
 
     function tandaBayar(sudah) {
@@ -496,9 +501,9 @@
       document.getElementById('sJumlahSimpanan').textContent = formatRp(d.jumlahSimpanan);
 
       document.getElementById('sBulanTagihan').textContent = d.labelBulan;
-      document.getElementById('tandaSW').innerHTML = tandaBayar(d.sudahBayarSW) + ' Simpanan Wajib (SW)';
+      document.getElementById('tandaSW').innerHTML = d.pasif ? 'Simpanan Wajib (SW)' : tandaBayar(d.sudahBayarSW) + ' Simpanan Wajib (SW)';
       document.getElementById('tandaSHR').innerHTML = tandaBayar(d.sudahBayarSHR) + ' Simpanan Hari Raya (SHR)';
-      document.getElementById('tSW').textContent = formatRp(d.nominalSW);
+      document.getElementById('tSW').textContent = d.pasif ? 'Tidak Wajib (Pasif)' : formatRp(d.nominalSW);
       document.getElementById('tSHR').textContent = formatRp(d.nominalSHR);
       document.getElementById('tRincianPinjaman').innerHTML = rincianPinjamanHTML(d.semuaPinjamanAktif);
       document.getElementById('tTotal').textContent = formatRp(d.totalTagihan);
@@ -564,7 +569,7 @@
             </div>
             <div class="struk-section">
               <div class="struk-section-title">🧾 TAGIHAN BULAN ${d.labelBulan}</div>
-              <div class="struk-row"><span>SW</span><span class="nilai">${formatRp(d.nominalSW)}</span></div>
+              <div class="struk-row"><span>SW</span><span class="nilai">${d.pasif ? 'Tdk Wajib' : formatRp(d.nominalSW)}</span></div>
               <div class="struk-row"><span>SHR</span><span class="nilai">${formatRp(d.nominalSHR)}</span></div>
               ${rincianPinjamanFixedHTML(d.semuaPinjamanAktif, 4)}
               <div class="struk-row total"><span>TOTAL TAGIHAN</span><span>${formatRp(d.totalTagihan)}</span></div>
@@ -578,8 +583,8 @@
       const bulanInput = document.getElementById('pilihBulan').value;
       if (!bulanInput) { alert('Pilih dulu bulan tagihannya.'); return; }
 
-      const aktif = dataAnggota.filter(a => (a.STATUS || '').toUpperCase() === 'AKTIF');
-      if (aktif.length === 0) { alert('Tidak ada anggota aktif.'); return; }
+      const aktif = dataAnggota.filter(a => ['AKTIF', 'PASIF'].includes((a.STATUS || '').toUpperCase()));
+      if (aktif.length === 0) { alert('Tidak ada anggota aktif/pasif.'); return; }
 
       const semuaData = aktif.map(a => hitungDataStruk(a, bulanInput));
 
