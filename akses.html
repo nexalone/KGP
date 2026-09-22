@@ -113,7 +113,7 @@
           tampilkanError('❌ Anggota untuk link ini tidak ditemukan. Mungkin link sudah tidak berlaku.');
           return;
         }
-        if ((anggota.STATUS || '').toUpperCase() !== 'AKTIF') {
+        if (!['AKTIF', 'PASIF'].includes((anggota.STATUS || '').toUpperCase())) {
           tampilkanError('❌ Anggota ini sudah tidak aktif. Hubungi Bendahara.');
           return;
         }
