@@ -268,15 +268,23 @@
         statusBar.textContent = `✅ ${dataAnggota.length} anggota dimuat`;
         statusBar.className = 'status-bar success';
 
-        // Kalau login sebagai anggota (bukan admin): kunci ke NOID sendiri, sembunyikan tombol cetak semua
+        // Kalau login sebagai anggota (bukan admin): kunci ke NOID sendiri, sembunyikan tombol cetak semua —
+        // KECUALI jabatannya Ketua/Sekretaris/BP-1/BP-2/BP-3, yang diberi hak melihat & cetak struk seluruh anggota.
         if (window.KGP_SESI && window.KGP_SESI.role === 'anggota') {
-          const selEl = document.getElementById('pilihAnggota');
-          selEl.value = window.KGP_SESI.noid;
-          selEl.disabled = true;
-          selEl.style.background = '#f0f0f0';
-          document.getElementById('btnCetakSemua').style.display = 'none';
-          tampilkanStruk();
-          return;
+          const anggotaSesi = dataAnggota.find(a => a.NOID === window.KGP_SESI.noid);
+          const jabatanSesi = ((anggotaSesi && anggotaSesi.JABATAN) || '').trim().toLowerCase();
+          const bisaLihatSemua = ['ketua', 'sekretaris', 'bp-1', 'bp-2', 'bp-3'].includes(jabatanSesi);
+
+          if (!bisaLihatSemua) {
+            const selEl = document.getElementById('pilihAnggota');
+            selEl.value = window.KGP_SESI.noid;
+            selEl.disabled = true;
+            selEl.style.background = '#f0f0f0';
+            document.getElementById('btnCetakSemua').style.display = 'none';
+            tampilkanStruk();
+            return;
+          }
+          // Jabatan pengurus di atas: lanjut seperti admin — dropdown & tombol cetak semua tetap terbuka
         }
 
         const noidUrl = new URLSearchParams(window.location.search).get('noid');
