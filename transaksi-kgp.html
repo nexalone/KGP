@@ -134,6 +134,23 @@
     .ringkasan-bayar .rb-anggota { font-size: 0.82rem; color: #555; margin-bottom: 6px; }
     .ringkasan-bayar .rb-item { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0; color: #444; }
     .ringkasan-bayar .rb-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 0.98rem; color: #1e3c72; border-top: 1.5px dashed #c5cdf0; margin-top: 8px; padding-top: 8px; }
+
+    .cari-wrap { position: relative; }
+    .saran-list { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1.5px solid #ddd; border-radius: 8px; max-height: 220px; overflow-y: auto; z-index: 20; display: none; box-shadow: 0 8px 20px rgba(0,0,0,0.12); margin-top: 2px; }
+    .saran-item { padding: 9px 12px; font-size: 0.85rem; cursor: pointer; border-bottom: 1px solid #f2f2f2; }
+    .saran-item:last-child { border-bottom: none; }
+    .saran-item:hover { background: #f5f7ff; }
+    .saran-noid { font-size: 0.72rem; color: #999; }
+    .saran-kosong { padding: 10px 12px; font-size: 0.8rem; color: #999; text-align: center; }
+
+    .tagihan-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid #eee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+    .tagihan-item:hover { border-color: #c5cdf0; background: #fafbff; }
+    .tagihan-item input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; accent-color: #667eea; }
+    .tagihan-item .ti-label { flex: 1; font-size: 0.85rem; font-weight: 600; color: #333; }
+    .tagihan-item .ti-label small { display: block; font-weight: 400; color: #999; font-size: 0.72rem; margin-top: 2px; }
+    .tagihan-item .ti-nilai { font-weight: 700; color: #1e3c72; font-size: 0.88rem; white-space: nowrap; }
+    .tagihan-kosong { text-align: center; color: #999; font-size: 0.85rem; padding: 16px 0; }
+    .tagihan-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; color: #1e3c72; border-top: 1.5px dashed #c5cdf0; margin: 10px 0; padding-top: 10px; }
     .btn {
       padding: 12px 24px;
       border: none;
@@ -217,7 +234,35 @@
       <div class="stat-card"><h3 id="saldoKas">Rp 0</h3><p>Saldo Kas</p></div>
     </div>
 
-    <h3 style="margin-bottom: 20px; color: #1e3c72;"> Input Transaksi Baru</h3>
+    <h3 style="margin-bottom: 12px; color: #1e3c72;">🧾 Bayar Tagihan Anggota</h3>
+    <p style="font-size: 0.78rem; color: #888; margin-bottom: 14px;">Cara tercepat mencatat pembayaran rutin bulanan (SW, SHR, Cicilan Pinjaman) sekaligus dalam satu transaksi. Centang bagian yang benar-benar dibayar.</p>
+    <div class="form-group cari-wrap">
+      <label for="cariTagihanAnggota">Pilih Anggota</label>
+      <input type="text" id="cariTagihanAnggota" placeholder="Ketik nama atau NOID anggota..." autocomplete="off" />
+      <input type="hidden" id="tagihanNoid" />
+      <div class="saran-list" id="saranTagihanAnggota"></div>
+    </div>
+
+    <div id="tagihanBox" hidden>
+      <div id="tagihanLoading" style="font-size: 0.85rem; color: #888; padding: 10px 0;">🔄 Memuat tagihan...</div>
+      <div id="tagihanItems"></div>
+      <div class="form-group">
+        <label for="tagihanCaraBayar">Cara Bayar (untuk semua item yang dicentang)</label>
+        <select id="tagihanCaraBayar">
+          <option value="GAJI">GAJI</option>
+          <option value="TUNAI">TUNAI</option>
+          <option value="TRANSFER">TRANSFER</option>
+        </select>
+      </div>
+      <div class="tagihan-total"><span>TOTAL TERPILIH</span><span id="tagihanTotalNilai">Rp 0</span></div>
+      <button type="button" class="btn btn-primary" id="btnSimpanTagihan" onclick="simpanTagihanTerpilih()" style="width:100%;">💾 Simpan Tagihan Terpilih</button>
+      <div id="tagihanStatusBar" class="status-bar" style="display:none; margin-top:10px;"></div>
+    </div>
+
+    <hr style="border:none; border-top:2px solid #f0f0f0; margin:26px 0;" />
+
+    <h3 style="margin-bottom: 20px; color: #1e3c72;">✏️ Input Transaksi Lain (Manual)</h3>
+    <p style="font-size: 0.78rem; color: #888; margin: -14px 0 16px;">Untuk pencairan pinjaman, cicilan sementara, biaya operasional, penarikan, SHU, atau transaksi selain tagihan rutin di atas.</p>
     <form id="formTransaksi">
       <div class="form-grid">
         <div class="form-group">
@@ -747,6 +792,206 @@
         statusBar.textContent = '✅ Teks bukti pembayaran disalin.';
         statusBar.className = 'status-bar success';
       }).catch(() => document.execCommand('copy'));
+    }
+
+    // ===== BAYAR TAGIHAN ANGGOTA (SP/SW/SHR/Cicilan Pinjaman sekaligus, bisa pilih sebagian) =====
+    function getNominalDefault(kode) {
+      const row = dataRef.find(r => r.KODE === kode);
+      return row ? (Number(row.NOMINAL) || 0) : 0;
+    }
+
+    function daftarAnggotaUntukTagihan() {
+      return dataAnggota
+        .filter(a => ['AKTIF', 'PASIF'].includes((a.STATUS || '').toUpperCase()))
+        .sort((a, b) => (a.NAMA || '').localeCompare(b.NAMA || '', 'id'));
+    }
+
+    function tampilkanSaranTagihanAnggota(kataKunci) {
+      const kotak = document.getElementById('saranTagihanAnggota');
+      const kw = kataKunci.trim().toLowerCase();
+      if (!kw) { kotak.innerHTML = ''; kotak.style.display = 'none'; return; }
+      const hasil = daftarAnggotaUntukTagihan()
+        .filter(a => (a.NAMA || '').toLowerCase().includes(kw) || (a.NOID || '').toLowerCase().includes(kw))
+        .slice(0, 8);
+      if (hasil.length === 0) {
+        kotak.innerHTML = '<div class="saran-kosong">Tidak ditemukan</div>';
+        kotak.style.display = 'block';
+        return;
+      }
+      kotak.innerHTML = hasil.map(a => `
+        <div class="saran-item" onclick="pilihAnggotaTagihan('${a.NOID}')">
+          <span>${a.NAMA} <span class="saran-noid">(${a.NOID})</span></span>
+        </div>`).join('');
+      kotak.style.display = 'block';
+    }
+
+    function pilihAnggotaTagihan(noid) {
+      const a = dataAnggota.find(x => x.NOID === noid);
+      if (!a) return;
+      document.getElementById('cariTagihanAnggota').value = `${a.NAMA} (${a.NOID})`;
+      document.getElementById('tagihanNoid').value = noid;
+      document.getElementById('saranTagihanAnggota').innerHTML = '';
+      document.getElementById('saranTagihanAnggota').style.display = 'none';
+      bangunTagihan(noid);
+    }
+
+    document.getElementById('cariTagihanAnggota').addEventListener('input', function() {
+      document.getElementById('tagihanNoid').value = '';
+      document.getElementById('tagihanBox').hidden = true;
+      tampilkanSaranTagihanAnggota(this.value);
+    });
+    document.getElementById('cariTagihanAnggota').addEventListener('focus', function() {
+      if (this.value.trim()) tampilkanSaranTagihanAnggota(this.value);
+    });
+    document.getElementById('cariTagihanAnggota').addEventListener('blur', function() {
+      setTimeout(() => { document.getElementById('saranTagihanAnggota').style.display = 'none'; }, 150);
+    });
+
+    let tagihanItemsCache = [];
+
+    async function bangunTagihan(noid) {
+      const anggota = dataAnggota.find(a => a.NOID === noid);
+      if (!anggota) return;
+
+      document.getElementById('tagihanBox').hidden = false;
+      document.getElementById('tagihanStatusBar').style.display = 'none';
+      document.getElementById('tagihanLoading').style.display = 'block';
+      document.getElementById('tagihanItems').innerHTML = '';
+      tagihanItemsCache = [];
+
+      const items = [];
+
+      // SP (Simpanan Pokok) — HANYA untuk anggota baru yang belum pernah bayar SP sama sekali
+      const sudahPernahSP = dataTransaksi.some(t => t.NOID === noid && t.REF === 'SP');
+      if (!sudahPernahSP) {
+        const nominalSP = getNominalDefault('SP');
+        if (nominalSP > 0) {
+          items.push({ kode: 'SP', label: 'Simpanan Pokok (SP)', sub: 'Anggota baru — sesuai Sheet REF', nominal: nominalSP, checked: true });
+        }
+      }
+
+      // SW (Simpanan Wajib) — SELALU ada, nominal tetap sesuai Sheet REF, tidak diisi manual
+      const nominalSW = getNominalDefault('SW');
+      items.push({ kode: 'SW', label: 'Simpanan Wajib (SW)', sub: 'Nominal tetap sesuai Sheet REF, tidak bisa diubah', nominal: nominalSW, checked: true });
+
+      // SHR (Simpanan Hari Raya) — kalau anggota ini punya kewajiban SHR
+      const nominalSHR = Number(anggota['NOMINAL SHR']) || 0;
+      if (nominalSHR > 0) {
+        items.push({ kode: 'SHR-S', label: 'Simpanan Hari Raya (SHR)', sub: 'Sesuai nominal SHR anggota ini', nominal: nominalSHR, checked: true });
+      }
+
+      // Cicilan Pinjaman (Kredit reguler) — kalau ada pinjaman aktif, bisa lebih dari 1 slot
+      try {
+        const url = SCRIPT_URL + '?action=pinjamanAktif&noid=' + encodeURIComponent(noid) + '&jenis=K';
+        const resp = await fetch(url);
+        const json = await resp.json();
+        if (json.success && Array.isArray(json.data)) {
+          json.data.forEach(p => {
+            if (!p.jmlCicilan) return;
+            const cicilanPerBulan = Math.round(p.pokokAwal / p.jmlCicilan);
+            const jasaPerBulan = Math.round(p.pokokAwal * 0.01);
+            items.push({
+              kode: 'CCL', slot: p.slot,
+              label: `Cicilan Pinjaman Slot ${p.slot}`,
+              sub: `Angsuran ke-${p.angsuranKeBerikutnya} dari ${p.jmlCicilan} (pokok ${formatRp(cicilanPerBulan)} + jasa ${formatRp(jasaPerBulan)})`,
+              nominal: cicilanPerBulan + jasaPerBulan,
+              checked: true
+            });
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      tagihanItemsCache = items;
+      renderTagihanItems();
+      document.getElementById('tagihanLoading').style.display = 'none';
+    }
+
+    function renderTagihanItems() {
+      const box = document.getElementById('tagihanItems');
+      if (tagihanItemsCache.length === 0) {
+        box.innerHTML = '<div class="tagihan-kosong">Tidak ada tagihan rutin (SW/SHR/Cicilan) untuk anggota ini.</div>';
+      } else {
+        box.innerHTML = tagihanItemsCache.map((it, i) => `
+          <label class="tagihan-item">
+            <input type="checkbox" ${it.checked ? 'checked' : ''} onchange="tagihanItemsCache[${i}].checked = this.checked; updateTagihanTotal();" />
+            <span class="ti-label">${it.label}<small>${it.sub}</small></span>
+            <span class="ti-nilai">${formatRp(it.nominal)}</span>
+          </label>
+        `).join('');
+      }
+      updateTagihanTotal();
+    }
+
+    function updateTagihanTotal() {
+      const total = tagihanItemsCache.filter(it => it.checked).reduce((s, it) => s + (Number(it.nominal) || 0), 0);
+      document.getElementById('tagihanTotalNilai').textContent = formatRp(total);
+    }
+
+    async function simpanTagihanTerpilih() {
+      const noid = document.getElementById('tagihanNoid').value;
+      const anggota = dataAnggota.find(a => a.NOID === noid);
+      const caraBayar = document.getElementById('tagihanCaraBayar').value;
+      const terpilih = tagihanItemsCache.filter(it => it.checked);
+      const statusBar = document.getElementById('tagihanStatusBar');
+
+      if (!noid || !anggota) { alert('Pilih dulu anggotanya.'); return; }
+      if (terpilih.length === 0) { alert('Pilih minimal satu tagihan yang mau disimpan.'); return; }
+
+      const btn = document.getElementById('btnSimpanTagihan');
+      const teksAsli = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span> Menyimpan...';
+      statusBar.style.display = 'none';
+
+      const buktiItems = [];
+      try {
+        for (const it of terpilih) {
+          const payload = { action: 'tambahTransaksi', kode: it.kode, noid, caraBayar };
+          if (it.kode === 'CCL') {
+            payload.kaliBayar = 1;
+            payload.x = it.slot;
+          } else {
+            payload.nominal = it.nominal;
+          }
+          await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          buktiItems.push({ label: it.label, nominal: it.nominal });
+        }
+
+        const total = buktiItems.reduce((s, it) => s + (Number(it.nominal) || 0), 0);
+
+        statusBar.style.display = 'block';
+        statusBar.className = 'status-bar success';
+        statusBar.textContent = `✅ ${terpilih.length} tagihan berhasil disimpan!`;
+
+        tampilkanBuktiPembayaran({
+          namaAnggota: anggota.NAMA, noid,
+          jenisLabel: 'Pembayaran Tagihan Bulanan',
+          arahMasuk: true,
+          items: buktiItems,
+          total,
+          caraBayar
+        });
+
+        document.getElementById('cariTagihanAnggota').value = '';
+        document.getElementById('tagihanNoid').value = '';
+        document.getElementById('tagihanBox').hidden = true;
+        tagihanItemsCache = [];
+        setTimeout(() => loadAllData(), 4000);
+      } catch (e) {
+        console.error(e);
+        statusBar.style.display = 'block';
+        statusBar.className = 'status-bar error';
+        statusBar.textContent = '❌ Sebagian/seluruh tagihan gagal disimpan. Cek koneksi lalu coba lagi.';
+      }
+      btn.disabled = false;
+      btn.innerHTML = teksAsli;
     }
 
     function updatePreviewCicilan() {
