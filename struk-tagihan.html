@@ -69,6 +69,7 @@
     }
     .status-dot.paid { background: #2e7d32; color: #fff; }
     .status-dot.unpaid { border: 2px solid #bbb; background: transparent; }
+    .tgl-bayar { font-size: 0.78em; font-weight: 400; color: #2e7d32; font-style: italic; }
     .struk-pinjaman-item { background: #fff8e1; border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
     .struk-pinjaman-item.struk-pinjaman-kosong { background: transparent; visibility: hidden; }
     .struk-pinjaman-item .judul { font-size: 0.8rem; font-weight: 700; color: #7a4a00; margin-bottom: 4px; }
@@ -384,9 +385,13 @@
       const nominalSW = pasif ? 0 : getNominalDefault('SW');
       const nominalSHR = Number(anggota['NOMINAL SHR']) || 0;
 
-      // Status sudah bayar bulan ini: cek apakah REF persis bulan ini sudah ada di riwayat transaksi
-      const sudahBayarSW = rowsBulanIni.some(t => t.REF === 'SW-' + yymmIni);
-      const sudahBayarSHR = rowsBulanIni.some(t => t.REF === 'SHR-' + yymmIni);
+      // Status sudah bayar bulan ini: cek apakah REF persis bulan ini sudah ada di riwayat transaksi, sekalian ambil tanggalnya
+      const bayarSW = rowsBulanIni.find(t => t.REF === 'SW-' + yymmIni);
+      const bayarSHR = rowsBulanIni.find(t => t.REF === 'SHR-' + yymmIni);
+      const sudahBayarSW = !!bayarSW;
+      const sudahBayarSHR = !!bayarSHR;
+      const tglBayarSW = bayarSW ? bayarSW['TIME STAMP'] : null;
+      const tglBayarSHR = bayarSHR ? bayarSHR['TIME STAMP'] : null;
 
       const pinjamanAktifK = cariPinjamanAktif(rowsSampaiBulan, 'K');
       const pinjamanAktifKS = cariPinjamanAktif(rowsSampaiBulan, 'KS');
@@ -404,24 +409,32 @@
           jasa = Math.round(p.sisaPokok * 0.01 * bulanTertunggak); // Jasa = 1% x sisa pinjaman x jumlah bulan tertunggak
         }
         const cicilanPrefix = p.jenisPrefix === 'K' ? 'CP' : 'CS';
-        const sudahBayar = rowsBulanIni.some(t => {
+        const bayarCicilan = rowsBulanIni.find(t => {
           const parts = (t.REF || '').split('-');
           return parts.length === 4 && parts[0] === cicilanPrefix && parts[1] === yymmIni && parts[2] === String(p.slot);
         });
-        return { ...p, cicilan, jasa, bulanTertunggak, angsuranKe: p.angsuranTerbayar + 1, sudahBayar };
+        const sudahBayar = !!bayarCicilan;
+        const tglBayar = bayarCicilan ? bayarCicilan['TIME STAMP'] : null;
+        return { ...p, cicilan, jasa, bulanTertunggak, angsuranKe: p.angsuranTerbayar + 1, sudahBayar, tglBayar };
       });
 
       const tagihanPinjaman = semuaPinjamanAktif.reduce((s, p) => s + p.cicilan, 0);
       const tagihanJasa = semuaPinjamanAktif.reduce((s, p) => s + p.jasa, 0);
       const totalTagihan = nominalSW + nominalSHR + tagihanPinjaman + tagihanJasa;
 
-      return { anggota, labelBulan, sp, sw, shr, jumlahSimpanan, nominalSW, nominalSHR, sudahBayarSW, sudahBayarSHR, semuaPinjamanAktif, totalTagihan, pasif };
+      return { anggota, labelBulan, sp, sw, shr, jumlahSimpanan, nominalSW, nominalSHR, sudahBayarSW, sudahBayarSHR, tglBayarSW, tglBayarSHR, semuaPinjamanAktif, totalTagihan, pasif };
     }
 
-    function tandaBayar(sudah) {
-      return sudah
-        ? '<span class="status-dot paid" title="Sudah dibayar bulan ini">✓</span>'
-        : '<span class="status-dot unpaid" title="Belum dibayar bulan ini"></span>';
+    function formatTgl(ts) {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function tandaBayar(sudah, tgl) {
+      if (!sudah) return '<span class="status-dot unpaid" title="Belum dibayar bulan ini"></span>';
+      const tglStr = formatTgl(tgl);
+      return '<span class="status-dot paid" title="Sudah dibayar bulan ini">✓</span>' + (tglStr ? ` <span class="tgl-bayar">(Dibayar ${tglStr})</span>` : '');
     }
 
     function rincianPinjamanHTML(semuaPinjamanAktif) {
@@ -430,7 +443,7 @@
         if (p.jenisPrefix === 'K') {
           return `
         <div class="struk-pinjaman-item">
-          <div class="judul">${tandaBayar(p.sudahBayar)} ${p.label} ${p.slot} — Cicilan ke-${p.angsuranKe} dari ${p.jmlCicilan || '-'}</div>
+          <div class="judul">${tandaBayar(p.sudahBayar, p.tglBayar)} ${p.label} ${p.slot} — Cicilan ke-${p.angsuranKe} dari ${p.jmlCicilan || '-'}</div>
           <div class="sub-row"><span>Cicilan Pokok</span><span>${formatRp(p.cicilan)}</span></div>
           <div class="sub-row"><span>Jasa</span><span>${formatRp(p.jasa)}</span></div>
         </div>
@@ -438,7 +451,7 @@
         }
         return `
         <div class="struk-pinjaman-item">
-          <div class="judul">${tandaBayar(p.sudahBayar)} ${p.label} ${p.slot}</div>
+          <div class="judul">${tandaBayar(p.sudahBayar, p.tglBayar)} ${p.label} ${p.slot}</div>
           <div class="sub-row"><span>Sisa Pinjaman</span><span>${formatRp(p.sisaPokok)}</span></div>
           <div class="sub-row"><span>Jasa (${p.bulanTertunggak} bln)</span><span>${formatRp(p.jasa)}</span></div>
         </div>
@@ -501,8 +514,8 @@
       document.getElementById('sJumlahSimpanan').textContent = formatRp(d.jumlahSimpanan);
 
       document.getElementById('sBulanTagihan').textContent = d.labelBulan;
-      document.getElementById('tandaSW').innerHTML = d.pasif ? 'Simpanan Wajib (SW)' : tandaBayar(d.sudahBayarSW) + ' Simpanan Wajib (SW)';
-      document.getElementById('tandaSHR').innerHTML = tandaBayar(d.sudahBayarSHR) + ' Simpanan Hari Raya (SHR)';
+      document.getElementById('tandaSW').innerHTML = d.pasif ? 'Simpanan Wajib (SW)' : tandaBayar(d.sudahBayarSW, d.tglBayarSW) + ' Simpanan Wajib (SW)';
+      document.getElementById('tandaSHR').innerHTML = tandaBayar(d.sudahBayarSHR, d.tglBayarSHR) + ' Simpanan Hari Raya (SHR)';
       document.getElementById('tSW').textContent = d.pasif ? 'Tidak Wajib (Pasif)' : formatRp(d.nominalSW);
       document.getElementById('tSHR').textContent = formatRp(d.nominalSHR);
       document.getElementById('tRincianPinjaman').innerHTML = rincianPinjamanHTML(d.semuaPinjamanAktif);
