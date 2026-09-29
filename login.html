@@ -83,7 +83,7 @@
     const ADMIN_PASS = 'admin123456';
 
     // Kalau sudah login, langsung lempar ke Index
-    if (sessionStorage.getItem('kgpSesi')) {
+    if (localStorage.getItem('kgpSesi')) {
       window.location.href = 'Index.html';
     }
 
@@ -96,7 +96,7 @@
       const password = document.getElementById('password').value;
 
       if (userId.toLowerCase() === ADMIN_USER && password === ADMIN_PASS) {
-        sessionStorage.setItem('kgpSesi', JSON.stringify({ role: 'admin', noid: null, nama: 'Admin/Bendahara', bisaBagikan: true }));
+        localStorage.setItem('kgpSesi', JSON.stringify({ role: 'admin', noid: null, nama: 'Admin/Bendahara', bisaBagikan: true }));
         window.location.href = 'Index.html';
         return;
       }
