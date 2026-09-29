@@ -3,7 +3,7 @@
 <head>
   <script>
     (function() {
-      const sesiStr = sessionStorage.getItem("kgpSesi");
+      const sesiStr = localStorage.getItem("kgpSesi");
       if (!sesiStr) { window.location.href = "login.html"; return; }
       window.KGP_SESI = JSON.parse(sesiStr);
     })();
