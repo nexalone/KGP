@@ -252,24 +252,24 @@
     }
 
     const MENU_ADMIN = [
-      { href: 'anggota-kgp.html', cls: 'anggota', icon: '👥', label: 'Data Anggota' },
-      { href: 'transaksi-kgp.html', cls: 'transaksi', icon: '💳', label: 'Transaksi' },
+      { href: 'struk-tagihan.html', cls: 'struk', icon: '🧾', label: 'Struk Tagihan' },
       { href: 'kartu-anggota.html', cls: 'kartu', icon: '🪪', label: 'Kartu Anggota' },
-      { href: 'rekap-kgp.html', cls: 'rekap', icon: '📊', label: 'Rekap Tahunan' },
+      { href: 'pembukuan-kgp.html', cls: 'pembukuan', icon: '📒', label: 'Pembukuan Bulanan' },
       { href: 'neraca-kgp.html', cls: 'neraca', icon: '⚖️', label: 'Neraca' },
       { href: 'shu-kgp.html', cls: 'shu', icon: '🏆', label: 'SHU' },
-      { href: 'struk-tagihan.html', cls: 'struk', icon: '🧾', label: 'Struk Tagihan' },
-      { href: 'pembukuan-kgp.html', cls: 'pembukuan', icon: '📒', label: 'Pembukuan Bulanan' },
+      { href: 'rekap-kgp.html', cls: 'rekap', icon: '📊', label: 'Rekap Tahunan' },
+      { href: 'anggota-kgp.html', cls: 'anggota', icon: '👥', label: 'Data Anggota' },
+      { href: 'transaksi-kgp.html', cls: 'transaksi', icon: '💳', label: 'Transaksi' },
       { href: 'bagikan-akses.html', cls: 'bagikan', icon: '🔗', label: 'Bagikan Akses' }
     ];
 
     const MENU_ANGGOTA = [
+      { href: `struk-tagihan.html?noid=${encodeURIComponent(sesi.noid)}`, cls: 'struk', icon: '🧾', label: 'Struk Tagihan Saya' },
       { href: `kartu-anggota.html?noid=${encodeURIComponent(sesi.noid)}`, cls: 'kartu', icon: '🪪', label: 'Kartu Saya' },
-      { href: 'rekap-kgp.html', cls: 'rekap', icon: '📊', label: 'Rekap Tahunan' },
+      { href: 'pembukuan-kgp.html', cls: 'pembukuan', icon: '📒', label: 'Pembukuan Bulanan' },
       { href: 'neraca-kgp.html', cls: 'neraca', icon: '⚖️', label: 'Neraca' },
       { href: 'shu-kgp.html', cls: 'shu', icon: '🏆', label: 'SHU' },
-      { href: `struk-tagihan.html?noid=${encodeURIComponent(sesi.noid)}`, cls: 'struk', icon: '🧾', label: 'Struk Tagihan Saya' },
-      { href: 'pembukuan-kgp.html', cls: 'pembukuan', icon: '📒', label: 'Pembukuan Bulanan' }
+      { href: 'rekap-kgp.html', cls: 'rekap', icon: '📊', label: 'Rekap Tahunan' }
     ];
 
     let menu = sesi.role === 'admin' ? MENU_ADMIN : MENU_ANGGOTA;
