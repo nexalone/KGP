@@ -3,7 +3,7 @@
 <head>
   <script>
     (function() {
-      const sesiStr = sessionStorage.getItem("kgpSesi");
+      const sesiStr = localStorage.getItem("kgpSesi");
       if (!sesiStr) { window.location.href = "login.html"; return; }
       const sesi = JSON.parse(sesiStr);
       if (sesi.role !== "admin" && !sesi.bisaBagikan) { alert("Halaman ini khusus Admin, Ketua, Sekretaris, dan Bendahara."); window.location.href = "Index.html"; return; }
