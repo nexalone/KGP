@@ -3,7 +3,7 @@
 <head>
   <script>
     (function() {
-      const sesiStr = sessionStorage.getItem("kgpSesi");
+      const sesiStr = localStorage.getItem("kgpSesi");
       if (!sesiStr) { window.location.href = "login.html"; return; }
       const sesi = JSON.parse(sesiStr);
       if (sesi.role !== "admin") { alert("Halaman ini khusus Admin/Bendahara."); window.location.href = "Index.html"; return; }
