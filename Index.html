@@ -11,7 +11,7 @@
   <script>
     // ===== AUTH GUARD ===== (taruh paling atas supaya langsung cek sebelum halaman dirender)
     (function() {
-      const sesiStr = sessionStorage.getItem('kgpSesi');
+      const sesiStr = localStorage.getItem('kgpSesi');
       if (!sesiStr) { window.location.href = 'login.html'; return; }
       window.KGP_SESI = JSON.parse(sesiStr);
     })();
@@ -247,7 +247,7 @@
       : `👋 Halo, ${sesi.nama}`;
 
     function logout() {
-      sessionStorage.removeItem('kgpSesi');
+      localStorage.removeItem('kgpSesi');
       window.location.href = 'login.html';
     }
 
