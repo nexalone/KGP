@@ -241,6 +241,26 @@
       <div class="stat-card"><h3 id="saldoKas">Rp 0</h3><p>Saldo Kas</p></div>
     </div>
 
+    <div id="antrianBox" hidden style="border:2px solid #ff9966; border-radius:12px; padding:16px; margin-bottom:26px; background:#fff8f3;">
+      <h3 style="color:#e65100; margin-bottom:4px;">📥 Antrian dari Daftar Tagihan</h3>
+      <p style="font-size:0.78rem; color:#888; margin-bottom:12px;">Item ini dikirim dari halaman Daftar Tagihan. Centang yang mau diproses, lalu simpan semua sekaligus.</p>
+      <div id="antrianItems"></div>
+      <div class="form-group">
+        <label for="antrianCaraBayar">Cara Bayar (untuk semua item yang dicentang)</label>
+        <select id="antrianCaraBayar">
+          <option value="GAJI">GAJI</option>
+          <option value="TUNAI">TUNAI</option>
+          <option value="TRANSFER">TRANSFER</option>
+        </select>
+      </div>
+      <div class="tagihan-total"><span>TOTAL TERPILIH</span><span id="antrianTotalNilai">Rp 0</span></div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-primary" id="btnProsesAntrian" onclick="prosesAntrianTagihan()" style="flex:1;">💾 Simpan Semua Antrian</button>
+        <button type="button" class="btn btn-secondary" onclick="batalkanAntrian()" style="margin:0;">✕ Batal</button>
+      </div>
+      <div id="antrianStatusBar" class="status-bar" style="display:none; margin-top:10px;"></div>
+    </div>
+
     <h3 style="margin-bottom: 12px; color: #1e3c72;">🧾 Bayar Tagihan Anggota</h3>
     <p style="font-size: 0.78rem; color: #888; margin-bottom: 14px;">Cara tercepat mencatat pembayaran rutin bulanan (SW, SHR, Cicilan Pinjaman) sekaligus dalam satu transaksi. Centang bagian yang benar-benar dibayar.</p>
     <div class="form-group cari-wrap">
@@ -1081,6 +1101,133 @@
       btn.innerHTML = teksAsli;
     }
 
+    // ===== ANTRIAN DARI DAFTAR TAGIHAN (pilih banyak anggota sekaligus di halaman Daftar Tagihan) =====
+    let antrianCache = [];
+
+    function muatAntrianTagihan() {
+      const simpanan = localStorage.getItem('kgpAntrianTagihan');
+      if (!simpanan) return;
+      try {
+        const data = JSON.parse(simpanan);
+        if (!Array.isArray(data) || data.length === 0) return;
+        antrianCache = data.map(it => ({ ...it, checked: true }));
+        document.getElementById('antrianBox').hidden = false;
+        renderAntrianItems();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderAntrianItems() {
+      const box = document.getElementById('antrianItems');
+      // Kelompokkan per anggota supaya gampang dibaca
+      const perAnggota = {};
+      antrianCache.forEach((it, i) => {
+        if (!perAnggota[it.noid]) perAnggota[it.noid] = { nama: it.nama, noid: it.noid, items: [] };
+        perAnggota[it.noid].items.push({ ...it, _i: i });
+      });
+
+      box.innerHTML = Object.values(perAnggota).map(g => `
+        <div style="margin-bottom:10px;">
+          <div style="font-weight:700; color:#1e3c72; font-size:0.85rem; margin-bottom:4px;">${g.nama} <span style="color:#999; font-weight:400;">(${g.noid})</span></div>
+          ${g.items.map(it => `
+            <label class="tagihan-item">
+              <input type="checkbox" ${it.checked ? 'checked' : ''} onchange="antrianCache[${it._i}].checked = this.checked; updateAntrianTotal();" />
+              <span class="ti-label">${it.label}</span>
+              <span class="ti-nilai">${formatRp(it.nominal)}</span>
+            </label>
+          `).join('')}
+        </div>
+      `).join('');
+      updateAntrianTotal();
+    }
+
+    function updateAntrianTotal() {
+      const total = antrianCache.filter(it => it.checked).reduce((s, it) => s + (Number(it.nominal) || 0), 0);
+      document.getElementById('antrianTotalNilai').textContent = formatRp(total);
+    }
+
+    function batalkanAntrian() {
+      localStorage.removeItem('kgpAntrianTagihan');
+      antrianCache = [];
+      document.getElementById('antrianBox').hidden = true;
+      const url = new URL(window.location.href);
+      url.searchParams.delete('antrian');
+      window.history.replaceState({}, '', url);
+    }
+
+    async function prosesAntrianTagihan() {
+      const terpilih = antrianCache.filter(it => it.checked);
+      const caraBayar = document.getElementById('antrianCaraBayar').value;
+      const statusBar = document.getElementById('antrianStatusBar');
+
+      if (terpilih.length === 0) { alert('Pilih minimal satu item yang mau disimpan.'); return; }
+
+      const btn = document.getElementById('btnProsesAntrian');
+      const teksAsli = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span> Menyimpan...';
+      statusBar.style.display = 'none';
+
+      const buktiPerAnggota = {};
+      try {
+        for (const it of terpilih) {
+          const payload = { action: 'tambahTransaksi', kode: it.kode, noid: it.noid, caraBayar };
+          if (it.kode === 'CCL') {
+            payload.kaliBayar = 1;
+            payload.x = it.slot;
+          } else {
+            payload.nominal = it.nominal;
+          }
+          await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          if (!buktiPerAnggota[it.noid]) buktiPerAnggota[it.noid] = { nama: it.nama, noid: it.noid, items: [] };
+          buktiPerAnggota[it.noid].items.push({ label: it.label, nominal: it.nominal });
+        }
+
+        statusBar.style.display = 'block';
+        statusBar.className = 'status-bar success';
+        statusBar.textContent = `✅ ${terpilih.length} item dari ${Object.keys(buktiPerAnggota).length} anggota berhasil disimpan!`;
+
+        // Bukti pembayaran gabungan (ringkasan semua anggota yang diproses)
+        const semuaItems = [];
+        Object.values(buktiPerAnggota).forEach(g => {
+          g.items.forEach(it => semuaItems.push({ label: `${g.nama} — ${it.label}`, nominal: it.nominal }));
+        });
+        const totalSemua = semuaItems.reduce((s, it) => s + (Number(it.nominal) || 0), 0);
+        tampilkanBuktiPembayaran({
+          namaAnggota: Object.keys(buktiPerAnggota).length + ' anggota',
+          noid: '',
+          jenisLabel: 'Pembayaran Tagihan Massal (dari Daftar Tagihan)',
+          arahMasuk: true,
+          items: semuaItems,
+          total: totalSemua,
+          caraBayar
+        });
+
+        // Sisakan item yang tidak dicentang (kalau ada) tetap di antrian, hapus yang sudah diproses
+        antrianCache = antrianCache.filter(it => !it.checked);
+        if (antrianCache.length === 0) {
+          batalkanAntrian();
+        } else {
+          localStorage.setItem('kgpAntrianTagihan', JSON.stringify(antrianCache));
+          renderAntrianItems();
+        }
+        setTimeout(() => loadAllData(), 4000);
+      } catch (e) {
+        console.error(e);
+        statusBar.style.display = 'block';
+        statusBar.className = 'status-bar error';
+        statusBar.textContent = '❌ Sebagian/seluruh antrian gagal disimpan. Cek koneksi lalu coba lagi.';
+      }
+      btn.disabled = false;
+      btn.innerHTML = teksAsli;
+    }
+
     function updatePreviewCicilan() {
       const kode = document.getElementById('jenis').value;
       const previewEl = document.getElementById('previewCicilan');
@@ -1390,6 +1537,7 @@
     }
 
     loadAllData();
+    muatAntrianTagihan();
   </script>
 </body>
 </html>
