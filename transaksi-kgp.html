@@ -154,6 +154,10 @@
 
     .noid-tampilan { padding: 10px 14px; background: #f5f5f5; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.88rem; color: #999; }
     .noid-tampilan.terisi { background: #f5f7ff; border-color: #dfe3ff; color: #1e3c72; font-weight: 700; }
+
+    .filter-toggle { display: flex; gap: 8px; }
+    .filter-btn { padding: 8px 14px; border: 1.5px solid #ddd; background: #fff; border-radius: 8px; font-size: 0.8rem; font-weight: 600; color: #666; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .filter-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-color: transparent; }
     .btn {
       padding: 12px 24px;
       border: none;
@@ -327,6 +331,13 @@
     <div id="filterBanner" class="status-bar" style="display:none; background:#fff3e0; color:#e65100;">
       Menampilkan transaksi untuk: <strong id="filterNama"></strong>
       &nbsp;·&nbsp;<a href="transaksi-kgp.html" style="color:#1e3c72; font-weight:600;">Tampilkan Semua</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <input type="month" id="filterBulanRiwayat" style="padding:8px 12px; border:1.5px solid #ddd; border-radius:8px; font-size:0.85rem;" />
+      <div class="filter-toggle">
+        <button type="button" class="filter-btn active" id="btnFilterBulanIni" onclick="setModeFilterBulan('bulan')">📅 Bulan Ini</button>
+        <button type="button" class="filter-btn" id="btnFilterBulanSemua" onclick="setModeFilterBulan('semua')">👁️ Tampilkan Semua</button>
+      </div>
     </div>
     <div class="table-responsive">
       <table>
@@ -532,6 +543,26 @@
       });
     })();
 
+    // ===== FILTER BULAN UNTUK RIWAYAT TRANSAKSI (default: bulan berjalan) =====
+    let modeFilterBulan = 'bulan'; // 'bulan' | 'semua'
+
+    function setModeFilterBulan(mode) {
+      modeFilterBulan = mode;
+      document.getElementById('btnFilterBulanIni').classList.toggle('active', mode === 'bulan');
+      document.getElementById('btnFilterBulanSemua').classList.toggle('active', mode === 'semua');
+      renderTabel();
+    }
+
+    document.getElementById('filterBulanRiwayat').addEventListener('change', function() {
+      if (this.value) setModeFilterBulan('bulan'); else renderTabel();
+    });
+
+    (function inisialisasiFilterBulan() {
+      const now = new Date();
+      const bulanIni = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      document.getElementById('filterBulanRiwayat').value = bulanIni;
+    })();
+
     function renderTabel() {
       const tbody = document.getElementById('tabelTransaksi');
       const noidFilter = new URLSearchParams(window.location.search).get('noid');
@@ -545,6 +576,18 @@
         banner.style.display = 'block';
       } else {
         banner.style.display = 'none';
+      }
+
+      if (modeFilterBulan === 'bulan') {
+        const bulanDipilih = document.getElementById('filterBulanRiwayat').value; // format "YYYY-MM"
+        if (bulanDipilih) {
+          data = data.filter(t => {
+            const d = new Date(t['TIME STAMP']);
+            if (isNaN(d.getTime())) return false;
+            const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            return ym === bulanDipilih;
+          });
+        }
       }
 
       const urut = [...data].reverse(); // terbaru di atas
