@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <script>
+    (function() {
+      const sesiStr = localStorage.getItem("kgpSesi");
+      if (!sesiStr) { window.location.href = "login.html"; return; }
+      window.KGP_SESI = JSON.parse(sesiStr);
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daftar Tagihan Bulan Ini - KGP SMPN 1 Kaliwedi</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .top-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .home-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); flex-shrink: 0; }
+    .home-btn:hover { transform: scale(1.08); }
+    .home-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .top-header h1 { font-size: 1.1rem; color: #333; font-weight: 700; }
+
+    .status-bar { background: #f0f4ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #555; border-left: 4px solid #667eea; }
+    .status-bar.error { background: #ffebee; color: #c62828; border-left-color: #dc3545; }
+    .status-bar.success { background: #e8f5e9; color: #2e7d32; border-left-color: #28a745; }
+
+    .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    .filter-row label { font-weight: 600; font-size: 0.85rem; color: #555; }
+    .filter-row input { padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+    .filter-row button {
+      border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;
+      padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+
+    .info-box { background: #fff3e0; border-left: 4px solid #ffb300; padding: 10px 14px; border-radius: 8px; font-size: 0.78rem; color: #7a5c00; margin-bottom: 15px; line-height: 1.5; }
+
+    .section-title { color: #333; margin: 5px 0 12px 0; font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .section-title .count { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem; }
+
+    .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 1000px; }
+    th { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 9px 7px; text-align: left; white-space: nowrap; position: sticky; top: 0; }
+    th.num, td.num { text-align: right; }
+    td { padding: 8px 7px; border-bottom: 1px solid rgba(0,0,0,0.05); white-space: nowrap; }
+    td.kosong { color: #c9c9c9; text-align: center; }
+    .nama-cell { font-weight: 700; color: #333; }
+    .noid-cell { color: #777; }
+    tfoot td { font-weight: 800; background: #eef1fb !important; border-top: 2px solid #667eea; color: #1e3c72; }
+
+    @media (max-width: 600px) { .container { padding: 14px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-header">
+      <a href="Index.html" class="home-btn" title="Beranda">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </a>
+      <h1>📋 DAFTAR TAGIHAN BULAN INI</h1>
+    </div>
+
+    <div id="statusBar" class="status-bar">🔄 Memuat data...</div>
+
+    <div class="filter-row">
+      <label for="pilihBulan">Bulan:</label>
+      <input type="month" id="pilihBulan" />
+      <button type="button" onclick="unduhExcelTagihan()">⬇️ Unduh Excel</button>
+    </div>
+
+    <div class="info-box">
+      💡 Sel dikosongkan kalau item itu bulan ini <b>sudah dibayar</b> atau anggota memang <b>tidak punya tagihan</b> untuk item tersebut. Hanya anggota yang masih punya minimal satu tagihan bulan ini yang ditampilkan.
+    </div>
+
+    <div class="section-title">
+      <span>📋 Tagihan Per Anggota</span>
+      <span class="count" id="jumlahBaris">0</span>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>NOID</th>
+            <th>NAMA</th>
+            <th class="num">SW</th>
+            <th class="num">SHR</th>
+            <th class="num">K01</th>
+            <th class="num">K02</th>
+            <th class="num">K03</th>
+            <th class="num">K04</th>
+            <th class="num">K05</th>
+            <th class="num">JML TAGIHAN</th>
+            <th class="num">KS01</th>
+            <th class="num">KS02</th>
+          </tr>
+        </thead>
+        <tbody id="tabelTagihan">
+          <tr><td colspan="12" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">TOTAL</td>
+            <td class="num" id="totSW">Rp 0</td>
+            <td class="num" id="totSHR">Rp 0</td>
+            <td class="num" id="totK01">Rp 0</td>
+            <td class="num" id="totK02">Rp 0</td>
+            <td class="num" id="totK03">Rp 0</td>
+            <td class="num" id="totK04">Rp 0</td>
+            <td class="num" id="totK05">Rp 0</td>
+            <td class="num" id="totJumlah">Rp 0</td>
+            <td class="num" id="totKS01">Rp 0</td>
+            <td class="num" id="totKS02">Rp 0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/nexalone/KGP/main/data/';
+    const ANGGOTA_URL = GITHUB_BASE + 'anggota.csv';
+    const TRANSAKSI_URL = GITHUB_BASE + 'transaksi.csv';
+    const REF_URL = GITHUB_BASE + 'ref.csv';
+
+    // Palet warna lembut, dipakai bergantian tiap baris supaya tiap baris beda warnanya
+    const PALET_WARNA = ['#fef6e4', '#e8f4ff', '#eafaf1', '#fdf0f5', '#f3eefc', '#fff8e8', '#e9f7f7', '#f6f0e8'];
+
+    let dataAnggota = [], dataTransaksi = [], dataRef = [], barisTagihanTerkini = [];
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes; }
+        else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+        else current += c;
+      }
+      result.push(current);
+      return result.map(v => v.replace(/^"|"$/g, '').trim());
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length === 0) return [];
+      const headers = parseCSVLine(lines[0]);
+      const result = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseCSVLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h.trim()] = values[idx] || ''; });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    function formatRp(n) {
+      return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID');
+    }
+
+    function getNominalDefault(kode) {
+      const row = dataRef.find(r => r.KODE === kode);
+      return row ? (Number(row.NOMINAL) || 0) : 0;
+    }
+
+    // Hitung jumlah bulan berdasarkan PERGANTIAN BULAN KALENDER (bukan selisih hari).
+    function hitungBulanBerubah(dariTanggal, sampaiTanggal) {
+      const idxDari = dariTanggal.getFullYear() * 12 + dariTanggal.getMonth();
+      const idxSampai = sampaiTanggal.getFullYear() * 12 + sampaiTanggal.getMonth();
+      return Math.max(0, idxSampai - idxDari);
+    }
+
+    // Info pinjaman aktif (sama persis logikanya dengan struk-tagihan.html, supaya hasilnya konsisten di seluruh aplikasi)
+    function cariPinjamanAktif(rows, jenisPrefix) {
+      const cicilanPrefix = jenisPrefix === 'K' ? 'CP' : 'CS';
+      const jasaPrefix = jenisPrefix === 'K' ? 'JP' : 'JPS';
+      const hasil = [];
+      for (let slot = 1; slot <= 5; slot++) {
+        let pokokAwal = 0, jmlCicilan = 0, tglCair = null, found = false;
+        rows.forEach(t => {
+          const parts = (t.REF || '').split('-');
+          if (parts.length === 3 && parts[0] === jenisPrefix && parts[2] === String(slot)) {
+            const tgl = new Date(t['TIME STAMP']);
+            if (!tglCair || tgl > tglCair) {
+              tglCair = tgl; pokokAwal = Number(t.KELUAR) || 0; jmlCicilan = Number(t['JML CICILAN']) || 0; found = true;
+            }
+          }
+        });
+        if (!found) continue;
+
+        let pokokTerbayar = 0, angsuranTerbayar = 0, tglTerakhirBayar = tglCair;
+        rows.forEach(t => {
+          const parts = (t.REF || '').split('-');
+          const tgl = new Date(t['TIME STAMP']);
+          if (isNaN(tgl.getTime()) || tgl < tglCair) return;
+          if (parts.length === 4 && parts[0] === cicilanPrefix && parts[2] === String(slot)) {
+            pokokTerbayar += Number(t.MASUK) || 0;
+            angsuranTerbayar++;
+            if (tgl > tglTerakhirBayar) tglTerakhirBayar = tgl;
+          } else if (jenisPrefix === 'KS' && parts.length === 4 && parts[0] === jasaPrefix && parts[2] === String(slot)) {
+            if (tgl > tglTerakhirBayar) tglTerakhirBayar = tgl;
+          }
+        });
+
+        const sisaPokok = pokokAwal - pokokTerbayar;
+        if (sisaPokok > 0) hasil.push({ jenisPrefix, slot, pokokAwal, sisaPokok, jmlCicilan, angsuranTerbayar, tglCair, tglTerakhirBayar });
+      }
+      return hasil;
+    }
+
+    async function loadAllData() {
+      const statusBar = document.getElementById('statusBar');
+
+      // Batasi akses: Admin/Bendahara (role admin), atau anggota dengan jabatan Ketua/Sekretaris
+      if (window.KGP_SESI && window.KGP_SESI.role !== 'admin') {
+        try {
+          const rA0 = await fetch(ANGGOTA_URL + '?t=' + Date.now());
+          const txtA0 = await rA0.text();
+          const cekAnggota = parseCSV(txtA0).find(a => a.NOID === window.KGP_SESI.noid);
+          const jabatanCek = ((cekAnggota && cekAnggota.JABATAN) || '').trim().toLowerCase();
+          if (!['ketua', 'sekretaris'].includes(jabatanCek)) {
+            alert('Halaman ini khusus Ketua, Sekretaris, dan Bendahara.');
+            window.location.href = 'Index.html';
+            return;
+          }
+        } catch (e) {
+          alert('Halaman ini khusus Ketua, Sekretaris, dan Bendahara.');
+          window.location.href = 'Index.html';
+          return;
+        }
+      }
+
+      try {
+        const [rA, rT, rR] = await Promise.all([
+          fetch(ANGGOTA_URL + '?t=' + Date.now()),
+          fetch(TRANSAKSI_URL + '?t=' + Date.now()),
+          fetch(REF_URL + '?t=' + Date.now())
+        ]);
+        if (!rA.ok || !rT.ok || !rR.ok) throw new Error('Gagal mengambil data dari GitHub');
+        const [txtA, txtT, txtR] = await Promise.all([rA.text(), rT.text(), rR.text()]);
+
+        dataAnggota = parseCSV(txtA).filter(a => a.NOID && a.NOID.toUpperCase() !== 'NOID');
+        dataTransaksi = parseCSV(txtT);
+        dataRef = parseCSV(txtR);
+
+        const now = new Date();
+        document.getElementById('pilihBulan').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+        renderTagihan();
+        statusBar.textContent = `✅ ${dataAnggota.length} anggota, ${dataTransaksi.length} transaksi (dari GitHub)`;
+        statusBar.className = 'status-bar success';
+      } catch (e) {
+        console.error(e);
+        statusBar.textContent = '❌ Gagal memuat data dari GitHub.';
+        statusBar.className = 'status-bar error';
+      }
+    }
+
+    document.getElementById('pilihBulan').addEventListener('change', renderTagihan);
+
+    // Hitung satu baris tagihan untuk satu anggota di bulan tertentu
+    function hitungBarisTagihan(anggota, tahun, bulan) {
+      const akhirBulan = new Date(tahun, bulan, 0, 23, 59, 59);
+      const awalBulan = new Date(tahun, bulan - 1, 1);
+      const yymmIni = String(tahun).slice(-2) + String(bulan).padStart(2, '0');
+
+      const rows = dataTransaksi.filter(t => t.NOID === anggota.NOID);
+      const rowsSampaiBulan = rows.filter(t => new Date(t['TIME STAMP']) <= akhirBulan);
+      const rowsBulanIni = rows.filter(t => { const d = new Date(t['TIME STAMP']); return d >= awalBulan && d <= akhirBulan; });
+
+      const pasif = (anggota.STATUS || '').toUpperCase() === 'PASIF';
+
+      // SW — kosong kalau Pasif (tidak wajib) atau sudah dibayar bulan ini
+      let sw = '';
+      if (!pasif) {
+        const sudahSW = rowsBulanIni.some(t => t.REF === 'SW-' + yymmIni);
+        if (!sudahSW) sw = getNominalDefault('SW');
+      }
+
+      // SHR — kosong kalau anggota tidak punya kewajiban SHR, atau sudah dibayar bulan ini
+      let shr = '';
+      const nominalSHR = Number(anggota['NOMINAL SHR']) || 0;
+      if (nominalSHR > 0) {
+        const sudahSHR = rowsBulanIni.some(t => t.REF === 'SHR-' + yymmIni);
+        if (!sudahSHR) shr = nominalSHR;
+      }
+
+      // K01..K05 — kosong kalau slot tidak aktif atau cicilan bulan ini sudah dibayar
+      const kolK = ['', '', '', '', ''];
+      cariPinjamanAktif(rowsSampaiBulan, 'K').forEach(p => {
+        if (p.slot < 1 || p.slot > 5 || !p.jmlCicilan) return;
+        const sudahBayar = rowsBulanIni.some(t => {
+          const parts = (t.REF || '').split('-');
+          return parts.length === 4 && parts[0] === 'CP' && parts[1] === yymmIni && parts[2] === String(p.slot);
+        });
+        if (sudahBayar) return;
+        const cicilanPerBulan = Math.round(p.pokokAwal / p.jmlCicilan);
+        const jasaPerBulan = Math.round(p.pokokAwal * 0.01);
+        kolK[p.slot - 1] = cicilanPerBulan + jasaPerBulan;
+      });
+
+      // KS01, KS02 — kosong kalau slot tidak aktif, belum ada bulan tertunggak, atau sudah dibayar bulan ini
+      const kolKS = ['', ''];
+      cariPinjamanAktif(rowsSampaiBulan, 'KS').forEach(p => {
+        if (p.slot < 1 || p.slot > 2) return;
+        const sudahBayar = rowsBulanIni.some(t => {
+          const parts = (t.REF || '').split('-');
+          return parts.length === 4 && (parts[0] === 'CS' || parts[0] === 'JPS') && parts[1] === yymmIni && parts[2] === String(p.slot);
+        });
+        if (sudahBayar) return;
+        const bulanTertunggak = hitungBulanBerubah(p.tglTerakhirBayar, akhirBulan);
+        const jasa = Math.round(p.sisaPokok * 0.01 * bulanTertunggak);
+        if (jasa > 0) kolKS[p.slot - 1] = jasa;
+      });
+
+      const jumlahTagihan = [sw, shr, ...kolK, ...kolKS].reduce((s, v) => s + (Number(v) || 0), 0);
+
+      return { anggota, sw, shr, kolK, kolKS, jumlahTagihan };
+    }
+
+    function renderTagihan() {
+      const bulanInput = document.getElementById('pilihBulan').value;
+      if (!bulanInput) return;
+      const [tahunStr, bulanStr] = bulanInput.split('-');
+      const tahun = Number(tahunStr), bulan = Number(bulanStr);
+
+      const anggotaDicek = dataAnggota.filter(a => ['AKTIF', 'PASIF'].includes((a.STATUS || '').toUpperCase()));
+
+      const baris = anggotaDicek
+        .map(a => hitungBarisTagihan(a, tahun, bulan))
+        .filter(b => b.jumlahTagihan > 0) // hanya tampilkan yang masih punya tagihan bulan ini
+        .sort((a, b) => (a.anggota.NAMA || '').localeCompare(b.anggota.NAMA || '', 'id'));
+
+      barisTagihanTerkini = baris;
+      document.getElementById('jumlahBaris').textContent = baris.length;
+
+      const tbody = document.getElementById('tabelTagihan');
+      const sel = v => v === '' ? '<td class="num kosong">—</td>' : `<td class="num">${formatRp(v)}</td>`;
+
+      if (baris.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:20px;color:#999;">Tidak ada tagihan tersisa bulan ini 🎉</td></tr>';
+      } else {
+        tbody.innerHTML = baris.map((b, i) => `
+          <tr style="background:${PALET_WARNA[i % PALET_WARNA.length]};">
+            <td class="noid-cell">${b.anggota.NOID}</td>
+            <td class="nama-cell">${b.anggota.NAMA}</td>
+            ${sel(b.sw)}
+            ${sel(b.shr)}
+            ${b.kolK.map(sel).join('')}
+            <td class="num" style="font-weight:800; color:#1e3c72;">${formatRp(b.jumlahTagihan)}</td>
+            ${b.kolKS.map(sel).join('')}
+          </tr>
+        `).join('');
+      }
+
+      const total = { sw: 0, shr: 0, k: [0, 0, 0, 0, 0], jumlah: 0, ks: [0, 0] };
+      baris.forEach(b => {
+        total.sw += Number(b.sw) || 0;
+        total.shr += Number(b.shr) || 0;
+        b.kolK.forEach((v, i) => total.k[i] += Number(v) || 0);
+        total.jumlah += b.jumlahTagihan;
+        b.kolKS.forEach((v, i) => total.ks[i] += Number(v) || 0);
+      });
+      document.getElementById('totSW').textContent = formatRp(total.sw);
+      document.getElementById('totSHR').textContent = formatRp(total.shr);
+      ['01', '02', '03', '04', '05'].forEach((s, i) => { document.getElementById('totK' + s).textContent = formatRp(total.k[i]); });
+      document.getElementById('totJumlah').textContent = formatRp(total.jumlah);
+      ['01', '02'].forEach((s, i) => { document.getElementById('totKS' + s).textContent = formatRp(total.ks[i]); });
+    }
+
+    // ===== EKSPOR EXCEL =====
+    function downloadExcel(filename, headers, rows) {
+      const data = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data');
+      XLSX.writeFile(wb, filename.replace(/\.xls$/, '.xlsx'));
+    }
+
+    function unduhExcelTagihan() {
+      const bulanInput = document.getElementById('pilihBulan').value;
+      const angka = v => v === '' ? '' : Number(v);
+
+      const rows = barisTagihanTerkini.map(b => [
+        b.anggota.NOID, b.anggota.NAMA,
+        angka(b.sw), angka(b.shr),
+        angka(b.kolK[0]), angka(b.kolK[1]), angka(b.kolK[2]), angka(b.kolK[3]), angka(b.kolK[4]),
+        b.jumlahTagihan,
+        angka(b.kolKS[0]), angka(b.kolKS[1])
+      ]);
+
+      const total = { sw: 0, shr: 0, k: [0, 0, 0, 0, 0], jumlah: 0, ks: [0, 0] };
+      barisTagihanTerkini.forEach(b => {
+        total.sw += Number(b.sw) || 0;
+        total.shr += Number(b.shr) || 0;
+        b.kolK.forEach((v, i) => total.k[i] += Number(v) || 0);
+        total.jumlah += b.jumlahTagihan;
+        b.kolKS.forEach((v, i) => total.ks[i] += Number(v) || 0);
+      });
+      rows.push(['', 'TOTAL', total.sw, total.shr, total.k[0], total.k[1], total.k[2], total.k[3], total.k[4], total.jumlah, total.ks[0], total.ks[1]]);
+
+      downloadExcel(`daftar_tagihan_${bulanInput}.xls`,
+        ['NOID', 'NAMA', 'SW', 'SHR', 'K01', 'K02', 'K03', 'K04', 'K05', 'JML TAGIHAN', 'KS01', 'KS02'],
+        rows);
+    }
+
+    loadAllData();
+  </script>
+</body>
+</html>
