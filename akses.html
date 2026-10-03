@@ -121,7 +121,8 @@
         const jabatan = (anggota.JABATAN || '').trim().toLowerCase();
         const role = jabatan === 'bendahara' ? 'admin' : 'anggota';
         const bisaBagikan = ['bendahara', 'ketua', 'sekretaris'].includes(jabatan);
-        localStorage.setItem('kgpSesi', JSON.stringify({ role: role, noid: anggota.NOID, nama: anggota.NAMA, bisaBagikan: bisaBagikan }));
+        const bisaLihatTagihan = ['ketua', 'sekretaris'].includes(jabatan); // Bendahara sudah dapat akses penuh lewat role admin
+        localStorage.setItem('kgpSesi', JSON.stringify({ role: role, noid: anggota.NOID, nama: anggota.NAMA, bisaBagikan: bisaBagikan, bisaLihatTagihan: bisaLihatTagihan }));
 
         document.getElementById('spinner').style.display = 'none';
         document.getElementById('iconBox').textContent = '✅';
