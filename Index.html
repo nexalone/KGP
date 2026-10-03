@@ -170,6 +170,10 @@
       background: linear-gradient(135deg, #43cea2, #185a9d);
     }
 
+    .menu-card.daftartagihan .icon {
+      background: linear-gradient(135deg, #ff5e62, #ff9966);
+    }
+
     .menu-card.bagikan .icon {
       background: linear-gradient(135deg, #a18cd1, #fbc2eb);
     }
@@ -253,6 +257,7 @@
 
     const MENU_ADMIN = [
       { href: 'struk-tagihan.html', cls: 'struk', icon: '🧾', label: 'Struk Tagihan' },
+      { href: 'daftar-tagihan-kgp.html', cls: 'daftartagihan', icon: '📋', label: 'Daftar Tagihan' },
       { href: 'kartu-anggota.html', cls: 'kartu', icon: '🪪', label: 'Kartu Anggota' },
       { href: 'pembukuan-kgp.html', cls: 'pembukuan', icon: '📒', label: 'Pembukuan Bulanan' },
       { href: 'neraca-kgp.html', cls: 'neraca', icon: '⚖️', label: 'Neraca' },
@@ -273,6 +278,9 @@
     ];
 
     let menu = sesi.role === 'admin' ? MENU_ADMIN : MENU_ANGGOTA;
+    if (sesi.role !== 'admin' && sesi.bisaLihatTagihan) {
+      menu = menu.concat([{ href: 'daftar-tagihan-kgp.html', cls: 'daftartagihan', icon: '📋', label: 'Daftar Tagihan' }]);
+    }
     if (sesi.role !== 'admin' && sesi.bisaBagikan) {
       menu = menu.concat([{ href: 'bagikan-akses.html', cls: 'bagikan', icon: '🔗', label: 'Bagikan Akses' }]);
     }
