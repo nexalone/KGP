@@ -83,13 +83,17 @@
 
     <div class="section-title">
       <span>📋 Tagihan Per Anggota</span>
-      <span class="count" id="jumlahBaris">0</span>
+      <span style="display:flex; align-items:center; gap:8px;">
+        <span class="count" id="jumlahBaris">0</span>
+        <button type="button" id="btnProsesTransaksi" onclick="prosesKeTransaksi()" style="display:none; border:none; background:linear-gradient(135deg,#ff5e62,#ff9966); color:#fff; padding:7px 14px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer;">💳 Proses ke Transaksi (<span id="jumlahDipilih">0</span>)</button>
+      </span>
     </div>
 
     <div class="table-responsive">
       <table>
         <thead>
           <tr>
+            <th id="thPilih"><input type="checkbox" id="chkPilihSemua" onchange="toggleSemuaBaris(this.checked)" style="display:none;" /></th>
             <th>NOID</th>
             <th>NAMA</th>
             <th class="num">SW</th>
@@ -105,11 +109,11 @@
           </tr>
         </thead>
         <tbody id="tabelTagihan">
-          <tr><td colspan="12" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
+          <tr><td colspan="13" style="text-align:center;padding:20px;color:#999;">Memuat data...</td></tr>
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2">TOTAL</td>
+            <td colspan="3">TOTAL</td>
             <td class="num" id="totSW">Rp 0</td>
             <td class="num" id="totSHR">Rp 0</td>
             <td class="num" id="totK01">Rp 0</td>
@@ -348,11 +352,16 @@
       const tbody = document.getElementById('tabelTagihan');
       const sel = v => v === '' ? '<td class="num kosong">—</td>' : `<td class="num">${formatRp(v)}</td>`;
 
+      const bisaProses = window.KGP_SESI && window.KGP_SESI.role === 'admin';
+      document.getElementById('chkPilihSemua').style.display = bisaProses ? 'inline-block' : 'none';
+      document.getElementById('btnProsesTransaksi').style.display = bisaProses ? 'inline-flex' : 'none';
+
       if (baris.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:20px;color:#999;">Tidak ada tagihan tersisa bulan ini 🎉</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:20px;color:#999;">Tidak ada tagihan tersisa bulan ini 🎉</td></tr>';
       } else {
         tbody.innerHTML = baris.map((b, i) => `
           <tr style="background:${PALET_WARNA[i % PALET_WARNA.length]};">
+            <td>${bisaProses ? `<input type="checkbox" class="chk-baris" data-idx="${i}" onchange="updateJumlahDipilih()" />` : ''}</td>
             <td class="noid-cell">${b.anggota.NOID}</td>
             <td class="nama-cell">${b.anggota.NAMA}</td>
             ${sel(b.sw)}
@@ -363,6 +372,7 @@
           </tr>
         `).join('');
       }
+      updateJumlahDipilih();
 
       const total = { sw: 0, shr: 0, k: [0, 0, 0, 0, 0], jumlah: 0, ks: [0, 0] };
       baris.forEach(b => {
@@ -377,6 +387,40 @@
       ['01', '02', '03', '04', '05'].forEach((s, i) => { document.getElementById('totK' + s).textContent = formatRp(total.k[i]); });
       document.getElementById('totJumlah').textContent = formatRp(total.jumlah);
       ['01', '02'].forEach((s, i) => { document.getElementById('totKS' + s).textContent = formatRp(total.ks[i]); });
+    }
+
+    // ===== PILIH ANGGOTA & PROSES KE TRANSAKSI (khusus Bendahara/Admin) =====
+    function toggleSemuaBaris(checked) {
+      document.querySelectorAll('.chk-baris').forEach(c => { c.checked = checked; });
+      updateJumlahDipilih();
+    }
+
+    function updateJumlahDipilih() {
+      const n = document.querySelectorAll('.chk-baris:checked').length;
+      const el = document.getElementById('jumlahDipilih');
+      if (el) el.textContent = n;
+    }
+
+    // Kirim SW, SHR, dan K01-K05 (Cicilan Pinjaman) dari baris yang dicentang sebagai antrian ke halaman Transaksi.
+    // KS01/KS02 (Pinjaman Sementara) sengaja tidak diikutkan karena nominalnya fleksibel/manual, bukan tagihan tetap.
+    function prosesKeTransaksi() {
+      const dipilih = [...document.querySelectorAll('.chk-baris:checked')].map(c => barisTagihanTerkini[Number(c.dataset.idx)]);
+      if (dipilih.length === 0) { alert('Pilih minimal satu anggota dulu.'); return; }
+
+      const antrian = [];
+      dipilih.forEach(b => {
+        const noid = b.anggota.NOID, nama = b.anggota.NAMA;
+        if (b.sw !== '') antrian.push({ noid, nama, kode: 'SW', label: 'Simpanan Wajib (SW)', nominal: Number(b.sw) });
+        if (b.shr !== '') antrian.push({ noid, nama, kode: 'SHR-S', label: 'Simpanan Hari Raya (SHR)', nominal: Number(b.shr) });
+        b.kolK.forEach((v, i) => {
+          if (v !== '') antrian.push({ noid, nama, kode: 'CCL', slot: i + 1, label: `Cicilan Pinjaman Slot ${i + 1}`, nominal: Number(v) });
+        });
+      });
+
+      if (antrian.length === 0) { alert('Anggota yang dipilih tidak punya tagihan SW/SHR/Cicilan Pinjaman (K01-K05) yang bisa diproses.'); return; }
+
+      localStorage.setItem('kgpAntrianTagihan', JSON.stringify(antrian));
+      window.location.href = 'transaksi-kgp.html?antrian=1';
     }
 
     // ===== EKSPOR EXCEL =====
